@@ -84,24 +84,32 @@ Find CFPs that target these audiences:
 
 ## Search Strategy
 
-Run these 3 searches IN PARALLEL (single tool-use block):
+Run ALL 8 searches IN PARALLEL in a single tool-use block:
+
+**Core searches:**
 1. `call for papers API developer conference 2026 open CFP`
-2. `call for speakers DevOps backend conference 2026 CFP deadline`
-3. `site:papercall.io OR site:sessionize.com developer conference 2026 CFP`
+2. `call for speakers DevOps platform engineering conference 2026 CFP deadline`
+3. `AI developer conference LLM agents 2026 call for papers CFP`
 
-## Additional CFP Sources to Check
+**CFP platform searches:**
+4. `site:papercall.io API developer conference 2026 CFP open`
+5. `site:sessionize.com API DevOps cloud conference 2026 CFP`
 
-After the web searches, fetch these curated CFP aggregator sites IN PARALLEL for additional opportunities:
+**Aggregator site searches:**
+6. `site:confs.tech CFP 2026 developer API`
+7. `site:github.com developers-conferences-agenda 2026 CFP`
+8. `Linux Foundation events 2026 call for proposals CFP open`
 
-- https://redcanary.com/blog/news-events/cfp-tracker-january-2026/
-- https://www.womenonstage.net/conferences
-- https://jsconf.com/
+## Reference Sites (for manual checking)
+
+These curated CFP sources are useful for manual follow-up:
 - https://confs.tech/cfp
-- https://dev.to/josefine/speaking-at-tech-conferences-finding-a-cfp-238n
-- https://github.com/scraly/developers-conferences-agenda?tab=readme-ov-file
-- https://plus.techtalksweekly.io/issues/88-talks-l1xzwg12
-- https://sessionize.com/linux-foundation-events?opencfs=true
-- https://www.papercall.io/events?cfps-scope=&keywords=API
+- https://github.com/scraly/developers-conferences-agenda
+- https://sessionize.com/linux-foundation-events
+- https://www.papercall.io/events?keywords=API
+- https://www.womenonstage.net/conferences
+
+**CRITICAL: Do NOT make any WebFetch calls.** The search results contain sufficient information. Write results immediately after searches complete.
 
 ## Output Format
 
