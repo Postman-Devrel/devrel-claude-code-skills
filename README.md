@@ -11,6 +11,7 @@ Skills are reusable prompts that extend Claude Code's capabilities for specific 
 | Skill | Description |
 |-------|-------------|
 | [devadvocate-blogger](devadvocate-blogger.md) | Write technical blog posts about Postman and APIs with an expert developer advocate voice. Produces content that balances deep technical expertise with approachable teaching, including proper syntax highlighting, links to official documentation, and hands-on examples. |
+| [cfp-hunter](cfp-hunter.md) | Fetch links for open CFPs which match our developer profiles. |
 
 ## Installation
 
