@@ -1,8 +1,8 @@
 ---
 name: monthly-newsletter
-description: Generate the monthly Postman Agents & APIs meetup newsletter. Combines upcoming events from Luma calendar with latest AI and API news, focusing on MCP Apps, agent observability, API security, and ecosystem developments. Use at the start of each month to create newsletter content for subscribers.
+description: "Generate the monthly Postman Agents & APIs meetup newsletter. Combines upcoming events from Luma calendar with latest AI and API news, focusing on MCP Apps, agent observability, API security, and ecosystem developments. Use at the start of each month to create newsletter content for subscribers."
 disable-model-invocation: false
-argument-hint: [month] (optional, defaults to current month)
+argument-hint: "[month] (optional, defaults to current month)"
 ---
 
 # Monthly Meetup Newsletter Generator
@@ -20,7 +20,7 @@ Generate an informative, developer-focused newsletter for Postman Agents & APIs 
 
 ## Content Structure
 
-### 1. Standard Header (Always Include First)
+### 1. Standard Header (Always Include First, but Paraphrase)
 
 ```markdown
 Welcome to the **Agents & APIs Developer Newsletter** by Postman. We run in-person developer events worldwide, where we demo what's new with Postman, invite partners to share code, and generally chat about all things AI and API. Make sure you check the [event calendar](https://luma.com/calendar/cal-TGqTNpY4iyl7XYe) for the latest event dates.
