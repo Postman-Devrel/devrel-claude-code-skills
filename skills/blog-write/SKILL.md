@@ -24,6 +24,25 @@ If a file path is provided, read the file first. The file may contain:
 
 Use the file contents as the foundation, applying all the voice, structure, and quality guidelines below.
 
+## Research Phase (Run in Parallel)
+
+Before writing, gather background material by running these searches **in parallel** using the WebSearch and WebFetch tools. Do NOT run them sequentially — launch all independent searches at the same time to minimize wait time.
+
+**Parallel search batch 1 — Topic research (run all simultaneously):**
+- WebSearch: `[topic] site:learning.postman.com` — find relevant Postman docs to link
+- WebSearch: `[topic] site:blog.postman.com` — check for existing Postman blog coverage
+- WebSearch: `[topic] best practices [current year]` — current industry context
+- WebSearch: `[topic] tutorial developer guide` — see what competitors have published
+
+**Parallel search batch 2 — Code & community (run all simultaneously):**
+- WebSearch: `[topic] site:github.com postman` — find relevant repos and examples
+- WebSearch: `[topic] site:reddit.com developer` — community pain points and questions
+- WebSearch: `[topic] site:dev.to OR site:medium.com` — popular content angles to differentiate from
+
+After searches complete, use WebFetch in parallel on the top 2-3 most relevant results from each batch to gather detailed content.
+
+**Important:** The research phase should take one or two rounds of parallel calls, not 10+ sequential searches. Prioritize breadth over depth — you can always fetch more detail on specific points while writing.
+
 **Output:** Save the finished blog post as a Markdown file in the `/blog-output` directory. Use a slugified version of the title as the filename (e.g., `blog-output/testing-auth-flows-in-postman.md`). Create the directory if it doesn't exist.
 
 At the very top of the output file, include the following YAML frontmatter block before the blog content:
