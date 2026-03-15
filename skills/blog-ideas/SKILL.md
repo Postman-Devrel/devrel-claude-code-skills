@@ -1,6 +1,7 @@
 ---
 name: blog-ideas
 description: "Search trending topics in AI, APIs, and Postman.com to generate scored blog content ideas. Returns ideas ranked 0-100 based on trend potential, audience fit, and content gaps. Use when brainstorming what to write next."
+argument-hint: "[focus area] (optional, e.g. 'MCP', 'API security', 'testing')"
 ---
 
 # Blog Ideas Generator

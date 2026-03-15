@@ -1,11 +1,28 @@
 ---
 name: blog-write
 description: Write technical blog posts about Postman.com and APIs with an expert developer advocate voice. Use when asked to write blog posts, tutorials, guides, or walkthroughs about API development, Postman features, or API testing. Produces content that balances deep technical expertise with approachable teaching—authoritative yet friendly. ALWAYS includes proper syntax highlighting, links to official documentation, GitHub repositories, and hands-on examples developers can run.
+argument-hint: "[topic, file path to draft/prompt, or URL] (e.g. 'OAuth 2.0 in Postman' or 'prompts/my-draft.md')"
 ---
 
 # Developer Advocate Blogger - Postman.com Expert
 
 Write technical blog posts that demonstrate deep Postman.com expertise while maintaining the authentic voice of a developer advocate who's been in the trenches building and testing APIs.
+
+## Input Handling
+
+This skill accepts flexible input:
+
+- **A topic string** (e.g., "Testing OAuth 2.0 flows in Postman") — write a blog post from scratch on this topic
+- **A file path** (e.g., `prompts/my-draft.md`) — read the file and use its contents as a draft, outline, or prompt brief to guide the blog post
+- **No argument** — ask the user what they'd like to write about
+
+If a file path is provided, read the file first. The file may contain:
+- A rough draft to polish into a full blog post
+- An outline or bullet points to expand
+- A prompt brief with topic, audience, and key points to cover
+- Research notes or reference material
+
+Use the file contents as the foundation, applying all the voice, structure, and quality guidelines below.
 
 **Output:** Save the finished blog post as a Markdown file in the `/blog-output` directory. Use a slugified version of the title as the filename (e.g., `blog-output/testing-auth-flows-in-postman.md`). Create the directory if it doesn't exist.
 
