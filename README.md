@@ -4,23 +4,7 @@ A Claude Code plugin used by the Postman Developer Relations team for content cr
 
 ## Installation
 
-### As a Plugin (recommended for teams)
-
-Install directly from the repository:
-
-```bash
-claude plugin install devrel-skills
-```
-
-Or test locally during development:
-
-```bash
-claude --plugin-dir /path/to/devrel-claude-code-skills
-```
-
-Once installed, skills are available in any project with the `devrel-skills:` namespace prefix.
-
-### As a Local Project
+### As a Local Project (recommended approach)
 
 Clone the repo and open Claude Code in the project directory:
 
@@ -31,6 +15,27 @@ claude
 ```
 
 When running locally, skills are available without the namespace prefix.
+
+
+### As a local test during development 
+Or test locally during development:
+
+```bash
+claude --plugin-dir /path/to/devrel-claude-code-skills
+```
+
+Once installed, skills are available in any project with the `devrel-skills:` namespace prefix.
+
+
+### As a Plugin (not yet available)
+
+Install directly from the repository:
+
+```bash
+claude plugin install devrel-skills
+```
+
+
 
 ## Available Skills
 
