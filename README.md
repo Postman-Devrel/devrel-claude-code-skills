@@ -1,60 +1,77 @@
-# Claude Code Skills
+# DevRel Claude Code Skills
 
-A collection of Claude Code skills used by the Postman Developer Relations team.
+A collection of Claude Code commands used by the Postman Developer Relations team for content creation, competitive intelligence, and community engagement.
 
-## What are Claude Code Skills?
+## Getting Started
 
-Skills are reusable prompts that extend Claude Code's capabilities for specific tasks. They provide domain expertise and consistent output for common workflows.
+1. Clone this repo
+2. Open Claude Code in the project directory: `claude`
+3. Type `/` to see all available commands
 
-## Available Skills
+Everything in `.claude/` is automatically loaded — no additional setup required.
 
-| Skill | Description |
-|-------|-------------|
-| [devadvocate-blogger](devadvocate-blogger.md) | Write technical blog posts about Postman and APIs with an expert developer advocate voice. Produces content that balances deep technical expertise with approachable teaching, including proper syntax highlighting, links to official documentation, and hands-on examples. |
-| [cfp-hunter](cfp-hunter.md) | Fetch links for open CFPs which match our developer profiles. |
-[competitor-sentiment](competitor-sentiment.md) | Analyze Reddit comments about API developer tools (Postman, Apigee, Bruno, Insomnia, RapidAPI/Paw, Hopscotch) and generate sentiment rankings by category. Provides 0-100 scores for capabilities like pricing, collaboration, and security with summarized feedback. |
+## Available Commands
 
-## Installation
+| Command | Description |
+|---------|-------------|
+| `/blog-ideas` | Search trending AI/API topics and generate scored blog content ideas (0-100) |
+| `/blog-write` | Write technical blog posts with developer advocate voice, SEO frontmatter, and hands-on examples |
+| `/blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO optimization |
+| `/cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `/newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
+| `/competitor-sentiment` | Analyze Reddit sentiment about API developer tools |
+| `/sentiment-competitors` | Analyze Reddit sentiment (alternate name) |
 
-To use these skills in your Claude Code setup, copy the skill files to your Claude Code skills directory.
+## Output Directories
 
-## Configuration
+Each command writes to a dedicated directory:
 
-### Reddit API Setup (for competitor-sentiment skill)
+| Directory | Command | Naming Convention |
+|-----------|---------|-------------------|
+| `blog-output/` | `/blog-write` | Slugified title (e.g., `testing-auth-flows-in-postman.md`) |
+| `cfp-output/` | `/cfp-hunter` | `current-cfps.md` |
+| `newsletter-output/` | `/newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 
-The `competitor-sentiment` skill requires Reddit API credentials.
+## Hooks
 
-1. **Create a Reddit App:**
-   - Go to https://www.reddit.com/prefs/apps
-   - Click "create another app..." at the bottom
-   - Select **"script"** as the app type
-   - Name: `competitor-sentiment-analyzer`
-   - Redirect URI: `http://localhost:8080`
-   - Click "create app"
+A `PostToolUse` hook automatically triggers after any markdown file is written via the `Write` tool. If the file looks like a blog post, it suggests running `/blog-copyeditor` to review grammar, structure, and SEO. See [.claude/hooks/blog-copyeditor-hook.sh](.claude/hooks/blog-copyeditor-hook.sh).
 
-2. **Get Your Credentials:**
-   - `client_id`: The string under your app name
-   - `client_secret`: The "secret" field
+## Project Structure
 
-3. **Set Up Environment Variables:**
+```
+.claude/
+├── commands/              # Slash commands (loaded automatically)
+│   ├── blog-write.md
+│   ├── blog-copyeditor.md
+│   ├── blog-ideas.md
+│   ├── cfp-hunter.md
+│   ├── competitor-sentiment.md
+│   ├── sentiment-competitors.md
+│   └── newsletter-agentsandapis.md
+├── hooks/
+│   └── blog-copyeditor-hook.sh
+└── settings.json          # Hook configuration
+blog-output/               # Blog post output
+cfp-output/                # CFP search results
+newsletter-output/         # Newsletter output
+prompts/                   # Standalone prompt templates
+```
 
-   Copy the example file:
-   ```bash
-   cp .env.example .env
-   ```
+## Usage Examples
 
-   Edit `.env` with your credentials:
-   ```
-   REDDIT_CLIENT_ID=your_actual_client_id
-   REDDIT_CLIENT_SECRET=your_actual_client_secret
-   REDDIT_USER_AGENT=competitor-sentiment-analyzer/1.0
-   ```
+```bash
+# Generate blog content ideas
+/blog-ideas
 
-   Or export directly in your shell:
-   ```bash
-   export REDDIT_CLIENT_ID="your_client_id"
-   export REDDIT_CLIENT_SECRET="your_client_secret"
-   export REDDIT_USER_AGENT="competitor-sentiment-analyzer/1.0"
-   ```
+# Write a blog post (outputs to blog-output/ with SEO frontmatter)
+/blog-write Testing OAuth 2.0 flows in Postman
 
+# Find speaking opportunities
+/cfp-hunter
 
+# Generate this month's newsletter
+/newsletter-agentsandapis
+
+# Run competitive analysis
+/competitor-sentiment
+```
