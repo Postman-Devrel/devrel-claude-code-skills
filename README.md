@@ -140,5 +140,5 @@ REDDIT_USER_AGENT=competitor-sentiment-analyzer/1.0
 When you run the skill, it will ask whether to use web search (no setup) or the Reddit API (more comprehensive).
 
 ## License
-
+ 
 MIT
