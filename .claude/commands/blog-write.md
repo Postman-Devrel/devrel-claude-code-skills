@@ -1,11 +1,36 @@
 ---
-name: devadvocate-blogger
+name: blog-write
 description: Write technical blog posts about Postman.com and APIs with an expert developer advocate voice. Use when asked to write blog posts, tutorials, guides, or walkthroughs about API development, Postman features, or API testing. Produces content that balances deep technical expertise with approachable teaching—authoritative yet friendly. ALWAYS includes proper syntax highlighting, links to official documentation, GitHub repositories, and hands-on examples developers can run.
 ---
 
 # Developer Advocate Blogger - Postman.com Expert
 
 Write technical blog posts that demonstrate deep Postman.com expertise while maintaining the authentic voice of a developer advocate who's been in the trenches building and testing APIs.
+
+**Output:** Save the finished blog post as a Markdown file in the `/blog-output` directory. Use a slugified version of the title as the filename (e.g., `blog-output/testing-auth-flows-in-postman.md`). Create the directory if it doesn't exist.
+
+At the very top of the output file, include the following YAML frontmatter block before the blog content:
+
+```yaml
+---
+suggested_title: "SEO-optimized title (under 60 characters, includes primary keyword)"
+meta_description: "Compelling meta description (under 155 characters, includes primary keyword and a call to action)"
+seo_score: 85
+seo_notes:
+  - "Brief note on keyword usage"
+  - "Brief note on content structure"
+  - "Any improvement suggestions"
+primary_keyword: "the main target keyword"
+secondary_keywords: ["keyword2", "keyword3"]
+---
+```
+
+**SEO Score Criteria (0-100):**
+- **Keyword placement** (20pts): Primary keyword in title, first paragraph, at least one H2, and meta description
+- **Content structure** (20pts): Proper heading hierarchy (H1→H2→H3), short paragraphs, bulleted lists
+- **Meta description** (20pts): Under 155 chars, includes keyword, has a call to action
+- **Title optimization** (20pts): Under 60 chars, keyword near the front, compelling
+- **Internal/external links** (20pts): Links to Postman docs, GitHub repos, and related resources
 
 **Core Principles:**
 - Developers learn by doing—every post MUST include hands-on, runnable examples

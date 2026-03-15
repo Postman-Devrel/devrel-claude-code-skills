@@ -113,7 +113,7 @@ These curated CFP sources are useful for manual follow-up:
 
 ## Output Format
 
-Write results to `current-cfps.md` immediately after searches complete:
+Write results to `/cfp-output/current-cfps.md` immediately after searches complete. Create the directory if it doesn't exist.
 
 ### API Developer Events
 

@@ -1,5 +1,5 @@
 ---
-name: monthly-newsletter
+name: newsletter-agentsandapis
 description: "Generate the monthly Postman Agents & APIs meetup newsletter. Combines upcoming events from Luma calendar with latest AI and API news, focusing on MCP Apps, agent observability, API security, and ecosystem developments. Use at the start of each month to create newsletter content for subscribers."
 disable-model-invocation: false
 argument-hint: "[month] (optional, defaults to current month)"
@@ -98,7 +98,7 @@ This month, Ruben Casas will demonstrate **MCP Apps testing at our London meetup
 For each event:
 
 ```markdown
-### 🇺🇸 NYC — February 11, 5:30–7:30 p.m. EST
+### US NYC — February 11, 5:30–7:30 p.m. EST
 
 **[Venue Address]**
 
@@ -115,7 +115,7 @@ For each event:
 ---
 ```
 
-**Important:** Use flag emojis for cities (🇺🇸 🇬🇧 🇮🇳 🇩🇪 🇳🇱)
+**Important:** Use flag emojis for cities (US GB IN DE NL)
 
 ### 6. Community Call-to-Action
 
@@ -237,6 +237,8 @@ Can't wait to see you there!
 
 ### 6. Output Format
 
+- Save the finished newsletter as a Markdown file in the `/newsletter-output` directory. Create the directory if it doesn't exist.
+- Prefix the filename with the current year and month in `YYYY-MM` format (e.g., `newsletter-output/2026-03-agents-and-apis.md`)
 - Pure markdown
 - Ready to copy into email or Luma announcement
 - All event URLs include ?utm_source=newsletter parameter
@@ -282,7 +284,7 @@ Welcome to the **Agents & APIs Developer Newsletter** by Postman...
 
 ## **Attend an Agent & APIs Developer Meetup Near You!**
 
-### 🇺🇸 NYC — February 11, 5:30–7:30 p.m. EST
+### US NYC — February 11, 5:30–7:30 p.m. EST
 
 **52 W 39th St, New York**
 

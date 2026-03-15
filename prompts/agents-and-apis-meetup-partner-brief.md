@@ -13,10 +13,10 @@ You run the Agents & APIs Meetup program at Postman. Write a short 1-page brief 
 2. Highlight the number of subscribers to our calendar, and the huge Postman developer base. 
 3. All events are run / managed via Luma.
 4. Describe target personas: 
-   - **Developers & Engineering Leaders** Backend, platform, full-stack, and infrastructure engineers; staff/principal engineers; EMs and architects.
-   - **Enterprise Builders** Teams designing scalable, secure, and governed API platforms inside large organizations.
-   - **AI & Agent Enthusiasts** Engineers working with LLMs, AI agents, copilots, RAG systems, and orchestration frameworks.
-   - **Postman Community Members** Existing members of the Postman discord community, contributors, champions, user group members
+   - **Developers & Engineering Leaders**Backend, platform, full-stack, and infrastructure engineers; staff/principal engineers; EMs and architects.
+   - **Enterprise Builders**Teams designing scalable, secure, and governed API platforms inside large organizations.
+   - **AI & Agent Enthusiasts**Engineers working with LLMs, AI agents, copilots, RAG systems, and orchestration frameworks.
+   - **Postman Community Members**Existing members of the Postman discord community, contributors, champions, user group members
 - What we ask of partners
   - 20 minute demo/presentation targetting developers. Highlight how partner technology integrates with, or leverages Postman, where possible. 
   - 1-2 social media posts to help promote the event and drive attendees

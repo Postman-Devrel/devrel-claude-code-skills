@@ -1,5 +1,5 @@
 ---
-name: competitor-sentiment
+name: sentiment-competitors
 description: Analyze Reddit comments about API developer tools and generate sentiment rankings. Searches Reddit for discussions about Postman, Apigee, Bruno, HTTPie, Insomnia, RapidAPI (includes Paw), Yaak, and Hopscotch. Also analyzes how AI coding agents (Claude Code, Cursor, GitHub Copilot) and MCP (Model Context Protocol) are disrupting API testing workflows. Categorizes sentiment by key capabilities (API Development, Pricing, Offline Storage, Collaboration, API Management, Uptime Monitoring, Security/Enterprise) and provides rankings from 0-100 with summarized feedback. Use when you need competitive intelligence or want to understand developer sentiment about API tools.
 ---
 
