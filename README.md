@@ -46,7 +46,7 @@ claude plugin install devrel-skills
 | `blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO optimization |
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
-| `sentiment-competitors` | Analyze Reddit sentiment about API developer tools |
+| `sentiment-apitools` | Analyze Reddit sentiment about API developer tools |
 
 ## Output Directories
 
@@ -76,7 +76,7 @@ skills/
     SKILL.md                # Blog idea generation skill
   cfp-hunter/
     SKILL.md                # CFP search skill
-  sentiment-competitors/
+  sentiment-apitools/
     SKILL.md                # Competitive sentiment analysis skill
   newsletter-agentsandapis/
     SKILL.md                # Newsletter generation skill
@@ -108,18 +108,18 @@ newsletter-output/          # Newsletter output
 /devrel-skills:newsletter-agentsandapis March
 
 # Run competitive analysis
-/devrel-skills:sentiment-competitors
+/devrel-skills:sentiment-apitools
 ```
 
 ## Prerequisites
 
 Some skills require web access to function:
 
-- **blog-ideas**, **cfp-hunter**, **newsletter-agentsandapis**, **sentiment-competitors** — use `WebSearch` and `WebFetch` tools
+- **blog-ideas**, **cfp-hunter**, **newsletter-agentsandapis**, **sentiment-apitools** — use `WebSearch` and `WebFetch` tools
 
-### Reddit API Setup (for `sentiment-competitors`)
+### Reddit API Setup (for `sentiment-apitools`)
 
-The `sentiment-competitors` skill can use web search with no setup, but for deeper analysis with full comment threads, configure Reddit API credentials:
+The `sentiment-apitools` skill can use web search with no setup, but for deeper analysis with full comment threads, configure Reddit API credentials:
 
 1. Go to https://www.reddit.com/prefs/apps and click "create another app..."
 2. Select **script** as the app type

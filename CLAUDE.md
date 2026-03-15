@@ -27,7 +27,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO. Also runs automatically via hook after `blog-write` |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
-| `/devrel-skills:sentiment-competitors` | Analyze Reddit sentiment about API developer tools (Postman, Bruno, Insomnia, etc.) |
+| `/devrel-skills:sentiment-apitools` | Analyze Reddit sentiment about API developer tools (Postman, Bruno, Insomnia, etc.) |
 
 ## Output Directories
 
