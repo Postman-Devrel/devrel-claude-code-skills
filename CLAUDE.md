@@ -1,22 +1,37 @@
 # DevRel Claude Code Skills
 
-Developer advocacy toolkit for Postman.com — a collection of Claude Code commands for content creation, competitive intelligence, and community engagement.
+Developer advocacy toolkit for Postman.com — a Claude Code plugin with skills for content creation, competitive intelligence, and community engagement.
 
-## Available Commands
+## Plugin Structure
 
-| Command | Description |
-|---------|-------------|
-| `/blog-ideas` | Search trending AI/API topics and generate scored blog content ideas (0-100) |
-| `/blog-write` | Write technical blog posts with developer advocate voice, SEO frontmatter, and hands-on examples |
-| `/blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO. Also runs automatically via hook after `/blog-write` |
-| `/cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
-| `/newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
-| `/competitor-sentiment` | Analyze Reddit sentiment about API developer tools (Postman, Bruno, Insomnia, etc.) |
-| `/sentiment-competitors` | Same as above (alternate name) |
+This project is a Claude Code plugin. Install it with:
+
+```bash
+claude plugin install devrel-skills
+```
+
+Or test locally with:
+
+```bash
+claude --plugin-dir /path/to/devrel-claude-code-skills
+```
+
+## Available Skills
+
+Skills are namespaced under `devrel-skills:` when installed as a plugin.
+
+| Skill | Description |
+|-------|-------------|
+| `/devrel-skills:blog-ideas` | Search trending AI/API topics and generate scored blog content ideas (0-100) |
+| `/devrel-skills:blog-write` | Write technical blog posts with developer advocate voice, SEO frontmatter, and hands-on examples |
+| `/devrel-skills:blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO. Also runs automatically via hook after `blog-write` |
+| `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
+| `/devrel-skills:sentiment-competitors` | Analyze Reddit sentiment about API developer tools (Postman, Bruno, Insomnia, etc.) |
 
 ## Output Directories
 
-Each command writes output to a dedicated directory:
+Each skill writes output to a dedicated directory:
 
 - `blog-output/` — Blog posts (slugified title, includes SEO frontmatter)
 - `cfp-output/` — CFP search results (`current-cfps.md`)
@@ -24,7 +39,7 @@ Each command writes output to a dedicated directory:
 
 ## Hooks
 
-A `PostToolUse` hook on the `Write` tool automatically suggests running `/blog-copyeditor` when a blog post markdown file is written. See `.claude/hooks/blog-copyeditor-hook.sh`.
+A `PostToolUse` hook on the `Write` tool automatically suggests running `/devrel-skills:blog-copyeditor` when a blog post markdown file is written.
 
 ## Conventions
 

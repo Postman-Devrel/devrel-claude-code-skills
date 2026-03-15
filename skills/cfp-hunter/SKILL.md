@@ -1,6 +1,6 @@
 ---
+name: cfp-hunter
 description: Search for open Call-for-Papers (CFPs) for API and AI developer conferences
-allowed-tools: WebSearch, WebFetch, Write
 ---
 
 Search the internet for currently open Call-for-Papers (CFPs) for developer conferences and events. I work as a Developer Advocate at Postman.com and am looking for speaking opportunities.

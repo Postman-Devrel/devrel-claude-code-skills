@@ -36,6 +36,11 @@ if [[ "$FILE_PATH" == *"/.claude/"* ]]; then
   exit 0
 fi
 
+# Skip files in plugin directories
+if [[ "$FILE_PATH" == *"/.claude-plugin/"* ]] || [[ "$FILE_PATH" == *"/skills/"* ]] || [[ "$FILE_PATH" == *"/hooks/"* ]]; then
+  exit 0
+fi
+
 # Skip copyedit report files
 if [[ "$FILENAME" == *"-copyedit.md" ]]; then
   exit 0
@@ -43,4 +48,4 @@ fi
 
 # If we get here, a blog-like markdown file was written.
 # Output a message that will be injected into the conversation.
-echo "A blog post file was written: $FILENAME. Run /blog-copyeditor $FILE_PATH to copy edit it for grammar, syntax, repetitive structures, and SEO optimization."
+echo "A blog post file was written: $FILENAME. Run /devrel-skills:blog-copyeditor $FILE_PATH to copy edit it for grammar, syntax, repetitive structures, and SEO optimization."

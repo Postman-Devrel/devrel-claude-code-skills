@@ -1,0 +1,13 @@
+{
+  "name": "devrel-skills",
+  "version": "1.0.0",
+  "description": "Developer advocacy toolkit for Postman.com — blog writing, competitive intelligence, CFP hunting, and newsletter generation",
+  "author": {
+    "name": "Quinton Wall"
+  },
+  "repository": "https://github.com/quintonwall/devrel-claude-code-skills",
+  "license": "MIT",
+  "keywords": ["devrel", "postman", "blog", "newsletter", "competitive-intelligence", "cfp"],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}

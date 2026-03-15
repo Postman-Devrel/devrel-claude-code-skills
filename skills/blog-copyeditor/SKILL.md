@@ -1,7 +1,6 @@
 ---
 name: blog-copyeditor
 description: "Copy edit blog post output for grammar, syntax errors, repetitive sentence structures, and SEO optimization. Suggests an SEO-friendly title and 150-character meta description. Runs automatically as a hook after blog-write, or standalone via /blog-copyeditor [filename]."
-argument-hint: "[filename] (optional, defaults to most recently modified .md blog post)"
 ---
 
 # Blog Copy Editor & SEO Optimizer

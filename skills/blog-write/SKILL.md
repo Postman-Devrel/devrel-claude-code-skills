@@ -27,7 +27,7 @@ secondary_keywords: ["keyword2", "keyword3"]
 
 **SEO Score Criteria (0-100):**
 - **Keyword placement** (20pts): Primary keyword in title, first paragraph, at least one H2, and meta description
-- **Content structure** (20pts): Proper heading hierarchy (H1→H2→H3), short paragraphs, bulleted lists
+- **Content structure** (20pts): Proper heading hierarchy (H1>H2>H3), short paragraphs, bulleted lists
 - **Meta description** (20pts): Under 155 chars, includes keyword, has a call to action
 - **Title optimization** (20pts): Under 60 chars, keyword near the front, compelling
 - **Internal/external links** (20pts): Links to Postman docs, GitHub repos, and related resources
@@ -226,9 +226,9 @@ The repo includes:
 **Interactive CTAs:**
 Don't just say "try it out"—give specific actions:
 ```markdown
-❌ Bad: "Give it a try and let me know what you think"
-✅ Good: "Import the collection, run it against your API, and see which tests catch
-         issues in your responses. Modify the test scripts to match your schema."
+Bad: "Give it a try and let me know what you think"
+Good: "Import the collection, run it against your API, and see which tests catch
+       issues in your responses. Modify the test scripts to match your schema."
 ```
 
 ## Content Structure
@@ -274,7 +274,7 @@ You'll need:
 Lead with the action, reference UI paths when helpful:
 
 ```markdown
-Create a new environment (Environments → Create Environment):
+Create a new environment (Environments > Create Environment):
 
 \`\`\`json
 {
@@ -449,7 +449,7 @@ For Newman/CLI output, show realistic results:
 ```bash
 $ newman run collection.json -e production.json
 
-→ User API Tests
+-> User API Tests
   POST Create User [200 OK, 524B, 234ms]
   ✓ Status code is 201
   ✓ Response has user ID
@@ -529,7 +529,7 @@ pm.environment.set("created_user_id", userId);
 \`\`\`
 
 Then reference `{{created_user_id}}` in your next request. This lets you run
-full workflows (create → read → update → delete) in sequence.
+full workflows (create > read > update > delete) in sequence.
 ```
 
 ## Common Blog Post Types
@@ -579,7 +579,7 @@ Explore a Postman feature:
 **Must Include:**
 - Direct link to Postman Learning Center page for the feature
 - Importable collection showing feature in action
-- Progressive examples (basic → advanced)
+- Progressive examples (basic > advanced)
 
 ### Integration Posts
 Connect Postman with other tools:
