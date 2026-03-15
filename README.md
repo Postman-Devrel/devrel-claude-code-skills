@@ -111,7 +111,33 @@ newsletter-output/          # Newsletter output
 Some skills require web access to function:
 
 - **blog-ideas**, **cfp-hunter**, **newsletter-agentsandapis**, **sentiment-competitors** — use `WebSearch` and `WebFetch` tools
-- **sentiment-competitors** — optionally uses Reddit API credentials for deeper analysis (see skill for setup instructions)
+
+### Reddit API Setup (for `sentiment-competitors`)
+
+The `sentiment-competitors` skill can use web search with no setup, but for deeper analysis with full comment threads, configure Reddit API credentials:
+
+1. Go to https://www.reddit.com/prefs/apps and click "create another app..."
+2. Select **script** as the app type
+3. Set redirect URI to `http://localhost:8080`
+4. Note your `client_id` (string under the app name) and `client_secret`
+
+Set environment variables:
+
+```bash
+export REDDIT_CLIENT_ID="your_client_id"
+export REDDIT_CLIENT_SECRET="your_client_secret"
+export REDDIT_USER_AGENT="competitor-sentiment-analyzer/1.0"
+```
+
+Or create a `.env` file in your project:
+
+```
+REDDIT_CLIENT_ID=your_client_id
+REDDIT_CLIENT_SECRET=your_client_secret
+REDDIT_USER_AGENT=competitor-sentiment-analyzer/1.0
+```
+
+When you run the skill, it will ask whether to use web search (no setup) or the Reddit API (more comprehensive).
 
 ## License
 
