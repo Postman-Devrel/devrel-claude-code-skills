@@ -107,7 +107,7 @@ newsletter-output/          # Newsletter output
 # Generate this month's newsletter (optionally pass a month)
 /devrel-skills:newsletter-agentsandapis March
 
-# Run competitive analysis
+# Run api tool sentiment analysis
 /devrel-skills:sentiment-apitools
 ```
 
