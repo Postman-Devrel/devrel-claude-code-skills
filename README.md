@@ -25,7 +25,7 @@ Once installed, skills are available in any project with the `devrel-skills:` na
 Clone the repo and open Claude Code in the project directory:
 
 ```bash
-git clone https://github.com/quintonwall/devrel-claude-code-skills.git
+git clone https://github.com/Postman-Devrel/devrel-claude-code-skills.git
 cd devrel-claude-code-skills
 claude
 ```
@@ -86,17 +86,21 @@ newsletter-output/          # Newsletter output
 ## Usage Examples
 
 ```bash
-# Generate blog content ideas
-/devrel-skills:blog-ideas
+# Generate blog content ideas (optionally pass a focus area)
+/devrel-skills:blog-ideas MCP
 
-# Write a blog post (outputs to blog-output/ with SEO frontmatter)
+# Write a blog post — pass a topic, a file path to a draft, or nothing
 /devrel-skills:blog-write Testing OAuth 2.0 flows in Postman
+/devrel-skills:blog-write prompts/my-draft.md
+
+# Copy edit a blog post (auto-detects most recent, or pass a filename)
+/devrel-skills:blog-copyeditor blog-output/testing-auth-flows-in-postman.md
 
 # Find speaking opportunities
 /devrel-skills:cfp-hunter
 
-# Generate this month's newsletter
-/devrel-skills:newsletter-agentsandapis
+# Generate this month's newsletter (optionally pass a month)
+/devrel-skills:newsletter-agentsandapis March
 
 # Run competitive analysis
 /devrel-skills:sentiment-competitors
