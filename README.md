@@ -11,18 +11,11 @@ Clone the repo and open Claude Code in the project directory:
 ```bash
 git clone https://github.com/Postman-Devrel/devrel-claude-code-skills.git
 cd devrel-claude-code-skills
-claude
+claude --plugin-dir /path/to/devrel-claude-code-skills
 ```
 
 When running locally, skills are available without the namespace prefix.
 
-
-### As a local test during development 
-Or test locally during development:
-
-```bash
-claude --plugin-dir /path/to/devrel-claude-code-skills
-```
 
 Once installed, skills are available in any project with the `devrel-skills:` namespace prefix.
 

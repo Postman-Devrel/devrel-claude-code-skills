@@ -5,7 +5,7 @@
   "author": {
     "name": "Quinton Wall"
   },
-  "repository": "https://github.com/quintonwall/devrel-claude-code-skills",
+  "repository": "https://github.com/Postman-Devrel/devrel-claude-code-skills",
   "license": "MIT",
   "keywords": ["devrel", "postman", "blog", "newsletter", "competitive-intelligence", "cfp"],
   "skills": "./skills/",
