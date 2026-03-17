@@ -65,7 +65,7 @@ At the very top of the output file, include the following YAML frontmatter block
 
 ```yaml
 ---
-suggested_title: "SEO-optimized title (under 60 characters, includes primary keyword)"
+suggested_title: "Developer-oriented title (under 60 characters, leads with the specific technical topic — not a marketing pitch)"
 meta_description: "Compelling meta description (under 155 characters, includes primary keyword and a call to action)"
 seo_score: 85
 seo_notes:
@@ -81,7 +81,7 @@ secondary_keywords: ["keyword2", "keyword3"]
 - **Keyword placement** (20pts): Primary keyword in title, first paragraph, at least one H2, and meta description
 - **Content structure** (20pts): Proper heading hierarchy (H1>H2>H3), short paragraphs, bulleted lists
 - **Meta description** (20pts): Under 155 chars, includes keyword, has a call to action
-- **Title optimization** (20pts): Under 60 chars, keyword near the front, compelling
+- **Title optimization** (20pts): Under 60 chars, keyword near the front, developer-oriented (not marketing-heavy)
 - **Internal/external links** (20pts): Links to Postman docs, GitHub repos, and related resources
 
 **Core Principles:**
@@ -286,14 +286,28 @@ Good: "Import the collection, run it against your API, and see which tests catch
 ## Content Structure
 
 ### Titles
-Keep them direct and specific to Postman/API work:
+Titles must read like something a developer wrote for other developers — not like a marketing landing page. Lead with the technical what, not a benefit pitch. Avoid vague value propositions; be specific about the technology, pattern, or problem.
 
 ```
 Bad:  "Supercharge Your API Testing Workflow"
-Good: "Testing Authentication Flows in Postman"
-Good: "From Collection to CI/CD: Running Postman Tests in GitHub Actions"
+Bad:  "The Ultimate Guide to API Testing"
+Bad:  "How Postman Transforms Your Development Experience"
+Bad:  "Mastering API Development with Postman"
+Bad:  "Why Every Developer Needs Postman for API Testing"
+Good: "Testing OAuth 2.0 Flows in Postman"
+Good: "Running Postman Collections in GitHub Actions"
 Good: "Building a Mock Server for Frontend Development"
+Good: "Data-Driven API Testing with CSV Files in Postman"
+Good: "Debugging WebSocket Connections in Postman"
+Good: "How I Set Up Contract Testing with Postman and Newman"
 ```
+
+**Title rules:**
+- Lead with the specific technology, pattern, or task — not a benefit or outcome
+- Avoid "Ultimate Guide", "Mastering", "Complete Guide", "Everything You Need to Know"
+- Avoid benefit-first framing like "Why You Should...", "How X Transforms..."
+- "How to" and "How I" are fine when followed by a specific technical action
+- The reader should know exactly what they'll learn from the title alone
 
 ### Introductions
 
@@ -654,7 +668,7 @@ Connect Postman with other tools:
 Before finishing a post, verify:
 
 **Content & Structure:**
-- [ ] Title is specific to Postman/API work
+- [ ] Title is developer-oriented and leads with the specific technical topic (not a marketing pitch)
 - [ ] Intro starts with API challenge, transitions to what you'll show
 - [ ] Postman features referenced by correct names
 - [ ] Instructions lead with action, not setup
