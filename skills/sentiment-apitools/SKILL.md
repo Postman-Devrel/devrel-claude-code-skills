@@ -1,11 +1,18 @@
 ---
 name: sentiment-apitools
-description: Analyze Reddit comments about API developer tools and generate sentiment rankings. Searches Reddit for discussions about Postman, Apigee, Bruno, HTTPie, Insomnia, RapidAPI (includes Paw), Yaak, and Hopscotch. Also analyzes how AI coding agents (Claude Code, Cursor, GitHub Copilot) and MCP (Model Context Protocol) are disrupting API testing workflows. Categorizes sentiment by key capabilities (API Development, Pricing, Offline Storage, Collaboration, API Management, Uptime Monitoring, Security/Enterprise) and provides rankings from 0-100 with summarized feedback. Use when you need competitive intelligence or want to understand developer sentiment about API tools.
+description: Reactive sentiment analysis of Reddit developer discussions about API tools. Captures grassroots developer sentiment — highly skewed towards PLG (product-led growth) offerings that generate organic community discussion. Tools with enterprise/sales-led motions (e.g., Apigee) will be underrepresented. Searches Reddit for Postman, Apigee, Bruno, HTTPie, Insomnia, RapidAPI (includes Paw), Yaak, and Hopscotch. Also analyzes how AI coding agents and MCP are disrupting API testing workflows. Categorizes sentiment by key capabilities and provides rankings from 0-100. Use for directional competitive intelligence on PLG-oriented API tools.
 ---
 
 # API Tool Sentiment Analyzer
 
-Analyze Reddit discussions about API developer tools to understand competitive positioning and developer sentiment.
+Reactive analysis of Reddit developer discussions about API tools. This skill captures **grassroots developer sentiment** — what individual developers say unprompted in community forums.
+
+> **Important: PLG Skew**
+> Reddit discussion volume correlates strongly with product-led growth (PLG) adoption. Tools that developers download and use independently (Bruno, HTTPie, Hopscotch) generate disproportionately more organic discussion than tools sold through enterprise/sales-led motions (Apigee, RapidAPI Enterprise). This means:
+> - **High-volume tools** in this analysis are not necessarily the most widely used — they're the most *discussed by individual developers*
+> - **Low-volume tools** may have massive enterprise adoption invisible to Reddit
+> - Scores reflect *community sentiment*, not market share or revenue
+> - This is directional intelligence for understanding the PLG developer audience, not a comprehensive competitive analysis
 
 ## Reddit API Configuration
 
@@ -276,6 +283,8 @@ For each tool, categorize comments by these **Key Capability Areas**:
 
 For each tool and category, calculate a **Relative Strength Score (0-100)**:
 
+> **Reminder:** These scores reflect reactive developer sentiment on Reddit, not market position. A tool with a high score and low discussion volume may have passionate niche fans. A tool with a low score and high volume (like Postman) may be the market leader facing scrutiny *because* of its dominance. Always report discussion volume alongside scores.
+
 **Scoring Methodology:**
 - **0-25**: Predominantly negative sentiment (complaints, frustrations, switching away)
 - **26-50**: Mixed/neutral sentiment (some issues mentioned, but functional)
@@ -283,11 +292,12 @@ For each tool and category, calculate a **Relative Strength Score (0-100)**:
 - **76-100**: Strongly positive (enthusiastic endorsements, preferred choice)
 
 **Factors to consider:**
-- Volume of positive vs negative mentions
+- Volume of positive vs negative mentions (note: high-volume tools attract more criticism simply due to visibility)
 - Strength of language used
 - Recency bias (newer comments weighted slightly higher)
 - Context (is the tool being recommended or complained about?)
 - Comparative mentions (when tool X is preferred over tool Y)
+- **PLG bias check**: Flag when a tool's score may be inflated by low volume (small enthusiastic community) or deflated by high volume (market leader attracting scrutiny)
 
 ### Step 6: Output Format
 
@@ -296,7 +306,9 @@ For each tool and category, calculate a **Relative Strength Score (0-100)**:
 Present results in this structure:
 
 ```markdown
-# API Tools Sentiment Analysis
+# API Tools Sentiment Analysis — Reactive Developer Sentiment
+
+> **What this is:** Reactive analysis of unprompted developer discussions on Reddit. Scores reflect grassroots PLG sentiment — what individual developers say when choosing and evaluating tools on their own. Tools with enterprise/sales-led motions (Apigee, RapidAPI Enterprise) are structurally underrepresented. Use as directional intelligence for the PLG developer audience, not as a comprehensive competitive analysis.
 
 **Analysis Period:** [X] days (from [date] to [date])
 **Total Comments Analyzed:** [number]
@@ -328,11 +340,13 @@ Present results in this structure:
 
 ## Overall Rankings
 
-| Rank | Tool | Overall Score | Trend |
-|------|------|---------------|-------|
-| 1 | [Tool] | [XX]/100 | ↑/↓/→ |
-| 2 | [Tool] | [XX]/100 | ↑/↓/→ |
-| ... | ... | ... | ... |
+*Scores reflect reactive Reddit sentiment, not market share. Discussion volume indicates PLG community engagement — low volume does not mean low adoption.*
+
+| Rank | Tool | Overall Score | Discussion Volume | Trend |
+|------|------|---------------|-------------------|-------|
+| 1 | [Tool] | [XX]/100 | [High/Med/Low] | ↑/↓/→ |
+| 2 | [Tool] | [XX]/100 | [High/Med/Low] | ↑/↓/→ |
+| ... | ... | ... | ... | ... |
 
 ---
 
@@ -419,10 +433,13 @@ Present results in this structure:
 ---
 
 ## Methodology Notes
+- **What this measures:** Reactive, unprompted developer sentiment on Reddit — a proxy for PLG community engagement
+- **Structural bias:** Reddit skews towards individual developers evaluating PLG tools. Enterprise-sold tools (Apigee, RapidAPI Enterprise) have lower discussion volume regardless of actual adoption. Market leaders (Postman) attract disproportionate criticism due to visibility
+- **What this does NOT measure:** Market share, revenue, enterprise adoption, or overall competitive position
 - Search method used: [Web Search / Reddit API]
 - Search queries used: [list]
 - Comments excluded: [spam, off-topic, etc.]
-- Limitations: [any data gaps or caveats]
+- Additional limitations: [any data gaps or caveats]
 ```
 
 ## Tools to Analyze
