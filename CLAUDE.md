@@ -36,6 +36,7 @@ Each skill writes output to a dedicated directory:
 - `blog-output/` — Blog posts (slugified title, includes SEO frontmatter)
 - `cfp-output/` — CFP search results (`current-cfps.md`)
 - `newsletter-output/` — Newsletters (prefixed with `YYYY-MM`)
+- `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)
 
 ## Hooks
 

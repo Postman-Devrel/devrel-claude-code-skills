@@ -301,7 +301,7 @@ For each tool and category, calculate a **Relative Strength Score (0-100)**:
 
 ### Step 6: Output Format
 
-**REQUIRED**: Save the report to a file named `sentiment-analysis-YYMMDD.md` where YYMMDD is the current date (e.g., `sentiment-analysis-260127.md` for January 27, 2026). Save the file in the current working directory.
+**REQUIRED**: Save the report to a file named `sentiment-output/sentiment-analysis-YYMMDD.md` where YYMMDD is the current date (e.g., `sentiment-output/sentiment-analysis-260127.md` for January 27, 2026). Create the `sentiment-output/` directory if it doesn't exist.
 
 Present results in this structure:
 
@@ -517,7 +517,7 @@ Present results in this structure:
 
 8. Calculate scores based on sentiment distribution
 
-9. Generate comprehensive report and save to sentiment-analysis-YYMMDD.md
+9. Generate comprehensive report and save to sentiment-output/sentiment-analysis-YYMMDD.md
 ```
 
 ### Reddit API Example Workflow
@@ -566,7 +566,7 @@ Present results in this structure:
 
 10. Calculate scores based on sentiment distribution
 
-11. Generate comprehensive report and save to sentiment-analysis-YYMMDD.md
+11. Generate comprehensive report and save to sentiment-output/sentiment-analysis-YYMMDD.md
 ```
 
 ## API Response Structure
