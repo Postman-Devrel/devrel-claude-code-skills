@@ -14,6 +14,18 @@ If a filename argument is provided, read that file. Otherwise, find the most rec
 
 Read the file contents before proceeding.
 
+## Writing Style Guide
+
+Before editing, read the Postman writing style guide files. These are the authoritative source for all style decisions and must be applied during every copy edit:
+
+1. Read `postman-writing-style-guide/languageandgrammar.md` — language, grammar, tense, capitalization, and punctuation rules
+2. Read `postman-writing-style-guide/brandedterms.md` — correct capitalization and usage of all Postman branded terms
+3. Read `postman-writing-style-guide/wordlist.md` — A-Z word list of approved/prohibited terms and usage
+4. Read `postman-writing-style-guide/inclusivewords.md` — inclusive language requirements
+5. Read `postman-writing-style-guide/formatting.md` — text formatting rules for code, UX elements, paths, and emphasis
+
+Use these guides as the primary reference when flagging issues. Any violations of the style guide should be reported in the copy edit report under a dedicated **Style Guide Violations** section.
+
 ## Copy Editing Pass
 
 ### 1. Grammar & Syntax Errors
@@ -47,7 +59,17 @@ Check for:
 - **Filler words** — "basically", "actually", "really", "very", "quite", "just", "simply"
 - **Banned marketing words** — "supercharge", "unlock", "leverage", "revolutionize", "seamless", "game-changing"
 
-### 4. Technical Accuracy
+### 4. Style Guide Compliance
+
+Check the post against all five style guide files:
+
+- **Branded terms** — Verify all Postman product/feature names match the branded terms guide (e.g., "Postman Collection" not "Postman collection", "the Postman CLI" not "Postman CLI", "Postman Agent Mode" not "Postbot")
+- **Word list violations** — Flag any prohibited words from the A-Z word list and suggest approved alternatives (e.g., "execute" → "run", "log in" → "sign in", "navigate" → "go to", "utilize" → "use", "leverage" → avoid)
+- **Inclusive language** — Flag non-inclusive terms and provide alternatives (e.g., "whitelist" → "allowlist", "master/slave" → "primary/secondary", "disabled" → "turn off/inactive")
+- **Language and grammar rules** — Check tense (simple present/past, avoid perfect tense), capitalization (sentence case for headings), contractions usage, number formatting, and other grammar rules
+- **Formatting** — Verify code formatting, UX element references (bold), key references (bold), path formatting (code font), and other formatting conventions
+
+### 5. Technical Accuracy
 
 - Verify Postman feature names use correct terminology (Collections, Environments, Pre-request Scripts, Test Scripts, Workspaces, Monitors, Mock Servers)
 - Check that code block language identifiers are present and correct
@@ -144,6 +166,13 @@ Structure your review as follows:
 ## Repetitive Structure Issues
 [List patterns found with examples and suggested rewrites]
 
+## Style Guide Violations
+[List branded term errors, prohibited words, inclusive language issues, and formatting violations]
+
+| # | Type | Original | Correction | Guide Reference |
+|---|------|----------|------------|-----------------|
+| 1 | [branded term/word list/inclusive language/formatting] | [original] | [corrected] | [which style guide file] |
+
 ## Readability Issues
 [List issues with suggestions]
 
@@ -171,6 +200,9 @@ When triggered automatically after blog-write:
   - Missing code fence language identifiers
   - Broken markdown syntax
   - Incorrect product name capitalization
+  - Branded term corrections (per `brandedterms.md`)
+  - Prohibited word replacements (per `wordlist.md`)
+  - Inclusive language substitutions (per `inclusivewords.md`)
 - Present the full report with remaining suggestions for the author to review
 - Write the report to a file named `[original-filename]-copyedit.md`
 

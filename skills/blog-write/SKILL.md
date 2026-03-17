@@ -24,6 +24,22 @@ If a file path is provided, read the file first. The file may contain:
 
 Use the file contents as the foundation, applying all the voice, structure, and quality guidelines below.
 
+## Writing Style Guide
+
+Before writing, read and internalize the Postman writing style guide files. These rules are mandatory and override any conflicting guidance elsewhere in this skill:
+
+1. Read `postman-writing-style-guide/languageandgrammar.md` — language, grammar, tense, capitalization, and punctuation rules
+2. Read `postman-writing-style-guide/brandedterms.md` — correct capitalization and usage of all Postman branded terms (e.g., "Postman Collection" not "Postman collection", "the Postman CLI" not "Postman CLI")
+3. Read `postman-writing-style-guide/wordlist.md` — A-Z word list of approved/prohibited terms and usage (e.g., use "run" not "execute", use "sign in" not "log in")
+4. Read `postman-writing-style-guide/inclusivewords.md` — inclusive language requirements (e.g., use "allowlist" not "whitelist", use "primary/secondary" not "master/slave")
+5. Read `postman-writing-style-guide/formatting.md` — text formatting rules for code, UX elements, paths, and emphasis
+
+Apply all style guide rules throughout the writing process. Pay special attention to:
+- Branded term capitalization (these change frequently — always check the guide)
+- Prohibited words and their approved alternatives
+- Inclusive language substitutions
+- Formatting conventions for code, keys, and UI elements
+
 ## Research Phase (Run in Parallel)
 
 Before writing, gather background material by running these searches **in parallel** using the WebSearch and WebFetch tools. Do NOT run them sequentially — launch all independent searches at the same time to minimize wait time.
@@ -666,6 +682,13 @@ Before finishing a post, verify:
 - [ ] Linked to external tools/libraries mentioned
 - [ ] "Resources" section at end with all relevant links
 - [ ] Descriptive anchor text (not "click here")
+
+**Style Guide Compliance:**
+- [ ] All Postman branded terms match `brandedterms.md` (capitalization, usage)
+- [ ] No prohibited words from `wordlist.md` (e.g., "execute", "utilize", "navigate", "log in")
+- [ ] Inclusive language per `inclusivewords.md` (no "whitelist", "master/slave", "disabled")
+- [ ] Grammar rules per `languageandgrammar.md` (sentence case headings, simple present tense, contractions)
+- [ ] Formatting rules per `formatting.md` (bold for UX elements, code font for paths)
 
 **Best Practices:**
 - [ ] Environment variables used (not hardcoded credentials)
