@@ -28,6 +28,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:sentiment-apitools` | Reactive Reddit sentiment analysis of API developer tools — skewed towards PLG offerings (Postman, Bruno, Insomnia, etc.) |
+| `/devrel-skills:influencer-autoagent` | Find and rank developer influencers for product launches — scores candidates on technical credibility, audience reach, and topic alignment |
 
 ## Output Directories
 
@@ -37,6 +38,7 @@ Each skill writes output to a dedicated directory:
 - `cfp-output/` — CFP search results (`current-cfps.md`)
 - `newsletter-output/` — Newsletters (prefixed with `YYYY-MM`)
 - `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)
+- `influencer-output/` — Influencer candidate reports (`influencer-candidates-YYMMDD.md`)
 
 ## Hooks
 

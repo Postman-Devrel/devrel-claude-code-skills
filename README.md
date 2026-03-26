@@ -40,6 +40,7 @@ claude plugin install devrel-skills
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `sentiment-apitools` | Analyze Reddit sentiment about API developer tools |
+| `influencer-autoagent` | Find and rank developer influencers for product launches |
 
 ## Output Directories
 
@@ -50,6 +51,8 @@ Each skill writes to a dedicated directory:
 | `blog-output/` | `blog-write` | Slugified title (e.g., `testing-auth-flows-in-postman.md`) |
 | `cfp-output/` | `cfp-hunter` | `current-cfps.md` |
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
+| `sentiment-output/` | `sentiment-apitools` | `sentiment-analysis-YYMMDD.md` |
+| `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
 
 ## Hooks
 
@@ -73,12 +76,16 @@ skills/
     SKILL.md                # Competitive sentiment analysis skill
   newsletter-agentsandapis/
     SKILL.md                # Newsletter generation skill
+  influencer-autoagent/
+    SKILL.md                # Influencer finder for product launches
 hooks/
   hooks.json                # Hook configuration
   blog-copyeditor-hook.sh   # Post-write hook script
 blog-output/                # Blog post output
 cfp-output/                 # CFP search results
 newsletter-output/          # Newsletter output
+sentiment-output/           # Sentiment analysis output
+influencer-output/          # Influencer candidate output
 ```
 
 ## Usage Examples
@@ -102,6 +109,9 @@ newsletter-output/          # Newsletter output
 
 # Run api tool sentiment analysis
 /devrel-skills:sentiment-apitools
+
+# Find influencers for a product launch
+/devrel-skills:influencer-autoagent Autonomous Agent
 ```
 
 ## Prerequisites
