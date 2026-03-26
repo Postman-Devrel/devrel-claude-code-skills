@@ -715,3 +715,7 @@ Before finishing a post, verify:
 - [ ] CTA is casual but specific ("Give it a try", "Let me know how it goes")
 - [ ] Hybrid perspective used (I/you/we appropriately)
 - [ ] Conversational but authoritative tone throughout
+
+## Post-Write: Auto Copy Edit
+
+After saving the blog post to `blog-output/`, automatically run the `blog-copyeditor` skill on the written file. Do not ask the user — just run `/devrel-skills:blog-copyeditor <file_path>` immediately after writing.
