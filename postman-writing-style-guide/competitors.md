@@ -1,0 +1,17 @@
+# Postman Competitors
+- Insomnia
+- Hoppscotch
+- Bruno
+-Paw
+- RapidAPI
+- Swagger
+- SwaggerHub
+- RapidAPI
+- HTTPie
+- Thunder Client (VS Code extension)
+- REST Client (VS Code extension)
+- SoapUI
+- Katalon
+- Apidog
+- Stoplight
+- Apicurio

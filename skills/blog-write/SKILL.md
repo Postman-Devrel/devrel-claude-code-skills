@@ -157,7 +157,30 @@ When relevant to the post topic:
 
 ## Links and Resources
 
-### CRITICAL: Always Include Relevant Links
+### CRITICAL: Never Link or Reference Competitors
+Before adding any link or mention, check `postman-writing-style-guide/competitors.md` for the full list. Never link to, name, or reference any competitor product — including in comparisons, "alternatives" framing, or passing mentions. If a concept requires context that a competitor is known for, explain the concept generically without naming the tool.
+
+### CRITICAL: Embed Research Links Throughout the Post (SEO Backlinking)
+Frequently embed links to research, standards, specifications, and authoritative sources **inline throughout the body text** — not just in a Resources section at the end. This improves SEO through backlinking and gives readers immediate access to supporting material.
+
+**How to apply:**
+- When you mention a standard, protocol, or specification (e.g., OAuth 2.0, OpenAPI, JSON Schema), link to the official spec or RFC inline
+- When you reference a concept, pattern, or industry trend, link to an authoritative source (MDN, IETF RFCs, W3C specs, official language docs)
+- When you cite data, statistics, or industry reports, link to the source
+- Aim for **8-15 embedded links per post** spread across the body — not clustered in one section
+- Use descriptive anchor text with relevant keywords (good: "[OAuth 2.0 authorization code flow](url)"; bad: "[click here](url)")
+- Every H2 section should contain at least 1-2 outbound links to research or documentation
+
+**Good sources for inline linking:**
+- IETF RFCs (e.g., RFC 6749 for OAuth 2.0, RFC 7231 for HTTP semantics)
+- MDN Web Docs for web standards and HTTP concepts
+- OpenAPI Initiative for API specification topics
+- Official language/framework documentation (Node.js, Python, etc.)
+- Postman Learning Center and Postman blog (always prioritize these)
+- GitHub repos, including official Postman samples
+- Industry research from ThoughtWorks Technology Radar, Stack Overflow surveys, Postman State of the API report
+
+### Always Include Relevant Links
 Developers want to explore further. Every post MUST include:
 
 **Postman Documentation Links:**
@@ -501,6 +524,30 @@ your response schema and see what edge cases you catch.
   - Related blog posts or tutorials
 
 ## Visual Elements
+
+### Images
+
+Include 2-3 relevant images throughout the post where they genuinely improve comprehension — architecture diagrams, workflow visualizations, or concept illustrations. Use WebSearch to find openly licensed or Unsplash images that fit, or describe a diagram for the reader.
+
+**Rules:**
+- Only 2-3 images per post — don't overdo it
+- Every image must earn its place: if the concept is clear from text and code alone, skip the image
+- Good candidates: architecture/flow diagrams, before/after comparisons, UI screenshots showing a result
+- Bad candidates: generic stock photos, decorative images, hero banners with no information
+- Use descriptive alt text that conveys the content to screen readers
+- Place images near the text they support, not clustered together
+
+**Format:**
+```markdown
+![Alt text describing what the image shows](image-url)
+*Caption explaining why this matters or what to notice*
+```
+
+**Where to source images:**
+- Unsplash (`site:unsplash.com [topic]`) for concept images — always credit
+- Official documentation screenshots you take or describe
+- Simple Mermaid or ASCII diagrams inline when a visual flow helps
+- If no good image exists, don't force one — skip it
 
 ### Screenshots
 When showing Postman UI elements:
