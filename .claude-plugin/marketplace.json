@@ -1,0 +1,22 @@
+{
+  "name": "devrel-skills-marketplace",
+  "owner": {
+    "name": "Quinton Wall",
+    "email": "quinton.wall@postman.com"
+  },
+  "metadata": {
+    "description": "Developer advocacy toolkit for Postman.com"
+  },
+  "plugins": [
+    {
+      "name": "devrel-skills",
+      "source": ".",
+      "description": "Developer advocacy toolkit — blog writing, competitive intelligence, CFP hunting, and newsletter generation",
+      "version": "1.0.0",
+      "author": {
+        "name": "Quinton Wall"
+      },
+      "keywords": ["devrel", "postman", "blog", "newsletter", "competitive-intelligence", "cfp"]
+    }
+  ]
+}
