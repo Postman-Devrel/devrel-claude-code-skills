@@ -1,0 +1,95 @@
+<div class="card {% if card.error %}card-error{% endif %}" id="card-{{ card.id }}">
+    <div class="card-title">{{ card.topic | e }}</div>
+
+    {% if card.header_image %}
+        <div class="card-thumbnail">
+            <img src="/images/{{ card.header_image }}" alt="Header image">
+        </div>
+    {% elif card.featured_image %}
+        <div class="card-thumbnail">
+            <img src="{{ card.featured_image }}" alt="Featured image">
+        </div>
+    {% endif %}
+
+    {% if card.error %}
+        <div class="card-error-msg">{{ card.error }}</div>
+    {% endif %}
+
+    {% if card.stage == 'ideas' %}
+        <div class="card-actions">
+            <form action="/api/cards/{{ card.id }}/start" method="POST" class="inline-form">
+                <button type="submit" class="btn btn-primary btn-sm">Start Pipeline</button>
+            </form>
+            <form action="/api/cards/{{ card.id }}" method="POST" class="inline-form">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-ghost btn-sm btn-danger" title="Remove">&#x2715;</button>
+            </form>
+        </div>
+
+    {% elif card.stage in ['writing', 'copyedit', 'header_image'] %}
+        <div class="card-status">
+            <span class="pulse"></span>
+            <span class="status-text">{{ creating_substage_labels.get(card.stage, 'Working...') }}</span>
+        </div>
+
+    {% elif card.stage == 'staging' %}
+        <div class="card-status">
+            <span class="pulse"></span>
+            <span class="status-text">Staging to WordPress...</span>
+        </div>
+
+    {% elif card.stage == 'review' %}
+        <div class="card-meta">
+            {% if card.edit_link %}
+                <a href="{{ card.edit_link }}" target="_blank" class="card-link">Review in WordPress &#x2197;</a>
+            {% elif card.wordpress_id %}
+                <a href="https://blog.postman.com/wp-admin/post.php?post={{ card.wordpress_id }}&action=edit" target="_blank" class="card-link">Review in WordPress &#x2197;</a>
+            {% endif %}
+        </div>
+        <div class="schedule-toggle">
+            <form action="/api/cards/{{ card.id }}/schedule" method="POST" class="inline-form"
+                  onsubmit="var t=this.querySelector('.toggle');t.classList.add('toggle-disabled');t.querySelector('.toggle-label-right').textContent='Scheduling...';">
+                <input type="hidden" name="wp_id" value="{{ card.wordpress_id }}">
+                <label class="toggle">
+                    <span class="toggle-label-left">Not Reviewed</span>
+                    <input type="checkbox" onchange="this.form.submit()">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label-right">Schedule It</span>
+                </label>
+            </form>
+        </div>
+
+    {% elif card.stage == 'scheduling' %}
+        <div class="card-status">
+            <span class="pulse"></span>
+            <span class="status-text">Scheduling...</span>
+        </div>
+
+    {% elif card.stage == 'scheduled' %}
+        <div class="card-meta">
+            {% if card.scheduled_date %}
+                <span class="card-date">{{ card.scheduled_date }} at 8:00 AM PST</span>
+            {% endif %}
+            {% if card.edit_link %}
+                <a href="{{ card.edit_link }}" target="_blank" class="card-link">Edit &#x2197;</a>
+            {% elif card.wordpress_id %}
+                <a href="https://blog.postman.com/wp-admin/post.php?post={{ card.wordpress_id }}&action=edit" target="_blank" class="card-link">Edit &#x2197;</a>
+            {% endif %}
+        </div>
+
+    {% elif card.stage == 'published' %}
+        <div class="card-meta">
+            {% if card.scheduled_date %}
+                <span class="card-date">{{ card.scheduled_date }}</span>
+            {% endif %}
+            {% if card.post_link %}
+                <a href="{{ card.post_link }}" target="_blank" class="card-link">View &#x2197;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+
+    {% if card.slug and card.stage not in ['ideas', 'published'] %}
+        <div class="card-slug">{{ card.slug }}</div>
+    {% endif %}
+</div>

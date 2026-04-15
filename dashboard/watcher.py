@@ -1,0 +1,219 @@
+"""File system watcher that auto-advances Kanban cards based on blog-output/ changes."""
+
+import os
+import threading
+import time
+import yaml
+
+
+BLOG_OUTPUT = os.path.join(os.path.dirname(__file__), "..", "blog-output")
+HEADER_DIR = os.path.join(BLOG_OUTPUT, "images", "header")
+POLL_INTERVAL = 3  # seconds
+
+# Track files we've already seen so we can detect new ones
+_known_markdown = set()
+_known_copyedit = set()
+_known_headers = set()
+
+
+def _read_frontmatter(filepath):
+    """Extract YAML frontmatter from a markdown file."""
+    try:
+        with open(filepath, "r") as f:
+            content = f.read()
+        if content.startswith("---"):
+            parts = content.split("---", 2)
+            if len(parts) >= 3:
+                return yaml.safe_load(parts[1])
+    except Exception:
+        pass
+    return {}
+
+
+def _scan_files():
+    """Scan blog-output/ and return current file state."""
+    state = {"markdown": {}, "copyedit": {}, "headers": {}, "wordpress_ids": {}}
+
+    if os.path.isdir(BLOG_OUTPUT):
+        for name in os.listdir(BLOG_OUTPUT):
+            if not name.endswith(".md"):
+                continue
+            filepath = os.path.join(BLOG_OUTPUT, name)
+            if name.endswith("-copyedit.md"):
+                slug = name.replace("-copyedit.md", "")
+                state["copyedit"][slug] = filepath
+            else:
+                slug = name.replace(".md", "")
+                state["markdown"][slug] = filepath
+                fm = _read_frontmatter(filepath)
+                if fm.get("wordpress_id"):
+                    state["wordpress_ids"][slug] = fm["wordpress_id"]
+
+    if os.path.isdir(HEADER_DIR):
+        for name in os.listdir(HEADER_DIR):
+            if name.startswith("header-") and name.endswith(".png"):
+                slug = name.replace("header-", "").replace(".png", "")
+                state["headers"][slug] = os.path.join(HEADER_DIR, name)
+
+    return state
+
+
+def _update_card(state_manager, card_id, **kwargs):
+    """Update arbitrary fields on a card."""
+    data = state_manager._read()
+    for card in data["cards"]:
+        if card["id"] == card_id:
+            for key, val in kwargs.items():
+                card[key] = val
+            break
+    state_manager._write(data)
+
+
+def _oldest_card_in_stage(state_manager, stage):
+    """Find the oldest card in a given stage."""
+    cards = [c for c in state_manager.get_cards() if c["stage"] == stage]
+    if not cards:
+        return None
+    return min(cards, key=lambda c: c.get("created_at", ""))
+
+
+def check_and_advance(state_manager):
+    """Check files and advance any cards that match."""
+    files = _scan_files()
+    cards = state_manager.get_cards()
+    changed = False
+
+    # Find new markdown files (not yet known)
+    new_markdown = set(files["markdown"].keys()) - _known_markdown
+    new_copyedit = set(files["copyedit"].keys()) - _known_copyedit
+    new_headers = set(files["headers"].keys()) - _known_headers
+
+    # --- Stage: writing → copyedit ---
+    # Match by slug first, then assign new files to oldest writing card
+    for card in cards:
+        if card["stage"] != "writing":
+            continue
+        slug = card["slug"]
+        if slug in files["markdown"]:
+            # Exact slug match
+            _known_markdown.add(slug)
+            fm = _read_frontmatter(files["markdown"][slug])
+            title = fm.get("suggested_title", card["topic"])
+            _update_card(state_manager, card["id"], topic=title)
+            state_manager.advance_card(card["id"], "copyedit")
+            changed = True
+
+    # Any remaining new markdown files → assign to oldest writing card
+    for new_slug in list(new_markdown):
+        if new_slug in _known_markdown:
+            continue
+        writing_card = _oldest_card_in_stage(state_manager, "writing")
+        if writing_card:
+            _known_markdown.add(new_slug)
+            fm = _read_frontmatter(files["markdown"][new_slug])
+            title = fm.get("suggested_title", new_slug.replace("-", " ").title())
+            _update_card(state_manager, writing_card["id"], slug=new_slug, topic=title)
+            state_manager.advance_card(writing_card["id"], "copyedit")
+            changed = True
+
+    # --- Stage: copyedit → header_image ---
+    for card in state_manager.get_cards():
+        if card["stage"] != "copyedit":
+            continue
+        slug = card["slug"]
+        if slug in files["copyedit"]:
+            _known_copyedit.add(slug)
+            state_manager.advance_card(card["id"], "header_image")
+            changed = True
+
+    # --- Stage: header_image → staging ---
+    for card in state_manager.get_cards():
+        if card["stage"] != "header_image":
+            continue
+        slug = card["slug"]
+        if slug in files["headers"]:
+            _known_headers.add(slug)
+            state_manager.advance_card(
+                card["id"], "staging",
+                header_image=f"header-{slug}.png",
+            )
+            changed = True
+
+    # --- Stage: staging → review ---
+    for card in state_manager.get_cards():
+        if card["stage"] != "staging":
+            continue
+        slug = card["slug"]
+        if slug in files["wordpress_ids"]:
+            wp_id = files["wordpress_ids"][slug]
+            state_manager.advance_card(
+                card["id"], "review",
+                wordpress_id=wp_id,
+                edit_link=f"https://blog.postman.com/wp-admin/post.php?post={wp_id}&action=edit",
+            )
+            changed = True
+
+    # --- Auto-discover: new files with no card at all ---
+    all_card_slugs = {c["slug"] for c in state_manager.get_cards()}
+    for file_slug in set(files["markdown"].keys()) - _known_markdown:
+        if file_slug in all_card_slugs:
+            continue
+        _known_markdown.add(file_slug)
+
+        fm = _read_frontmatter(files["markdown"][file_slug])
+        topic = fm.get("suggested_title", file_slug.replace("-", " ").title())
+        card = state_manager.create_card(topic)
+        _update_card(state_manager, card["id"], slug=file_slug)
+
+        # Advance to furthest known stage
+        if file_slug in files["wordpress_ids"]:
+            wp_id = files["wordpress_ids"][file_slug]
+            state_manager.advance_card(card["id"], "writing")
+            state_manager.advance_card(card["id"], "copyedit")
+            state_manager.advance_card(card["id"], "header_image")
+            state_manager.advance_card(card["id"], "staging")
+            state_manager.advance_card(
+                card["id"], "review",
+                wordpress_id=wp_id,
+                edit_link=f"https://blog.postman.com/wp-admin/post.php?post={wp_id}&action=edit",
+            )
+        elif file_slug in files["headers"]:
+            state_manager.advance_card(card["id"], "writing")
+            state_manager.advance_card(card["id"], "copyedit")
+            state_manager.advance_card(card["id"], "header_image")
+            state_manager.advance_card(
+                card["id"], "staging",
+                header_image=f"header-{file_slug}.png",
+            )
+        elif file_slug in files["copyedit"]:
+            state_manager.advance_card(card["id"], "writing")
+            state_manager.advance_card(card["id"], "copyedit")
+            state_manager.advance_card(card["id"], "header_image")
+        else:
+            state_manager.advance_card(card["id"], "writing")
+            state_manager.advance_card(card["id"], "copyedit")
+
+        changed = True
+
+    return changed
+
+
+def start_watcher(state_manager):
+    """Start the file watcher in a background thread."""
+    # Seed known files so we don't auto-discover existing ones on first run
+    files = _scan_files()
+    _known_markdown.update(files["markdown"].keys())
+    _known_copyedit.update(files["copyedit"].keys())
+    _known_headers.update(files["headers"].keys())
+
+    def _poll():
+        while True:
+            try:
+                check_and_advance(state_manager)
+            except Exception:
+                pass
+            time.sleep(POLL_INTERVAL)
+
+    t = threading.Thread(target=_poll, daemon=True)
+    t.start()
+    return t

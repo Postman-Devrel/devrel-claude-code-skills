@@ -3,6 +3,9 @@ influencer-output/
 blog-prompt/
 blog-output/
 influencer-prompt/
-prompts/    
- 
-
+prompts/
+dashboard/state.json
+dashboard/queue.json
+dashboard/wp-calendar.json
+dashboard/__pycache__/
+dashboard/.venv/

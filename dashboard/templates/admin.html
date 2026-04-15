@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="admin-page">
+    <div class="admin-section">
+        <div class="admin-section-header">
+            <h2>Pipeline Cards</h2>
+            <span class="badge">{{ cards | length }}</span>
+        </div>
+        {% if cards %}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Topic</th>
+                    <th>Slug</th>
+                    <th>Stage</th>
+                    <th>WP ID</th>
+                    <th>Error</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td class="mono">{{ card.id }}</td>
+                    <td>{{ card.topic }}</td>
+                    <td class="mono">{{ card.slug }}</td>
+                    <td><span class="stage-pill stage-{{ card.stage }}">{{ card.stage }}</span></td>
+                    <td class="mono">{{ card.wordpress_id or '—' }}</td>
+                    <td class="error-cell">{{ card.error or '' }}</td>
+                    <td>
+                        <form action="/api/cards/{{ card.id }}" method="POST" class="inline-form">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-ghost btn-sm btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="admin-actions">
+            <form action="/api/cards/clear" method="POST" onsubmit="return confirm('Remove all cards from the board?')">
+                <button type="submit" class="btn btn-danger-solid">Clear All Cards</button>
+            </form>
+        </div>
+        {% else %}
+        <p class="empty-state">No cards in the pipeline.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

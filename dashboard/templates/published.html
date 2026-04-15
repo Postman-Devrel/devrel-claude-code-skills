@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="published-page">
+    <div class="published-header">
+        <h2>Published Posts by Month</h2>
+        <span class="published-total">{{ monthly_summary.values() | map(attribute='count') | sum }} posts</span>
+    </div>
+    {% if monthly_summary %}
+    <div class="summary-grid">
+        {% for month, data in monthly_summary | dictsort(reverse=true) %}
+        <div class="summary-month">
+            <div class="summary-month-header">
+                <span class="summary-month-name">{{ month }}</span>
+                <span class="summary-month-count">{{ data.count }} post{{ 's' if data.count != 1 }}</span>
+            </div>
+            <ul class="summary-post-list">
+                {% for post in data.posts %}
+                <li>
+                    <span class="summary-post-date">{{ post.date }}</span>
+                    <a href="{{ post.link }}" target="_blank" class="summary-post-link">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No published posts found. Run the scheduler agent to sync calendar data.</p>
+    {% endif %}
+</div>
+{% endblock %}

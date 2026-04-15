@@ -25,6 +25,11 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-ideas` | Search trending AI/API topics and generate scored blog content ideas (0-100) |
 | `/devrel-skills:blog-write` | Write technical blog posts with developer advocate voice, SEO frontmatter, and hands-on examples |
 | `/devrel-skills:blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO. Also runs automatically via hook after `blog-write` |
+| `/devrel-skills:blog-header-image` | Generate Postman-branded blog header images (2560×1355 PNG, no text) using Gemini/nanobanana |
+| `/devrel-skills:blog-pipeline` | Full blog pipeline — write/import, copyedit, header image, stage, and optionally schedule |
+| `/devrel-skills:blog-create-from-gdoc` | Convert a Google Doc to blog-ready markdown with downloaded images |
+| `/devrel-skills:blog-wordpress-stage` | Stage a blog post and header image to blog.postman.com WordPress as a draft, with SEO metadata and suggested publish date |
+| `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:sentiment-apitools` | Reactive Reddit sentiment analysis of API developer tools — skewed towards PLG offerings (Postman, Bruno, Insomnia, etc.) |
@@ -35,6 +40,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 Each skill writes output to a dedicated directory:
 
 - `blog-output/` — Blog posts (slugified title, includes SEO frontmatter)
+- `blog-output/images/header/` — Blog header images (`header-*.png`, 2560×1355 PNG)
 - `cfp-output/` — CFP search results (`current-cfps.md`)
 - `newsletter-output/` — Newsletters (prefixed with `YYYY-MM`)
 - `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)

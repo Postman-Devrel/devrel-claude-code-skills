@@ -16,9 +16,7 @@ claude --plugin-dir /path/to/devrel-claude-code-skills
 
 When running locally, skills are available without the namespace prefix.
 
-
 Once installed, skills are available in any project with the `devrel-skills:` namespace prefix.
-
 
 ### As a Plugin (not yet available)
 
@@ -28,19 +26,110 @@ Install directly from the repository:
 claude plugin install devrel-skills
 ```
 
-
-
 ## Available Skills
+
+### Blog Pipeline
+
+The blog pipeline takes a post from idea to scheduled WordPress draft. You can run the full pipeline as a single command, or run individual skills for more control.
 
 | Skill | Description |
 |-------|-------------|
-| `blog-ideas` | Search trending AI/API topics and generate scored blog content ideas (0-100) |
-| `blog-write` | Write technical blog posts with developer advocate voice, SEO frontmatter, and hands-on examples |
-| `blog-copyeditor` | Copy edit blog posts for grammar, structure, and SEO optimization |
+| `blog-pipeline` | Full pipeline — auto-detects input (topic, draft file, or Google Doc URL), then runs write/import, copyedit, header image, stage, and optionally schedule |
+| `blog-write` | Write a technical blog post from a topic or draft file |
+| `blog-create-from-gdoc` | Import a Google Doc as blog-ready markdown with downloaded images |
+| `blog-copyeditor` | Copy edit for grammar, structure, and SEO |
+| `blog-header-image` | Generate a Postman-branded header image (2560x1355 PNG) |
+| `blog-wordpress-stage` | Stage post + header image to blog.postman.com as a draft with SEO metadata and tags |
+| `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts, list upcoming/published, view monthly counts |
+| `blog-ideas` | Search trending topics and generate scored blog content ideas |
+
+### Other Skills
+
+| Skill | Description |
+|-------|-------------|
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `sentiment-apitools` | Analyze Reddit sentiment about API developer tools |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
+
+## Blog Pipeline
+
+There are two ways to run the blog pipeline: the **CLI pipeline skill** and the **Kanban dashboard**.
+
+### Option 1: CLI Pipeline Skill
+
+Run `/blog-pipeline` in Claude Code for an interactive, single-command pipeline:
+
+```bash
+# Write a new post from a topic
+/blog-pipeline Testing OAuth 2.0 flows in Postman
+
+# Import from a Google Doc
+/blog-pipeline https://docs.google.com/document/d/1abc.../edit
+
+# Use an existing draft file
+/blog-pipeline prompts/my-draft.md
+
+# No argument — it will ask what you want to do
+/blog-pipeline
+```
+
+The pipeline auto-detects your input type and runs:
+
+1. **Write or import** the blog post
+2. **Copyedit** for grammar, style guide compliance, and SEO
+3. **Generate a header image** (Postman-branded, 2560x1355)
+4. **Stage to WordPress** as a draft with featured image, meta description, and tags
+5. **Ask if you want to schedule** — if yes, runs the scheduler (with embargo date support)
+
+### Option 2: Kanban Dashboard
+
+A web-based Kanban board that runs the pipeline visually. Cards move through columns as agents produce output.
+
+#### Starting the Dashboard
+
+```bash
+cd dashboard
+./start.sh
+```
+
+Open **http://127.0.0.1:5001**. To stop: `./stop.sh`
+
+#### Setup
+
+```bash
+cd dashboard
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+#### How It Works
+
+The dashboard is a UI layer on top of the same skills. It spawns `claude` CLI agents in the background and tracks progress via file watching.
+
+| Column | What happens |
+|--------|-------------|
+| **Ideas** | Enter a topic or paste a Google Docs URL. Click "Start Pipeline". |
+| **Creating** | Agent is working — writing, copyediting, generating the header image. Status updates as each substep completes. |
+| **Staging** | Agent is staging the post to WordPress. |
+| **Review** | Draft is in WordPress. Click the link to review. Flip the toggle to "Schedule It" when ready. |
+| **Scheduled** | Post is scheduled with a publish date (8:00 AM PST). |
+
+- **Auto-refresh** — the board reloads every 60 seconds to pick up changes
+- **File watcher** — polls `blog-output/` every 3 seconds and advances cards as agents produce files
+- **WordPress sync** — on startup, fetches drafts and scheduled posts from blog.postman.com
+- **Published tab** — shows published posts grouped by month with links
+- **Admin tab** — view and manage pipeline cards, clear the board
+
+#### Dashboard Architecture
+
+The dashboard does **not** call the WordPress API for writes — all staging and scheduling goes through the agents (same skills as the CLI). It only reads from WordPress to populate the Scheduled column and Published tab.
+
+```
+User creates card → Dashboard spawns claude CLI agent → Agent runs skills →
+File watcher detects output → Card advances through columns →
+User reviews in WordPress → User flips toggle → Agent schedules post
+```
 
 ## Output Directories
 
@@ -48,7 +137,9 @@ Each skill writes to a dedicated directory:
 
 | Directory | Skill | Naming Convention |
 |-----------|-------|-------------------|
-| `blog-output/` | `blog-write` | Slugified title (e.g., `testing-auth-flows-in-postman.md`) |
+| `blog-output/` | `blog-write`, `blog-create-from-gdoc` | Slugified title (e.g., `testing-auth-flows-in-postman.md`) |
+| `blog-output/images/header/` | `blog-header-image` | `header-{slug}.png` (2560x1355) |
+| `blog-output/images/{slug}/` | `blog-create-from-gdoc` | Downloaded images from Google Docs |
 | `cfp-output/` | `cfp-hunter` | `current-cfps.md` |
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `sentiment-output/` | `sentiment-apitools` | `sentiment-analysis-YYMMDD.md` |
@@ -62,63 +153,106 @@ A `PostToolUse` hook automatically triggers after any markdown file is written v
 
 ```
 .claude-plugin/
-  plugin.json               # Plugin manifest
+  plugin.json                  # Plugin manifest
 skills/
-  blog-write/
-    SKILL.md                # Blog writing skill
-  blog-copyeditor/
-    SKILL.md                # Copy editing & SEO skill
-  blog-ideas/
-    SKILL.md                # Blog idea generation skill
-  cfp-hunter/
-    SKILL.md                # CFP search skill
-  sentiment-apitools/
-    SKILL.md                # Competitive sentiment analysis skill
-  newsletter-agentsandapis/
-    SKILL.md                # Newsletter generation skill
-  influencer-autoagent/
-    SKILL.md                # Influencer finder for product launches
+  blog-pipeline/               # Full pipeline orchestrator
+  blog-write/                  # Blog writing
+  blog-copyeditor/             # Copy editing & SEO
+  blog-create-from-gdoc/       # Google Doc import
+  blog-header-image/           # Header image generation
+  blog-wordpress-stage/        # WordPress staging
+  blog-wordpress-scheduler/    # Editorial calendar management
+  blog-ideas/                  # Blog idea generation
+  cfp-hunter/                  # CFP search
+  sentiment-apitools/          # Sentiment analysis
+  newsletter-agentsandapis/    # Newsletter generation
+  influencer-autoagent/        # Influencer finder
 hooks/
-  hooks.json                # Hook configuration
-  blog-copyeditor-hook.sh   # Post-write hook script
-blog-output/                # Blog post output
-cfp-output/                 # CFP search results
-newsletter-output/          # Newsletter output
-sentiment-output/           # Sentiment analysis output
-influencer-output/          # Influencer candidate output
+  hooks.json                   # Hook configuration
+  blog-copyeditor-hook.sh      # Post-write hook script
+dashboard/                     # Kanban web dashboard
+  app.py                       # Flask application
+  watcher.py                   # File system watcher
+  calendar_sync.py             # WordPress calendar sync (read-only)
+  start.sh / stop.sh           # Start and stop scripts
+  templates/                   # Jinja2 templates
+  static/                      # CSS
+blog-output/                   # Blog post output
+cfp-output/                    # CFP search results
+newsletter-output/             # Newsletter output
+sentiment-output/              # Sentiment analysis output
+influencer-output/             # Influencer candidate output
 ```
 
 ## Usage Examples
 
 ```bash
-# Generate blog content ideas (optionally pass a focus area)
-/devrel-skills:blog-ideas MCP
+# Full blog pipeline (auto-detects input type)
+/blog-pipeline Testing OAuth 2.0 flows in Postman
+/blog-pipeline https://docs.google.com/document/d/1abc.../edit
+/blog-pipeline prompts/my-draft.md
 
-# Write a blog post — pass a topic, a file path to a draft, or nothing
-/devrel-skills:blog-write Testing OAuth 2.0 flows in Postman
-/devrel-skills:blog-write prompts/my-draft.md
+# Individual blog skills
+/blog-write Testing OAuth 2.0 flows in Postman
+/blog-create-from-gdoc https://docs.google.com/document/d/1abc.../edit
+/blog-copyeditor blog-output/testing-auth-flows-in-postman.md
+/blog-header-image blog-output/testing-auth-flows-in-postman.md
+/blog-wordpress-stage blog-output/testing-auth-flows-in-postman.md
+/blog-wordpress-scheduler list
+/blog-wordpress-scheduler reschedule 12345 next
 
-# Copy edit a blog post (auto-detects most recent, or pass a filename)
-/devrel-skills:blog-copyeditor blog-output/testing-auth-flows-in-postman.md
+# Generate blog content ideas
+/blog-ideas MCP
 
 # Find speaking opportunities
-/devrel-skills:cfp-hunter
+/cfp-hunter
 
-# Generate this month's newsletter (optionally pass a month)
-/devrel-skills:newsletter-agentsandapis March
+# Generate this month's newsletter
+/newsletter-agentsandapis March
 
-# Run api tool sentiment analysis
-/devrel-skills:sentiment-apitools
+# Run API tool sentiment analysis
+/sentiment-apitools
 
 # Find influencers for a product launch
-/devrel-skills:influencer-autoagent Autonomous Agent
+/influencer-autoagent Autonomous Agent
 ```
 
 ## Prerequisites
 
-Some skills require web access to function:
+### WordPress Setup (for staging and scheduling)
 
-- **blog-ideas**, **cfp-hunter**, **newsletter-agentsandapis**, **sentiment-apitools** — use `WebSearch` and `WebFetch` tools
+The `blog-wordpress-stage` and `blog-wordpress-scheduler` skills require WordPress application credentials:
+
+1. Go to **blog.postman.com/wp-admin/profile.php**
+2. Scroll to **Application Passwords** and create a new one
+3. Add the credentials to `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "WP_USERNAME": "your-wordpress-username",
+    "WP_APP_PASSWORD": "xxxx xxxx xxxx xxxx xxxx xxxx"
+  }
+}
+```
+
+The dashboard also reads these credentials (for populating the Scheduled column and Published tab on startup).
+
+### Google Docs Setup (for `blog-create-from-gdoc`)
+
+The Google Doc must be shared with "Anyone with the link can view" access. No API keys required — the skill uses the public export URL.
+
+### Gemini API Setup (for `blog-header-image`)
+
+Header image generation requires a Gemini API key:
+
+```json
+{
+  "env": {
+    "GEMINI_API_KEY": "your-gemini-api-key"
+  }
+}
+```
 
 ### Reddit API Setup (for `sentiment-apitools`)
 
@@ -129,24 +263,16 @@ The `sentiment-apitools` skill can use web search with no setup, but for deeper 
 3. Set redirect URI to `http://localhost:8080`
 4. Note your `client_id` (string under the app name) and `client_secret`
 
-Set environment variables:
-
-```bash
-export REDDIT_CLIENT_ID="your_client_id"
-export REDDIT_CLIENT_SECRET="your_client_secret"
-export REDDIT_USER_AGENT="competitor-sentiment-analyzer/1.0"
+```json
+{
+  "env": {
+    "REDDIT_CLIENT_ID": "your_client_id",
+    "REDDIT_CLIENT_SECRET": "your_client_secret",
+    "REDDIT_USER_AGENT": "competitor-sentiment-analyzer/1.0"
+  }
+}
 ```
-
-Or create a `.env` file in your project:
-
-```
-REDDIT_CLIENT_ID=your_client_id
-REDDIT_CLIENT_SECRET=your_client_secret
-REDDIT_USER_AGENT=competitor-sentiment-analyzer/1.0
-```
-
-When you run the skill, it will ask whether to use web search (no setup) or the Reddit API (more comprehensive).
 
 ## License
- 
+
 MIT

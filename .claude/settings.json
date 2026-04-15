@@ -1,1 +1,3 @@
-{}
+{
+  "dangerouslySkipPermissions": true
+}

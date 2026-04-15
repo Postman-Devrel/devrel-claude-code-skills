@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if calendar_stale %}
+<div class="info-banner">
+    Calendar sync failed — check WP credentials in <code>~/.claude/settings.json</code>. Scheduled and published posts will appear once credentials are set.
+</div>
+{% endif %}
+
+<div class="board">
+    {# Ideas column with new card form #}
+    <div class="column column-ideas">
+        <div class="column-header">
+            <h2>{{ stage_labels['ideas'] }}</h2>
+            <span class="badge">{{ cards_by_stage['ideas'] | length }}</span>
+        </div>
+        <form action="/api/cards" method="POST" class="new-card-form">
+            <input type="text" name="topic" placeholder="Topic or Google Docs URL..." required autocomplete="off">
+            <button type="submit" class="btn btn-primary">+ New Blog</button>
+            <span class="form-hint">Enter a topic to write from scratch, or paste a Google Docs URL to import</span>
+        </form>
+        <div class="card-list">
+            {% for card in cards_by_stage['ideas'] %}
+                {% include "partials/card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Creating column #}
+    <div class="column column-creating">
+        <div class="column-header">
+            <h2>{{ stage_labels['creating'] }}</h2>
+            <span class="badge">{{ cards_by_stage['creating'] | length }}</span>
+        </div>
+        <div class="card-list">
+            {% for card in cards_by_stage['creating'] %}
+                {% include "partials/card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Staging column #}
+    <div class="column column-staging">
+        <div class="column-header">
+            <h2>{{ stage_labels['staging'] }}</h2>
+            <span class="badge">{{ cards_by_stage['staging'] | length }}</span>
+        </div>
+        <div class="card-list">
+            {% for card in cards_by_stage['staging'] %}
+                {% include "partials/card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Review column #}
+    <div class="column column-review">
+        <div class="column-header">
+            <h2>{{ stage_labels['review'] }}</h2>
+            <span class="badge">{{ cards_by_stage['review'] | length }}</span>
+        </div>
+        <div class="card-list">
+            {% for card in cards_by_stage['review'] %}
+                {% include "partials/card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Scheduled column #}
+    <div class="column column-scheduled">
+        <div class="column-header">
+            <h2>{{ stage_labels['scheduled'] }}</h2>
+            <span class="badge">{{ cards_by_stage['scheduled'] | length }}</span>
+        </div>
+        <div class="card-list">
+            {% for card in cards_by_stage['scheduled'] %}
+                {% include "partials/card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
