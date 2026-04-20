@@ -146,9 +146,19 @@ url = f"posts?status=publish&after={six_months_ago}&per_page=100&orderby=date&or
 published = wp_get(url)
 ```
 
+### Step 2b: Fetch Recent Draft Posts
+
+Fetch draft posts modified in the past 3 weeks:
+
+```python
+three_weeks_ago = (today - timedelta(weeks=3)).strftime("%Y-%m-%dT00:00:00")
+url = f"posts?status=draft&after={three_weeks_ago}&per_page=100&orderby=modified&order=desc"
+drafts = wp_get(url)
+```
+
 ### Step 3: Write Dashboard Calendar File
 
-After fetching scheduled and published posts, write the results to `dashboard/wp-calendar.json` so the Kanban dashboard can display them without calling the WordPress API directly. This file is the bridge between the agent and the dashboard UI.
+After fetching scheduled, published, and draft posts, write the results to `dashboard/wp-calendar.json` so the Kanban dashboard can display them without calling the WordPress API directly. This file is the bridge between the agent and the dashboard UI.
 
 ```python
 import os
@@ -177,6 +187,17 @@ calendar_data = {
         }
         for p in published
     ],
+    "drafts": [
+        {
+            "id": p["id"],
+            "title": p["title"]["rendered"],
+            "modified": p["modified"],
+            "status": "draft",
+            "link": p.get("link", ""),
+            "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
+        }
+        for p in drafts
+    ],
 }
 
 calendar_path = os.path.join(os.path.dirname(__file__), "..", "..", "dashboard", "wp-calendar.json")
@@ -187,7 +208,7 @@ if os.environ.get("CLAUDE_PLUGIN_ROOT"):
 os.makedirs(os.path.dirname(calendar_path), exist_ok=True)
 with open(calendar_path, "w") as f:
     json.dump(calendar_data, f, indent=2)
-print(f"Dashboard calendar updated: {len(calendar_data['scheduled'])} scheduled, {len(calendar_data['published'])} published")
+print(f"Dashboard calendar updated: {len(calendar_data['scheduled'])} scheduled, {len(calendar_data['published'])} published, {len(calendar_data['drafts'])} drafts")
 ```
 
 **IMPORTANT:** Always write this file when running the `list` subcommand. The dashboard reads it on page load.
@@ -206,11 +227,17 @@ Upcoming Scheduled Posts:
   12346   Wed, Apr 22, 2026 8:00 AM PST   "API Security Best Practices for 2026"
   12347   Thu, Apr 23, 2026 8:00 AM PST   "Getting Started with Postman Flows"
 
-Recently Published (past 2 weeks):
+Recently Published (past 6 months):
   ID      Date                          Title
   -----   ---------------------------   ------------------------------------------
   12340   Thu, Apr 10, 2026 8:00 AM PST   "What's New in Postman v11"
   12338   Tue, Apr 08, 2026 8:00 AM PST   "GraphQL Testing with Postman"
+
+Recent Drafts (past 3 weeks):
+  ID      Last Modified                 Title
+  -----   ---------------------------   ------------------------------------------
+  12350   Sun, Apr 19, 2026 3:45 PM PST   "Introduction to Postman Vault"
+  12351   Fri, Apr 17, 2026 11:20 AM PST  "Using Postman with Azure API Management"
 
 Next open slots (Mon-Thu, no holidays):
   1. Monday, April 27, 2026

@@ -175,17 +175,22 @@ def run_agent(card_id, topic, action="blog-pipeline"):
     else:
         return
 
+    plugin_root_abs = os.path.abspath(PLUGIN_ROOT)
+
     def _run():
         try:
-            subprocess.run(
-                [claude, "-p", "--dangerously-skip-permissions", prompt],
-                cwd=PLUGIN_ROOT,
+            result = subprocess.run(
+                [claude, "--plugin-dir", plugin_root_abs, "-p", "--dangerously-skip-permissions", prompt],
+                cwd=plugin_root_abs,
                 timeout=1800,  # 30 minute timeout
                 capture_output=True,
                 text=True,
             )
+            if result.returncode != 0:
+                error_msg = (result.stderr or result.stdout or "Agent exited with error").strip()
+                state.set_error(card_id, f"Agent failed (exit {result.returncode}): {error_msg[:500]}")
         except subprocess.TimeoutExpired:
-            state.set_error(card_id, "Agent timed out after 10 minutes")
+            state.set_error(card_id, "Agent timed out after 30 minutes")
         except Exception as e:
             state.set_error(card_id, str(e))
 
