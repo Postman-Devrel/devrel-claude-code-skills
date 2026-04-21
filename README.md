@@ -30,7 +30,7 @@ claude plugin install devrel-skills
 
 The most common starting points — pick the one that fits your situation.
 
-### I have a topic or idea
+### Full autononmous pipeline (experimental)
 
 Use `/blog-pipeline` and the full workflow runs automatically: write, copyedit, generate a header image, and stage to WordPress as a draft.
 
@@ -46,7 +46,7 @@ Not sure what to write about? Generate scored ideas first:
 
 Then kick off the pipeline with whichever topic looks best.
 
-### I already have a Google Doc
+### Start from a blog draft in google docs
 
 Pass the doc URL directly to `/blog-wordpress-stage`. It converts the doc to markdown, runs the copyeditor automatically, and stages it to WordPress — no extra steps:
 
@@ -56,7 +56,7 @@ Pass the doc URL directly to `/blog-wordpress-stage`. It converts the doc to mar
 
 The Google Doc must be shared as "Anyone with the link can view".
 
-### I want to write the post now and handle the header image later
+### Start from a prompt or rough outline
 
 Use `/blog-write` to produce a finished, copyedited markdown file. Then raise a design ticket for the header image and come back to stage when it's ready.
 
