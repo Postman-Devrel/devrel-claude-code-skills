@@ -28,7 +28,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-header-image` | Generate Postman-branded blog header images (2560×1355 PNG, no text) using Gemini/nanobanana |
 | `/devrel-skills:blog-pipeline` | Full blog pipeline — write/import, copyedit, header image, stage, and optionally schedule |
 | `/devrel-skills:blog-create-from-gdoc` | Convert a Google Doc to blog-ready markdown with downloaded images |
-| `/devrel-skills:blog-wordpress-stage` | Stage a blog post and header image to blog.postman.com WordPress as a draft, with SEO metadata and suggested publish date |
+| `/devrel-skills:blog-wordpress-stage` | Stage a blog post to blog.postman.com WordPress as a draft — accepts a local markdown file or a Google Docs URL (converts the doc first), with SEO metadata |
 | `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |

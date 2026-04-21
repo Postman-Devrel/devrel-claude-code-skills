@@ -1,23 +1,149 @@
 ---
 name: blog-wordpress-stage
-description: "Stage a blog post to WordPress (blog.postman.com). Takes a markdown file and header image, creates or updates a draft post, uploads the featured image, sets the meta description, and suggests the next available publish date (Tue/Wed/Thu)."
-argument-hint: "[markdown file path] [header image path] (e.g. 'blog-output/my-post.md blog-output/images/header/header-my-post.png')"
+description: "Stage a blog post to WordPress (blog.postman.com). Takes a markdown file, header image, or a Google Docs URL. When given a Google Doc, converts it to markdown first. Creates or updates a draft post, uploads the featured image, sets SEO metadata."
+argument-hint: "[markdown file path | Google Docs URL] [header image path] (e.g. 'blog-output/my-post.md' or 'https://docs.google.com/document/d/1abc.../edit')"
 ---
 
 # WordPress Blog Post Stager — blog.postman.com
 
 Stage blog posts to the Postman WordPress site. Converts markdown to HTML, uploads a featured image, sets SEO metadata, and finds the next open publish slot on the Tuesday/Wednesday/Thursday schedule.
 
+Accepts either a local markdown file or a Google Docs URL — if given a Google Doc, it converts the doc to markdown first, then stages it.
+
 ## Input Handling
 
 This skill accepts:
 
-- **Markdown file path** (required) — path to a blog post markdown file (e.g., `blog-output/testing-oauth-flows.md`)
-- **Header image path** (optional) — path to a header image PNG
+- **Markdown file path** — path to a blog post markdown file (e.g., `blog-output/testing-oauth-flows.md`)
+- **Google Docs URL** — a link like `https://docs.google.com/document/d/1abc.../edit`; the skill will convert the doc to markdown before staging
+- **Header image path** (optional) — path to a header image PNG; can be provided alongside either of the above
 
-If no arguments are provided, ask the user for the markdown file path.
+If no arguments are provided, ask the user whether they have a local markdown file or a Google Doc URL.
 
-**Automatic header image detection:** If only the markdown file is provided, automatically look for a matching header image at `blog-output/images/header/header-{markdown-basename}.png`. For example, if the markdown file is `blog-output/testing-oauth-flows.md`, check for `blog-output/images/header/header-testing-oauth-flows.png`. If found, use it as the featured image without asking. If not found, stage the post without a featured image.
+**Automatic header image detection:** If only the markdown file is provided (and no header image argument), automatically look for a matching header image at `blog-output/images/header/header-{markdown-basename}.png`. For example, if the markdown file is `blog-output/testing-oauth-flows.md`, check for `blog-output/images/header/header-testing-oauth-flows.png`. If found, use it as the featured image without asking. If not found, stage the post without a featured image.
+
+**Google Doc detection:** If the argument contains `docs.google.com/document`, treat it as a Google Docs URL and run Step 0 before the normal workflow.
+
+## Step 0: Convert Google Doc to Markdown (only if input is a Google Docs URL)
+
+Skip this step if the input is already a local markdown file.
+
+### Step 0a: Extract the Document ID
+
+```python
+import re
+
+url = "GOOGLE_DOCS_URL_HERE"
+
+match = re.search(r'/document/d/([a-zA-Z0-9_-]+)', url)
+if not match:
+    raise ValueError(f"Could not extract document ID from URL: {url}")
+doc_id = match.group(1)
+print(f"Document ID: {doc_id}")
+```
+
+### Step 0b: Fetch and Parse the Document
+
+```python
+import urllib.request, re, urllib.parse
+
+# Fetch as HTML to get the title and content
+html_url = f"https://docs.google.com/document/d/{doc_id}/export?format=html"
+req = urllib.request.Request(html_url, headers={"User-Agent": "PostmanDevRelSkill/1.0"})
+html_content = urllib.request.urlopen(req, timeout=30).read().decode("utf-8")
+
+# Extract title
+title_match = re.search(r'<title>(.*?)</title>', html_content)
+doc_title = title_match.group(1).strip() if title_match else "untitled"
+
+# Slugify
+slug = re.sub(r'[^\w\s-]', '', doc_title.lower().strip())
+slug = re.sub(r'[\s_]+', '-', slug)
+slug = re.sub(r'-+', '-', slug).strip('-')
+print(f"Title: {doc_title}  Slug: {slug}")
+```
+
+### Step 0c: Download Images
+
+```python
+import os
+
+image_dir = f"blog-output/images/{slug}"
+os.makedirs(image_dir, exist_ok=True)
+
+img_pattern = re.compile(r'<img[^>]+src="([^"]+)"', re.IGNORECASE)
+img_urls = img_pattern.findall(html_content)
+
+image_map = {}
+for i, img_url in enumerate(img_urls, 1):
+    try:
+        if not img_url.startswith("http"):
+            continue
+        req = urllib.request.Request(img_url, headers={"User-Agent": "PostmanDevRelSkill/1.0"})
+        img_data = urllib.request.urlopen(req, timeout=30).read()
+        ext = "jpg" if any(img_url.endswith(e) for e in [".jpg", ".jpeg"]) else "gif" if img_url.endswith(".gif") else "png"
+        filename = f"image-{i}.{ext}"
+        filepath = os.path.join(image_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(img_data)
+        image_map[img_url] = f"images/{slug}/{filename}"
+        print(f"Downloaded: {filename}")
+    except Exception as e:
+        print(f"Failed to download image {i}: {e}")
+```
+
+### Step 0d: Convert to Markdown and Save
+
+```python
+import subprocess, sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "html2text", "-q"])
+import html2text
+
+h = html2text.HTML2Text()
+h.body_width = 0
+h.ignore_links = False
+h.ignore_images = False
+h.unicode_snob = True
+h.skip_internal_links = True
+markdown = h.handle(html_content)
+
+# Replace Google-hosted image URLs with local paths
+for old_url, local_path in image_map.items():
+    markdown = markdown.replace(old_url, local_path)
+
+# Unwrap Google redirect links
+google_redirect = re.compile(r'https://www\.google\.com/url\?q=(.*?)&[^)]*')
+markdown = google_redirect.sub(lambda m: urllib.parse.unquote(m.group(1)), markdown)
+
+# Remove excessive blank lines and Google bookmark anchors
+markdown = re.sub(r'\n{3,}', '\n\n', markdown)
+markdown = re.sub(r'\[([^\]]*)\]\(#[^)]*\)', r'\1', markdown)
+
+# Extract meta_description from first paragraph
+first_para_match = re.search(r'\n\n([^#\n].{20,})', markdown)
+meta_desc = ""
+if first_para_match:
+    meta_desc = first_para_match.group(1).strip()[:155]
+    meta_desc = meta_desc[:meta_desc.rfind(' ')] if len(meta_desc) == 155 else meta_desc
+
+frontmatter = f"""---
+suggested_title: "{doc_title}"
+meta_description: "{meta_desc}"
+seo_score: 0
+primary_keyword: ""
+secondary_keywords: []
+source_gdoc: "https://docs.google.com/document/d/{doc_id}/edit"
+---
+
+"""
+
+output_path = f"blog-output/{slug}.md"
+with open(output_path, "w") as f:
+    f.write(frontmatter + markdown)
+print(f"Saved: {output_path}")
+```
+
+After Step 0d completes, use `blog-output/{slug}.md` as the markdown file for the rest of the workflow (Steps 1–8). Tell the user the Google Doc was converted and saved to `blog-output/{slug}.md` before proceeding.
 
 ## Prerequisites
 
