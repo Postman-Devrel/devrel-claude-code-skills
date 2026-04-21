@@ -26,6 +26,58 @@ Install directly from the repository:
 claude plugin install devrel-skills
 ```
 
+## Quickstart
+
+The most common starting points — pick the one that fits your situation.
+
+### I have a topic or idea
+
+Use `/blog-pipeline` and the full workflow runs automatically: write, copyedit, generate a header image, and stage to WordPress as a draft.
+
+```bash
+/blog-pipeline Testing OAuth 2.0 flows in Postman
+```
+
+Not sure what to write about? Generate scored ideas first:
+
+```bash
+/blog-ideas MCP servers
+```
+
+Then kick off the pipeline with whichever topic looks best.
+
+### I already have a Google Doc
+
+Pass the doc URL directly to `/blog-wordpress-stage`. It converts the doc to markdown, runs the copyeditor automatically, and stages it to WordPress — no extra steps:
+
+```bash
+/blog-wordpress-stage https://docs.google.com/document/d/1abc.../edit
+```
+
+The Google Doc must be shared as "Anyone with the link can view".
+
+### I want to write the post now and handle the header image later
+
+Use `/blog-write` to produce a finished, copyedited markdown file. Then raise a design ticket for the header image and come back to stage when it's ready.
+
+```bash
+# Step 1 — write and copyedit the post
+/blog-write Testing OAuth 2.0 flows in Postman
+# → saves blog-output/testing-oauth-2-0-flows-in-postman.md
+
+# Step 2 — raise a design ticket for the header image
+# (share the .md file with the design team and reference the 2560×1355 PNG spec)
+
+# Step 3 — stage to WordPress once the header image lands
+/blog-wordpress-stage blog-output/testing-oauth-2-0-flows-in-postman.md blog-output/images/header/header-testing-oauth-2-0-flows-in-postman.png
+```
+
+If the header image isn't ready yet you can stage without it — just omit the image argument and attach it in wp-admin later.
+
+---
+
+That covers the three most common paths. Read on for the full pipeline, the Kanban dashboard, individual skills, and configuration options.
+
 ## Available Skills
 
 ### Blog Pipeline

@@ -143,7 +143,38 @@ with open(output_path, "w") as f:
 print(f"Saved: {output_path}")
 ```
 
-After Step 0d completes, use `blog-output/{slug}.md` as the markdown file for the rest of the workflow (Steps 1–8). Tell the user the Google Doc was converted and saved to `blog-output/{slug}.md` before proceeding.
+After Step 0d completes, tell the user the Google Doc was converted and saved to `blog-output/{slug}.md`, then immediately proceed to Step 0e.
+
+### Step 0e: Auto-Copyedit the Converted Markdown (Google Doc path only)
+
+Before staging, run the full `blog-copyeditor` workflow on `blog-output/{slug}.md` in **hook mode** — auto-applying all safe, non-controversial fixes directly to the file. This ensures the Google Doc content meets Postman's writing standards before it reaches WordPress.
+
+**What to do:**
+
+1. Read all five Postman writing style guide files:
+   - `postman-writing-style-guide/languageandgrammar.md`
+   - `postman-writing-style-guide/brandedterms.md`
+   - `postman-writing-style-guide/wordlist.md`
+   - `postman-writing-style-guide/inclusivewords.md`
+   - `postman-writing-style-guide/formatting.md`
+
+2. Read `blog-output/{slug}.md` and run the full copy edit and SEO analysis pass (grammar, syntax, repetitive structures, style guide compliance, technical accuracy, SEO).
+
+3. **Auto-apply** all safe, non-controversial fixes directly to `blog-output/{slug}.md` using the Edit tool:
+   - Typo and spelling corrections
+   - Missing or incorrect code fence language identifiers
+   - Broken markdown syntax
+   - Incorrect product name capitalization
+   - Branded term corrections (per `brandedterms.md`)
+   - Prohibited word replacements (per `wordlist.md`)
+   - Inclusive language substitutions (per `inclusivewords.md`)
+   - Update `suggested_title`, `meta_description`, `primary_keyword`, and `secondary_keywords` frontmatter fields with the SEO recommendations
+
+4. Write the full copy edit report to `blog-output/{slug}-copyedit.md`.
+
+5. Tell the user a brief summary: how many fixes were auto-applied and the overall quality score. Do **not** pause for user review — continue directly to Step 1 with the updated `blog-output/{slug}.md`.
+
+After Step 0e completes, use `blog-output/{slug}.md` as the markdown file for the rest of the workflow (Steps 1–8).
 
 ## Prerequisites
 
