@@ -74,6 +74,12 @@ Use `/blog-write` to produce a finished, copyedited markdown file. Then raise a 
 
 If the header image isn't ready yet you can stage without it — just omit the image argument and attach it in wp-admin later.
 
+In order to use the /blog-wordpress* commands, you will need your wordpress username and an Application Key. You can generate this via Users > Profile > scroll to the bottom where you will see *Application Passwords*. Generate a new one and copy it to the clipboard. The first time you run /blog-wordpress-stage, it will prompt you to set up your credentials.
+
+**Note:**
+/blog-wordpress-scheduler is primarily reserved for admins. As an author you can use /blog-wordpress-scheduler list to see all scheduled posts, but only admins can schedule a post to published. 
+
+
 ---
 
 That covers the three most common paths. Read on for the full pipeline, the Kanban dashboard, individual skills, and configuration options.
