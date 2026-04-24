@@ -3,6 +3,7 @@
 import os
 import threading
 import time
+from datetime import datetime
 import yaml
 
 
@@ -88,28 +89,56 @@ def check_and_advance(state_manager):
     new_copyedit = set(files["copyedit"].keys()) - _known_copyedit
     new_headers = set(files["headers"].keys()) - _known_headers
 
+    # Track slugs claimed this poll so two writing cards don't grab the same file
+    claimed_slugs = {c["slug"] for c in cards if c["stage"] != "writing"}
+
     # --- Stage: writing → copyedit ---
-    # Match by slug first, then assign new files to oldest writing card
+    # 1) Exact slug match (fastest path)
+    # 2) Fallback: any file modified after this card entered the writing stage
+    #    — handles slug mismatches and files that existed before server restart
     for card in cards:
         if card["stage"] != "writing":
             continue
         slug = card["slug"]
-        if slug in files["markdown"]:
-            # Exact slug match
-            _known_markdown.add(slug)
-            fm = _read_frontmatter(files["markdown"][slug])
+        matched_slug = None
+
+        if slug in files["markdown"] and slug not in claimed_slugs:
+            matched_slug = slug
+        else:
+            # Parse when this card entered writing so we can compare mtime
+            writing_time = None
+            writing_time_str = card.get("stage_history", {}).get("writing")
+            if writing_time_str:
+                try:
+                    writing_time = datetime.fromisoformat(writing_time_str).timestamp()
+                except (ValueError, TypeError):
+                    pass
+
+            if writing_time is not None:
+                for file_slug, filepath in files["markdown"].items():
+                    if file_slug in claimed_slugs:
+                        continue
+                    if os.path.getmtime(filepath) > writing_time:
+                        matched_slug = file_slug
+                        break
+
+        if matched_slug:
+            _known_markdown.add(matched_slug)
+            claimed_slugs.add(matched_slug)
+            fm = _read_frontmatter(files["markdown"][matched_slug])
             title = fm.get("suggested_title", card["topic"])
-            _update_card(state_manager, card["id"], topic=title)
+            _update_card(state_manager, card["id"], slug=matched_slug, topic=title)
             state_manager.advance_card(card["id"], "copyedit")
             changed = True
 
-    # Any remaining new markdown files → assign to oldest writing card
+    # Any remaining new markdown files with no writing card to claim them
     for new_slug in list(new_markdown):
-        if new_slug in _known_markdown:
+        if new_slug in _known_markdown or new_slug in claimed_slugs:
             continue
         writing_card = _oldest_card_in_stage(state_manager, "writing")
         if writing_card:
             _known_markdown.add(new_slug)
+            claimed_slugs.add(new_slug)
             fm = _read_frontmatter(files["markdown"][new_slug])
             title = fm.get("suggested_title", new_slug.replace("-", " ").title())
             _update_card(state_manager, writing_card["id"], slug=new_slug, topic=title)
