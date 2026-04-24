@@ -2,6 +2,58 @@
 
 A Kanban board for the Postman DevRel blog publishing pipeline. Track posts from idea to publication — the agents do all the work, this is just the UI.
 
+https://github.com/Postman-Devrel/devrel-claude-code-skills/raw/main/dashboard/blog-pipeline-ux.mp4
+
+## Prerequisites
+
+The dashboard spawns Claude Code agents that run the blog pipeline skills. You need credentials for three external services before starting.
+
+### WordPress
+
+Required for staging and scheduling posts.
+
+1. Go to **blog.postman.com/wp-admin/profile.php**
+2. Scroll to **Application Passwords** and generate a new one
+3. Add to `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "WP_USERNAME": "your-wordpress-username",
+    "WP_APP_PASSWORD": "xxxx xxxx xxxx xxxx xxxx xxxx"
+  }
+}
+```
+
+> **Note:** `/blog-wordpress-scheduler` is primarily reserved for admins. Authors can run `/blog-wordpress-scheduler list` to see scheduled posts, but only admins can schedule a post to publish.
+
+### Gemini API
+
+Required for header image generation (`blog-header-image`). The pipeline will stall at the image step without this.
+
+1. Get a key at [aistudio.google.com](https://aistudio.google.com) → API Keys
+2. Add to `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "GEMINI_API_KEY": "your-gemini-api-key"
+  }
+}
+```
+
+Your full `~/.claude/settings.json` env block should look like:
+
+```json
+{
+  "env": {
+    "WP_USERNAME": "your-wordpress-username",
+    "WP_APP_PASSWORD": "xxxx xxxx xxxx xxxx xxxx xxxx",
+    "GEMINI_API_KEY": "your-gemini-api-key"
+  }
+}
+```
+
 ## Setup
 
 ```bash
@@ -58,6 +110,22 @@ All WordPress interaction and content creation is handled by the existing agents
 
 - **SSE** pushes updates when the file watcher detects changes
 - **Focus refresh** reloads the board when you switch back to the browser tab
+
+## Cleaning Up Stuck Cards
+
+If cards get stuck in the writing, copyedit, or header image stages (usually from a failed or cancelled agent run), use the cleanup skill from Claude Code:
+
+```bash
+# Remove only cards stuck before staging (safe default)
+/blog-dashboard-cleanup
+
+# Clear everything off the board
+/blog-dashboard-cleanup --all
+```
+
+The skill shows you exactly what it will remove and asks for confirmation. It only edits `dashboard/state.json` — WordPress drafts and `blog-output/` files are never touched.
+
+You can also manage cards manually via the **Admin** tab at **http://localhost:5001/admin** — remove individual cards or clear the board from there.
 
 ## Files
 

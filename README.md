@@ -143,7 +143,7 @@ The pipeline auto-detects your input type and runs:
 
 ### Option 2: Kanban Dashboard
 
-A web-based Kanban board that runs the pipeline visually. Cards move through columns as agents produce output.
+A web-based Kanban board that runs the pipeline visually. Cards move through columns as agents produce output. See the [dashboard README](dashboard/README.md) for full setup instructions including Gemini and WordPress credentials.
 
 #### Starting the Dashboard
 
