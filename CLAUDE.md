@@ -30,6 +30,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-create-from-gdoc` | Convert a Google Doc to blog-ready markdown with downloaded images |
 | `/devrel-skills:blog-wordpress-stage` | Stage a blog post to blog.postman.com WordPress as a draft — accepts a local markdown file or a Google Docs URL (converts the doc first), with SEO metadata |
 | `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
+| `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:sentiment-apitools` | Reactive Reddit sentiment analysis of API developer tools — skewed towards PLG offerings (Postman, Bruno, Insomnia, etc.) |

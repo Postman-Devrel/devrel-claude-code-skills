@@ -155,7 +155,7 @@ def run_agent(card_id, topic, action="blog-pipeline"):
         if is_gdoc:
             prompt = (
                 f"Run the full blog pipeline for this Google Doc: {topic}\n\n"
-                f"1. Run /blog-create-from-gdoc {topic}\n"
+                f"1. Run /blog-create-from-gdoc \"{topic}\"\n"
                 f"2. Run /blog-copyeditor on the output file\n"
                 f"3. Run /blog-header-image on the output file\n"
                 f"4. Run /blog-wordpress-stage on the output file\n\n"
@@ -164,14 +164,14 @@ def run_agent(card_id, topic, action="blog-pipeline"):
         else:
             prompt = (
                 f"Run the full blog pipeline for this topic: \"{topic}\"\n\n"
-                f"1. Run /blog-write {topic}\n"
+                f"1. Run /blog-write \"{topic}\"\n"
                 f"2. Run /blog-copyeditor on the output file\n"
                 f"3. Run /blog-header-image on the output file\n"
                 f"4. Run /blog-wordpress-stage on the output file\n\n"
                 f"Run each step in order. Wait for each to complete before starting the next."
             )
     elif action == "schedule":
-        prompt = f"Run /blog-wordpress-scheduler reschedule {topic} next"
+        prompt = f"Run /blog-wordpress-scheduler reschedule \"{topic}\" next"
     else:
         return
 

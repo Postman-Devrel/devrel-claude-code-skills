@@ -99,6 +99,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `blog-header-image` | Generate a Postman-branded header image (2560x1355 PNG) |
 | `blog-wordpress-stage` | Stage post + header image to blog.postman.com as a draft with SEO metadata and tags |
 | `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts (Tue/Thu priority), list upcoming/published, view monthly counts |
+| `blog-dashboard-cleanup` | Remove stuck/stale Kanban cards before staging. Pass `--all` to clear the entire board. Safe to run anytime — never touches WordPress. |
 | `blog-ideas` | Search trending topics and generate scored blog content ideas |
 
 ### Other Skills
