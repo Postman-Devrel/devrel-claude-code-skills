@@ -30,13 +30,7 @@ claude plugin install devrel-skills
 
 The most common starting points — pick the one that fits your situation.
 
-### Full autononmous pipeline (experimental)
 
-Use `/blog-pipeline` and the full workflow runs automatically: write, copyedit, generate a header image, and stage to WordPress as a draft.
-
-```bash
-/blog-pipeline Testing OAuth 2.0 flows in Postman
-```
 
 Not sure what to write about? Generate scored ideas first:
 
@@ -60,10 +54,18 @@ The Google Doc must be shared as "Anyone with the link can view".
 
 Use `/blog-write` to produce a finished, copyedited markdown file. Then raise a design ticket for the header image and come back to stage when it's ready.
 
+The recommended approach is create a draft or outline in markdown or google docs, then pass that path to /blog-write to complete it, including automatically running a copy edit, utilizing postman writing style guides, for you. 
+
 ```bash
 # Step 1 — write and copyedit the post
 /blog-write Testing OAuth 2.0 flows in Postman
 # → saves blog-output/testing-oauth-2-0-flows-in-postman.md
+
+#Step 1 - start from a markdown outline or draft
+/blog-write prompts/my-blog-outline.md
+
+#Step 1 - start from a google doc link
+/blog-write https://docs.google.com/document/d/1noytoyCGZY7uKuwK1l3R5hukI_qqd-ZjvJfFDJdCeFg/edit
 
 # Step 2 — raise a design ticket for the header image
 # (share the .md file with the design team and reference the 2560×1355 PNG spec)
@@ -74,10 +76,23 @@ Use `/blog-write` to produce a finished, copyedited markdown file. Then raise a 
 
 If the header image isn't ready yet you can stage without it — just omit the image argument and attach it in wp-admin later.
 
+```bash
+#Step 4 - schedule it
+/blog-wordpress-scheduler
+```
+
 In order to use the /blog-wordpress* commands, you will need your wordpress username and an Application Key. You can generate this via Users > Profile > scroll to the bottom where you will see *Application Passwords*. Generate a new one and copy it to the clipboard. The first time you run /blog-wordpress-stage, it will prompt you to set up your credentials.
 
 **Note:**
 /blog-wordpress-scheduler is primarily reserved for admins. As an author you can use /blog-wordpress-scheduler list to see all scheduled posts, but only admins can schedule a post to published. 
+
+### Full autononmous pipeline (experimental)
+
+Use `/blog-pipeline` and the full workflow runs automatically: write, copyedit, generate a header image, and stage to WordPress as a draft. (There is also a experimental UI version of this. see [this video](https://github.com/Postman-Devrel/devrel-claude-code-skills/raw/main/dashboard/blog-pipeline-ux.mp4) or check out more information below)
+
+```bash
+/blog-pipeline Testing OAuth 2.0 flows in Postman
+```
 
 
 ---
