@@ -1,6 +1,6 @@
 ---
 name: blog-wordpress-scheduler
-description: "Manage the blog.postman.com editorial calendar. List scheduled and recently published posts, reschedule drafts/future posts, and view monthly post counts. Enforces Mon-Thu scheduling with no same-day conflicts or US public holidays."
+description: "Manage the blog.postman.com editorial calendar. List scheduled and recently published posts, reschedule drafts/future posts, and view monthly post counts. Enforces Tue/Thu-first scheduling (Mon/Wed only after all Tue/Thu slots in the next 2 weeks are booked), no same-day conflicts, no US public holidays."
 argument-hint: "[list | reschedule | monthly] (e.g. 'list', 'reschedule 12345 2026-04-21', 'reschedule 12345 next', 'monthly')"
 ---
 
@@ -245,7 +245,14 @@ Next open slots (Mon-Thu, no holidays):
   3. Wednesday, April 29, 2026
 ```
 
-Always include the 3 next available open slots. **Prioritize Tuesday and Thursday first, then Wednesday and Monday.** For each upcoming week, try to fill Tue and Thu before offering Wed or Mon. Not on a US holiday, not on a day with an existing scheduled post.
+Always include the 3 next available open slots. Use this priority rule:
+
+1. **First**, scan all Tuesday and Thursday dates in the next 2 weeks (starting tomorrow). Collect any that are available (not a holiday, no conflict).
+2. **If any Tue/Thu slots are available** in that 2-week window → list only from those, earliest first.
+3. **If all Tue/Thu in the next 2 weeks are booked or holidays** → open Mon/Wed within the 2-week window and list from Mon–Thu using priority order [Tue, Thu, Wed, Mon].
+4. **If still nothing in the 2-week window** → search beyond 2 weeks using normal priority order [Tue, Thu, Wed, Mon].
+
+Never list a slot on a US holiday or a day with an existing scheduled post.
 
 ## Subcommand: `reschedule <post_id> <YYYY-MM-DD>`
 
@@ -273,44 +280,70 @@ from datetime import date
 date_arg = "TARGET_DATE_OR_NEXT"
 
 if date_arg.lower() == "next":
-    # Find the next available slot, prioritizing Tue/Thu over Wed/Mon
-    # Priority order: Tuesday (1), Thursday (3), Wednesday (2), Monday (0)
-    holidays = us_public_holidays(datetime.now(PST).year)
-    priority_days = [1, 3, 2, 0]  # Tue, Thu, Wed, Mon
+    # Find the next available slot using Tue/Thu-first priority.
+    # Mon/Wed are only eligible if ALL Tue/Thu slots in the next 2 weeks are booked.
+
+    today_date = datetime.now(PST).date()
+    holidays = us_public_holidays(today_date.year)
 
     # EMBARGO_DATE should be set from Step 0 (None if no embargo)
     EMBARGO_DATE = None  # Replace with date object if embargo was provided
 
     # Start searching from tomorrow, or from the embargo date if later
-    earliest = date.today() + timedelta(days=1)
+    earliest = today_date + timedelta(days=1)
     if EMBARGO_DATE and EMBARGO_DATE > earliest:
         earliest = EMBARGO_DATE
 
+    two_weeks_out = today_date + timedelta(weeks=2)
+    if two_weeks_out.year != today_date.year:
+        holidays |= us_public_holidays(two_weeks_out.year)
+
+    def slot_available(candidate):
+        cand_str = candidate.isoformat()
+        if cand_str in holidays:
+            return False
+        url = f"posts?status=future&after={cand_str}T00:00:00&before={cand_str}T23:59:59&per_page=10"
+        existing = wp_get(url)
+        return not [p for p in existing if p["id"] != POST_ID]
+
     target = None
-    week_start = earliest - timedelta(days=earliest.weekday())  # Round to Monday
 
-    while target is None:
-        # Check next year's holidays too if we cross a year boundary
-        if week_start.year != datetime.now(PST).year:
-            holidays |= us_public_holidays(week_start.year)
-
-        # Try each day in priority order for this week
-        for weekday in priority_days:
-            candidate = week_start + timedelta(days=weekday)
-            if candidate < earliest:
-                continue
-            cand_str = candidate.isoformat()
-            if cand_str in holidays:
-                continue
-            # Check for existing scheduled posts on this date
-            url = f"posts?status=future&after={cand_str}T00:00:00&before={cand_str}T23:59:59&per_page=10"
-            existing = wp_get(url)
-            conflicts = [p for p in existing if p["id"] != POST_ID]
-            if not conflicts:
+    # Step 1: Look for available Tue/Thu in next 2 weeks
+    candidate = earliest
+    while candidate <= two_weeks_out:
+        if candidate.weekday() in (1, 3):  # Tue or Thu
+            if slot_available(candidate):
                 target = candidate
                 break
+        candidate += timedelta(days=1)
 
-        week_start += timedelta(weeks=1)
+    # Step 2: All Tue/Thu in next 2 weeks are booked — open Mon/Wed within 2 weeks
+    if not target:
+        candidate = earliest
+        while candidate <= two_weeks_out:
+            if candidate.weekday() in (0, 2):  # Mon or Wed
+                if slot_available(candidate):
+                    target = candidate
+                    break
+            candidate += timedelta(days=1)
+
+    # Step 3: Nothing in 2 weeks — search beyond with Tue/Thu priority [Tue, Thu, Wed, Mon]
+    if not target:
+        priority_days = [1, 3, 2, 0]
+        check_from = two_weeks_out + timedelta(days=1)
+        week_start = check_from - timedelta(days=check_from.weekday())
+        while not target:
+            if week_start.year != today_date.year:
+                holidays |= us_public_holidays(week_start.year)
+            for weekday in priority_days:
+                candidate = week_start + timedelta(days=weekday)
+                if candidate < check_from:
+                    continue
+                if slot_available(candidate):
+                    target = candidate
+                    break
+            if not target:
+                week_start += timedelta(weeks=1)
 
     target_str = target.isoformat()
     if EMBARGO_DATE:
@@ -332,6 +365,30 @@ if EMBARGO_DATE and target < EMBARGO_DATE:
 if target.weekday() > 3:
     day_name = target.strftime("%A")
     errors.append(f"{target_str} is a {day_name}. Posts can only be scheduled Monday through Thursday.")
+
+# Rule 1b: Mon/Wed only allowed if all Tue/Thu in next 2 weeks are booked
+if target.weekday() in (0, 2):  # Mon or Wed
+    today_date = date.today()
+    two_weeks_out = today_date + timedelta(weeks=2)
+    check_holidays = us_public_holidays(today_date.year)
+    if two_weeks_out.year != today_date.year:
+        check_holidays |= us_public_holidays(two_weeks_out.year)
+    open_tue_thu = []
+    c = today_date + timedelta(days=1)
+    while c <= two_weeks_out:
+        if c.weekday() in (1, 3) and c.isoformat() not in check_holidays:
+            url = f"posts?status=future&after={c.isoformat()}T00:00:00&before={c.isoformat()}T23:59:59&per_page=10"
+            existing = wp_get(url)
+            if not [p for p in existing if p["id"] != POST_ID]:
+                open_tue_thu.append(c)
+        c += timedelta(days=1)
+    if open_tue_thu:
+        day_name = target.strftime("%A")
+        open_list = ", ".join(d.strftime("%a %b %d") for d in open_tue_thu[:3])
+        errors.append(
+            f"{target_str} is a {day_name}, but open Tuesday/Thursday slots exist in the next 2 weeks: {open_list}. "
+            f"Fill Tue/Thu first, or use 'next' to auto-assign."
+        )
 
 # Rule 2: Must not be a US public holiday
 if target_str in holidays:
@@ -468,6 +525,7 @@ Always include a detail breakdown for the current month showing each post with i
 
 - **All times use PST (Pacific Standard Time, UTC-8)** — always display and calculate in PST regardless of the system's local timezone.
 - **Never allow scheduling on Friday, Saturday, or Sunday** — only Monday through Thursday.
+- **Tuesday and Thursday are the primary publishing days** — always fill Tue/Thu slots in the next 2 weeks before offering Mon/Wed. Only suggest or accept Mon/Wed when all Tue and Thu slots in the next 2 weeks are already booked.
 - **Never allow scheduling on a US public holiday** — check the holiday list for the target year.
 - **Never allow two posts on the same day** — always check for conflicts before rescheduling.
 - **Rescheduling sets the time to 8:00 AM PST** — this is the standard publish time for all posts.

@@ -92,7 +92,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `blog-copyeditor` | Copy edit for grammar, structure, and SEO |
 | `blog-header-image` | Generate a Postman-branded header image (2560x1355 PNG) |
 | `blog-wordpress-stage` | Stage post + header image to blog.postman.com as a draft with SEO metadata and tags |
-| `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts, list upcoming/published, view monthly counts |
+| `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts (Tue/Thu priority), list upcoming/published, view monthly counts |
 | `blog-ideas` | Search trending topics and generate scored blog content ideas |
 
 ### Other Skills
@@ -289,6 +289,25 @@ The `blog-wordpress-stage` and `blog-wordpress-scheduler` skills require WordPre
 ```
 
 The dashboard also reads these credentials (for populating the Scheduled column and Published tab on startup).
+
+### Editorial Calendar Rules (`blog-wordpress-scheduler`)
+
+The scheduler enforces these rules in priority order:
+
+- **Tuesday and Thursday are the primary publish days.** The scheduler always fills Tue/Thu slots before offering any others.
+- **Monday and Wednesday are overflow days only.** They become available only when all Tuesday and Thursday slots in the next 2 weeks are already booked.
+- **No Friday, Saturday, or Sunday scheduling** — ever.
+- **No US public holidays** — the scheduler checks fixed and floating holidays for the target year.
+- **No same-day conflicts** — only one post per day is allowed.
+- **All posts publish at 8:00 AM PST.**
+
+When using `reschedule <id> next`, the scheduler follows this logic:
+
+1. Scan all Tue/Thu dates in the next 2 weeks — return the earliest open one.
+2. If all Tue/Thu in the next 2 weeks are booked → offer Mon/Wed within the same 2-week window.
+3. If the entire 2-week window is full → search beyond 2 weeks using Tue/Thu priority.
+
+If you manually pick a Monday or Wednesday date when open Tue/Thu slots still exist in the next 2 weeks, the scheduler will reject the date and show you the available Tue/Thu options.
 
 ### Google Docs Setup (for `blog-create-from-gdoc`)
 
