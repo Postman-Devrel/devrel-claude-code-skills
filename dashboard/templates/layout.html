@@ -35,8 +35,20 @@
         {% block content %}{% endblock %}
     </main>
     <script>
-        // Auto-refresh every 60 seconds
-        setInterval(function() { location.reload(); }, 60000);
+        // Poll /api/board-hash and reload only when card states change.
+        // Poll more aggressively when cards are actively in-progress.
+        let _lastHash = null;
+        async function pollBoard() {
+            try {
+                const r = await fetch('/api/board-hash');
+                if (!r.ok) return;
+                const { hash } = await r.json();
+                if (_lastHash === null) { _lastHash = hash; return; }
+                if (hash !== _lastHash) { location.reload(); }
+            } catch (e) {}
+        }
+        const hasActive = !!document.querySelector('.pulse');
+        setInterval(pollBoard, hasActive ? 4000 : 15000);
     </script>
 </body>
 </html>

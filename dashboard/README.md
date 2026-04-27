@@ -100,11 +100,16 @@ The dashboard is a thin UI layer on top of the existing agent pipeline. It does 
 
 ### What the Dashboard Does NOT Do
 
-- Does not call the WordPress API directly
-- Does not run Claude Code skills or agents
+- Does not run Claude Code skills or agents directly
 - Does not modify blog-output/ files
 
-All WordPress interaction and content creation is handled by the existing agents. The dashboard reads `state.json` and watches `blog-output/` for file changes.
+All content creation and WordPress API calls are handled by Claude Code agents. The dashboard reads `state.json`, watches `blog-output/` for file changes, and syncs the editorial calendar by running the `blog-wordpress-scheduler` skill via Claude.
+
+### Calendar Sync
+
+On startup, the dashboard runs `/blog-wordpress-scheduler list` as a background Claude agent. This populates `wp-calendar.json` with scheduled and recent posts from WordPress.
+
+The sync runs automatically on dashboard startup and whenever the calendar data is more than 5 minutes old. No cookies or Cloudflare configuration needed — Claude handles the WordPress API calls.
 
 ### Real-Time Updates
 

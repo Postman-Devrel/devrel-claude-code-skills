@@ -10,6 +10,7 @@ import yaml
 BLOG_OUTPUT = os.path.join(os.path.dirname(__file__), "..", "blog-output")
 HEADER_DIR = os.path.join(BLOG_OUTPUT, "images", "header")
 POLL_INTERVAL = 3  # seconds
+WRITING_TIMEOUT_MINUTES = 30  # mark error if stuck in writing longer than this
 
 # Track files we've already seen so we can detect new ones
 _known_markdown = set()
@@ -91,6 +92,30 @@ def check_and_advance(state_manager):
 
     # Track slugs claimed this poll so two writing cards don't grab the same file
     claimed_slugs = {c["slug"] for c in cards if c["stage"] != "writing"}
+
+    # --- Timeout: writing cards stuck too long with no output file ---
+    now_ts = time.time()
+    for card in cards:
+        if card["stage"] != "writing" or card.get("error"):
+            continue
+        writing_time_str = card.get("stage_history", {}).get("writing")
+        if not writing_time_str:
+            continue
+        try:
+            writing_ts = datetime.fromisoformat(writing_time_str).timestamp()
+        except (ValueError, TypeError):
+            continue
+        elapsed_minutes = (now_ts - writing_ts) / 60
+        if elapsed_minutes > WRITING_TIMEOUT_MINUTES:
+            slug = card["slug"]
+            if slug not in files["markdown"]:
+                state_manager.set_error(
+                    card["id"],
+                    f"No output file found after {WRITING_TIMEOUT_MINUTES} minutes. "
+                    f"The pipeline agent may have failed silently. "
+                    f"Delete this card and re-run /blog-pipeline \"{card['topic']}\" to retry."
+                )
+                changed = True
 
     # --- Stage: writing → copyedit ---
     # 1) Exact slug match (fastest path)

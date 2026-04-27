@@ -120,6 +120,37 @@ body {
     border: 1px solid var(--grey-200);
 }
 
+.warning-banner {
+    background: #FFF3CD;
+    border-bottom: 1px solid #FBBF24;
+    color: #78350F;
+    padding: 10px 20px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.warning-banner ol {
+    margin: 6px 0 2px 18px;
+    padding: 0;
+}
+
+.warning-banner li {
+    margin: 2px 0;
+}
+
+.warning-banner a {
+    color: #92400E;
+    font-weight: 600;
+}
+
+.warning-banner code {
+    background: rgba(255,255,255,0.6);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid #FDE68A;
+}
+
 /* Main content area */
 main {
     flex: 1;

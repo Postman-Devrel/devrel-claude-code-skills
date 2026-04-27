@@ -1,6 +1,7 @@
 """Blog Pipeline Kanban Dashboard — Flask application."""
 
 import fcntl
+import hashlib
 import json
 import os
 import re
@@ -14,7 +15,6 @@ from datetime import datetime, timedelta, timezone
 
 from flask import Flask, redirect, render_template, request, send_from_directory, url_for
 
-from calendar_sync import sync_calendar
 from watcher import check_and_advance, start_watcher
 
 app = Flask(__name__)
@@ -23,7 +23,8 @@ STATE_FILE = os.path.join(os.path.dirname(__file__), "state.json")
 QUEUE_FILE = os.path.join(os.path.dirname(__file__), "queue.json")
 CALENDAR_FILE = os.path.join(os.path.dirname(__file__), "wp-calendar.json")
 PST = timezone(timedelta(hours=-8))
-CALENDAR_MAX_AGE = 300  # seconds before requesting a refresh
+CALENDAR_MAX_AGE = 300        # seconds before triggering a background refresh attempt
+CALENDAR_ERROR_AGE = 86400    # seconds before showing the error banner (24h — data is still usable until then)
 
 
 STAGES = [
@@ -143,14 +144,16 @@ def _find_claude():
 
 
 def run_agent(card_id, topic, action="blog-pipeline"):
-    """Run a Claude Code agent in the background for a pipeline action."""
+    """Run a Claude Code agent in a background thread for a pipeline action.
+    Claude routes HTTP calls through WebFetch (Anthropic infra), bypassing Cloudflare."""
     claude = _find_claude()
     if not claude:
         state.set_error(card_id, "claude CLI not found in PATH")
         return
 
+    plugin_root_abs = os.path.abspath(PLUGIN_ROOT)
+
     if action == "blog-pipeline":
-        # Detect if topic is a Google Docs URL
         is_gdoc = "docs.google.com/document" in topic
         if is_gdoc:
             prompt = (
@@ -175,14 +178,12 @@ def run_agent(card_id, topic, action="blog-pipeline"):
     else:
         return
 
-    plugin_root_abs = os.path.abspath(PLUGIN_ROOT)
-
     def _run():
         try:
             result = subprocess.run(
                 [claude, "--plugin-dir", plugin_root_abs, "-p", "--dangerously-skip-permissions", prompt],
                 cwd=plugin_root_abs,
-                timeout=1800,  # 30 minute timeout
+                timeout=1800,
                 capture_output=True,
                 text=True,
             )
@@ -194,12 +195,7 @@ def run_agent(card_id, topic, action="blog-pipeline"):
         except Exception as e:
             state.set_error(card_id, str(e))
 
-    t = threading.Thread(target=_run, daemon=True)
-    t.start()
-
-
-# --- SSE ---
-
+    threading.Thread(target=_run, daemon=True).start()
 
 
 # --- Helpers ---
@@ -231,14 +227,38 @@ def _calendar_is_stale():
     return age > CALENDAR_MAX_AGE
 
 
+_calendar_refresh_running = False
+
 def _request_calendar_refresh():
-    """Re-sync the calendar from WordPress in a background thread."""
+    """Sync the calendar by running the blog-wordpress-scheduler skill via Claude.
+    Claude routes HTTP calls through WebFetch (Anthropic infra), bypassing Cloudflare."""
+    global _calendar_refresh_running
+    if _calendar_refresh_running:
+        return
+
+    claude = _find_claude()
+    if not claude:
+        return
+
+    plugin_root_abs = os.path.abspath(PLUGIN_ROOT)
+
     def _sync():
+        global _calendar_refresh_running
+        _calendar_refresh_running = True
         try:
-            sync_calendar()
-        
+            subprocess.run(
+                [claude, "--plugin-dir", plugin_root_abs, "-p", "--dangerously-skip-permissions",
+                 "Run /blog-wordpress-scheduler list to sync the editorial calendar"],
+                cwd=plugin_root_abs,
+                timeout=120,
+                capture_output=True,
+                text=True,
+            )
         except Exception:
             pass
+        finally:
+            _calendar_refresh_running = False
+
     threading.Thread(target=_sync, daemon=True).start()
 
 
@@ -246,10 +266,16 @@ def _build_board():
     """Build the board from state.json + wp-calendar.json.
     All WP data comes from the scheduler agent, not direct API calls."""
     cards_by_stage = {s: [] for s in STAGES}
-    calendar_stale = _calendar_is_stale()
 
-    if calendar_stale:
+    if _calendar_is_stale():
         _request_calendar_refresh()
+
+    cal_age = time.time() - os.path.getmtime(CALENDAR_FILE) if os.path.exists(CALENDAR_FILE) else float("inf")
+    visible_error = None
+    if not os.path.exists(CALENDAR_FILE):
+        visible_error = "calendar_syncing"
+    elif cal_age > CALENDAR_ERROR_AGE:
+        visible_error = "calendar_stale"
 
     # Build set of WP post IDs that still exist (from calendar sync)
     cal = _read_calendar()
@@ -302,7 +328,7 @@ def _build_board():
         for post in cal.get("scheduled", []):
             cards_by_stage["scheduled"].append(_wp_card(post, "scheduled"))
 
-    return cards_by_stage, calendar_stale
+    return cards_by_stage, visible_error
 
 
 def _wp_card(post, stage):
@@ -328,13 +354,13 @@ def _wp_card(post, stage):
 
 @app.route("/")
 def index():
-    cards_by_stage, calendar_stale = _build_board()
+    cards_by_stage, calendar_error = _build_board()
     return render_template(
         "board.html",
         stages=STAGES,
         stage_labels=STAGE_LABELS,
         cards_by_stage=cards_by_stage,
-        calendar_stale=calendar_stale,
+        calendar_error=calendar_error,
         creating_substage_labels=CREATING_SUBSTAGE_LABELS,
     )
 
@@ -464,11 +490,44 @@ def refresh():
     return "", 204
 
 
+@app.route("/api/board-hash")
+def board_hash():
+    """Lightweight endpoint for polling: returns a hash of current card states.
+    When the hash changes, the client knows to reload the board."""
+    cards = state.get_cards()
+    digest = hashlib.md5(json.dumps(
+        sorted([(c["id"], c["stage"], bool(c.get("error"))) for c in cards])
+    ).encode()).hexdigest()
+    return {"hash": digest}
+
+
 # --- Startup ---
 
 if __name__ == "__main__":
-    sync_calendar()
+    _request_calendar_refresh()  # queue a sync on startup
     start_watcher(state)
+
+    # Recover pipelines that were running when the server last stopped.
+    # A "writing" card with no output file and no live agent means the agent
+    # was killed (e.g. server restart). Restart it if it's been writing for
+    # more than 5 minutes (gives any orphaned subprocess time to finish first).
+    now_ts = time.time()
+    blog_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "blog-output"))
+    for card in state.get_cards():
+        if card["stage"] != "writing" or card.get("error"):
+            continue
+        slug = card["slug"]
+        if os.path.exists(os.path.join(blog_output_dir, f"{slug}.md")):
+            continue  # file already written — watcher will advance the card
+        writing_str = card.get("stage_history", {}).get("writing", "")
+        try:
+            elapsed_minutes = (now_ts - datetime.fromisoformat(writing_str).timestamp()) / 60
+        except (ValueError, TypeError):
+            elapsed_minutes = 999
+        if elapsed_minutes > 5:
+            print(f" * Recovering stale pipeline ({elapsed_minutes:.0f}m): {card['topic']}")
+            run_agent(card["id"], card["topic"], action="blog-pipeline")
+
     print(" * Running on http://127.0.0.1:5001")
     print(" * Press Ctrl+C to quit")
 

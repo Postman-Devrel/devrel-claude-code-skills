@@ -1,0 +1,3 @@
+
+[notice] A new release of pip is available: 26.0 -> 26.1
+[notice] To update, run: /Users/quintonwall/Code/devrel-claude-code-skills/dashboard/.venv/bin/python3.14 -m pip install --upgrade pip

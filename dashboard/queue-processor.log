@@ -1,0 +1,12 @@
+[queue-processor] Started, polling queue.json every 5s...
+[queue-processor] sync-calendar card=__calendar__
+Calendar sync failed: HTTP Error 403: Forbidden
+[queue-processor] blog-pipeline card=7fb15c1e
+[queue-processor] sync-calendar card=__calendar__
+Calendar sync failed: HTTP Error 403: Forbidden
+[queue-processor] blog-pipeline card=29703349
+[queue-processor] Started, polling queue.json every 5s...
+[queue-processor] sync-calendar card=__calendar__
+[queue-processor] blog-pipeline card=29703349
+[queue-processor] Started, polling queue.json every 5s...
+[queue-processor] sync-calendar card=__calendar__

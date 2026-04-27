@@ -1,9 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{% if calendar_stale %}
+{% if calendar_error == "calendar_syncing" %}
 <div class="info-banner">
-    Calendar sync failed — check WP credentials in <code>~/.claude/settings.json</code>. Scheduled and published posts will appear once credentials are set.
+    <strong>Syncing editorial calendar…</strong> — fetching scheduled posts from WordPress. Reload in a moment.
+</div>
+{% elif calendar_error == "calendar_stale" %}
+<div class="warning-banner">
+    <strong>⚠ Calendar data is stale</strong> — last sync was over 24 hours ago. Restart the dashboard to trigger a refresh.
+</div>
+{% elif calendar_error %}
+<div class="info-banner">
+    Calendar: <strong>{{ calendar_error }}</strong>
 </div>
 {% endif %}
 
