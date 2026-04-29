@@ -36,6 +36,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:sentiment-apitools` | Reactive Reddit sentiment analysis of API developer tools — skewed towards PLG offerings (Postman, Bruno, Insomnia, etc.) |
 | `/devrel-skills:influencer-autoagent` | Find and rank developer influencers for product launches — scores candidates on technical credibility, audience reach, and topic alignment |
 | `/devrel-skills:luma-stats` | Pull event stats from the Postman Dev Events Luma calendar — registrations, waitlist, attendee count, and engagement score per event. Filter by MMM-YY, YYYY, or all time. Shows aggregate sum totals. |
+| `/devrel-skills:social-media-manager` | Weekly social media agent team — researches blog, release notes, and trending news; creates 5 LinkedIn/Twitter posts; packages employee advocacy kit; auto-posts to Twitter Mon/Wed at 10am PST |
 
 ## Output Directories
 
@@ -48,6 +49,7 @@ Each skill writes output to a dedicated directory:
 - `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)
 - `influencer-output/` — Influencer candidate reports (`influencer-candidates-YYMMDD.md`)
 - `luma-output/` — Luma event stats reports (`luma-stats-{filter}.md`)
+- `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 
 ## Hooks
 

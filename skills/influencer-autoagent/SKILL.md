@@ -28,6 +28,7 @@ developer advocates AI agentic workflows YouTube Twitter
 influential developers Claude Code MCP agentic
 top technical YouTubers AI developer tools 2026
 developer influencers autonomous AI coding agents
+developer content creator OpenAI Codex N8N agent workflow
 ```
 
 **API & Developer Tooling Influencers:**
@@ -70,7 +71,7 @@ For each promising candidate found in Step 1, use WebSearch and WebFetch to gath
 
 1. **Profile info:** Name, handle(s), platform(s), bio, follower/subscriber counts
 2. **Content audit (last 6 months):**
-   - Count of AI-related posts/videos
+   - Count of AI-related posts/videos — specifically look for content on AI agents (Claude Code skills, agent teams, autonomous agents, OpenAI Codex, N8N, etc.)
    - Count of API/developer tooling posts
    - Major AI launches they covered (OpenAI, Anthropic, Google, Meta, Mistral)
    - Content format: tutorials, demos, code walkthroughs, benchmarks, opinion pieces
@@ -113,7 +114,29 @@ Evaluate each candidate using this **Influencer Score (0-100)** rubric:
 - **40-54**: Tier 4 — Watch list. Emerging voice or partial fit — revisit for future launches
 - **Below 40**: Not recommended for this launch
 
-### Step 4: Output Format
+### Step 4: Reality Check
+
+Before finalizing rankings, apply these two filters to every candidate:
+
+**Budget Feasibility ($2,000 cap):**
+We are aiming to pay each influencer no more than **$2,000** for them to create content. Evaluate whether the candidate realistically fits this budget based on:
+- Follower/subscriber count (creators with 500K+ followers on a primary platform likely charge well above this)
+- Previous sponsored content signals (frequent brand deals suggest established rates)
+- Platform norms (YouTube sponsorships tend to cost more than Twitter/Substack collaborations)
+- Engagement-to-follower ratio (micro-influencers with high engagement are often more budget-friendly)
+
+Mark candidates as: **Within budget**, **Borderline** (might negotiate), or **Likely over budget**. Candidates marked "Likely over budget" should be flagged but can still be ranked — note the budget risk in their detail block.
+
+**Will They Care?**
+There are many releases from major AI players competing for influencer attention. Assess whether this influencer would realistically be interested in collaborating with Postman specifically:
+- Do they cover developer tooling / API platforms, or only foundation model releases?
+- Have they shown interest in "building with AI" rather than just "AI model news"?
+- Is Postman's product category (API platform + AI agents) something they've touched before?
+- Would this launch give them something novel to demo or build with?
+
+Mark candidates as: **High interest**, **Moderate interest**, or **Low interest**. Low-interest candidates should be deprioritized regardless of score.
+
+### Step 5: Output Format
 
 Present results sorted by score (highest first):
 
@@ -145,17 +168,17 @@ Present results sorted by score (highest first):
 
 A single table of all candidates sorted by score, grouped by tier. Profile links point to each candidate's primary platform.
 
-| Rank | Name | Profile | Score | Tier | Primary Platform | Key Strength | Outreach Angle | Brand Safety |
-|------|------|---------|-------|------|-----------------|--------------|----------------|--------------|
-| | | | | **Tier 1 — High-Priority Outreach (85-100)** | | | |
-| 1 | [Name] | [profile link] | XX/100 | 1 | [platform] | [key strength] | [suggested approach] | [flags or all clear] |
-| 2 | [Name] | [profile link] | XX/100 | 1 | [platform] | [key strength] | [suggested approach] | [flags or all clear] |
-| | | | | **Tier 2 — Strong Candidates (70-84)** | | | |
-| 3 | [Name] | [profile link] | XX/100 | 2 | [platform] | [key strength] | [suggested approach] | [flags or all clear] |
-| | | | | **Tier 3 — Worth Considering (55-69)** | | | |
-| 4 | [Name] | [profile link] | XX/100 | 3 | [platform] | [key strength] | [suggested approach] | [flags or all clear] |
-| | | | | **Tier 4 — Watch List (40-54)** | | | |
-| 5 | [Name] | [profile link] | XX/100 | 4 | [platform] | [key strength] | [gap to close] | [flags or all clear] |
+| Rank | Name | Profile | Score | Tier | Primary Platform | Key Strength | Budget | Interest | Outreach Angle | Brand Safety |
+|------|------|---------|-------|------|-----------------|--------------|--------|----------|----------------|--------------|
+| | | | | **Tier 1 — High-Priority Outreach (85-100)** | | | | | |
+| 1 | [Name] | [profile link] | XX/100 | 1 | [platform] | [key strength] | [Within/Borderline/Over] | [High/Moderate/Low] | [suggested approach] | [flags or all clear] |
+| 2 | [Name] | [profile link] | XX/100 | 1 | [platform] | [key strength] | [Within/Borderline/Over] | [High/Moderate/Low] | [suggested approach] | [flags or all clear] |
+| | | | | **Tier 2 — Strong Candidates (70-84)** | | | | | |
+| 3 | [Name] | [profile link] | XX/100 | 2 | [platform] | [key strength] | [Within/Borderline/Over] | [High/Moderate/Low] | [suggested approach] | [flags or all clear] |
+| | | | | **Tier 3 — Worth Considering (55-69)** | | | | | |
+| 4 | [Name] | [profile link] | XX/100 | 3 | [platform] | [key strength] | [Within/Borderline/Over] | [High/Moderate/Low] | [suggested approach] | [flags or all clear] |
+| | | | | **Tier 4 — Watch List (40-54)** | | | | | |
+| 5 | [Name] | [profile link] | XX/100 | 4 | [platform] | [key strength] | [Within/Borderline/Over] | [High/Moderate/Low] | [gap to close] | [flags or all clear] |
 
 For each candidate, also include a detail block below the table:
 
@@ -180,6 +203,8 @@ For each candidate, also include a detail block below the table:
 
 **Why this person:** [2-3 sentences on why they're a strong fit for this specific launch]
 **Recent relevant content:** [1-3 examples with links]
+**Budget assessment:** [Within budget / Borderline / Likely over budget — with reasoning based on follower count, platform, and sponsorship signals]
+**Interest assessment:** [High / Moderate / Low — with reasoning on whether they'd realistically engage with a Postman AI agent launch]
 **Brand safety notes:** [details if flagged in summary table]
 
 [Repeat for each candidate across all tiers. Tier 3-4 candidates can use a condensed version with fewer evidence details.]
@@ -211,7 +236,7 @@ For each candidate, also include a detail block below the table:
 - **Bias notes:** Candidates with stronger web presence are naturally easier to find and evaluate. Emerging voices with smaller followings but high engagement may be underrepresented
 ```
 
-### Step 5: Save Output
+### Step 6: Save Output
 
 Save the report to `influencer-output/influencer-candidates-YYMMDD.md` where YYMMDD is the current date (e.g., `influencer-output/influencer-candidates-260325.md` for March 25, 2026). Create the `influencer-output/` directory if it doesn't exist.
 
@@ -226,3 +251,5 @@ Save the report to `influencer-output/influencer-candidates-YYMMDD.md` where YYM
 - **Be honest about gaps** — if you can't verify engagement metrics or background, note it rather than guessing
 - **Brand safety is non-negotiable** — flag any concerns, even for high-scoring candidates
 - **Diverse voices** — aim for diversity in background, platform, content style, and audience segment
+- **Budget-conscious** — prioritize candidates likely within the $2,000 budget. Micro-influencers with high engagement and strong topic alignment often deliver better ROI than big names who won't engage at this price point
+- **Realistic interest** — deprioritize candidates who only cover foundation model releases and have never touched developer tooling or API platforms. The best candidates are builders who would genuinely want to demo the product

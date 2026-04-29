@@ -31,12 +31,18 @@
             <span class="pulse"></span>
             <span class="status-text">{{ creating_substage_labels.get(card.stage, 'Working...') }}</span>
         </div>
+        {% if agent_pids and agent_pids.get(card.id) %}
+            <div class="card-pid">PID {{ agent_pids[card.id] }}</div>
+        {% endif %}
 
     {% elif card.stage == 'staging' %}
         <div class="card-status">
             <span class="pulse"></span>
             <span class="status-text">Staging to WordPress...</span>
         </div>
+        {% if agent_pids and agent_pids.get(card.id) %}
+            <div class="card-pid">PID {{ agent_pids[card.id] }}</div>
+        {% endif %}
 
     {% elif card.stage == 'review' %}
         <div class="card-meta">
@@ -64,6 +70,9 @@
             <span class="pulse"></span>
             <span class="status-text">Scheduling...</span>
         </div>
+        {% if agent_pids and agent_pids.get(card.id) %}
+            <div class="card-pid">PID {{ agent_pids[card.id] }}</div>
+        {% endif %}
 
     {% elif card.stage == 'scheduled' %}
         <div class="card-meta">

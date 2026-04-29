@@ -3,6 +3,7 @@
 import fcntl
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -22,6 +23,7 @@ app = Flask(__name__)
 STATE_FILE = os.path.join(os.path.dirname(__file__), "state.json")
 QUEUE_FILE = os.path.join(os.path.dirname(__file__), "queue.json")
 CALENDAR_FILE = os.path.join(os.path.dirname(__file__), "wp-calendar.json")
+IDEAS_FILE = os.path.join(os.path.dirname(__file__), "ideas.json")
 PST = timezone(timedelta(hours=-8))
 CALENDAR_MAX_AGE = 300        # seconds before triggering a background refresh attempt
 CALENDAR_ERROR_AGE = 86400    # seconds before showing the error banner (24h — data is still usable until then)
@@ -133,7 +135,55 @@ class StateManager:
 
 state = StateManager(STATE_FILE)
 
+
+def _read_ideas():
+    if not os.path.exists(IDEAS_FILE):
+        return []
+    try:
+        with open(IDEAS_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+
+def _write_ideas(ideas):
+    with open(IDEAS_FILE, "w") as f:
+        json.dump(ideas, f, indent=2)
+
+
+def _get_unused_ideas():
+    """Return ideas that haven't been added to the pipeline yet."""
+    ideas = _read_ideas()
+    card_topics = {c["topic"].lower() for c in state.get_cards()}
+    return [i for i in ideas if not i.get("used") and i["title"].lower() not in card_topics]
+
+
 PLUGIN_ROOT = os.path.join(os.path.dirname(__file__), "..")
+BLOG_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "blog-output"))
+AGENT_LOG_FILE = os.path.join(os.path.dirname(__file__), "agent.log")
+
+_agent_logger = logging.getLogger("agent")
+_agent_logger.setLevel(logging.INFO)
+_agent_fh = logging.FileHandler(AGENT_LOG_FILE)
+_agent_fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+_agent_logger.addHandler(_agent_fh)
+
+# Track live agent PIDs so recovery can tell if an agent is still running
+_agent_pids = {}  # card_id -> pid
+_agent_pids_lock = threading.Lock()
+
+
+def agent_is_alive(card_id):
+    """Check if the agent for a card is still running."""
+    with _agent_pids_lock:
+        pid = _agent_pids.get(card_id)
+    if pid is None:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
 
 
 # --- Agent Runner ---
@@ -143,7 +193,7 @@ def _find_claude():
     return shutil.which("claude")
 
 
-def run_agent(card_id, topic, action="blog-pipeline"):
+def run_agent(card_id, topic, action="blog-pipeline", **kwargs):
     """Run a Claude Code agent in a background thread for a pipeline action.
     Claude routes HTTP calls through WebFetch (Anthropic infra), bypassing Cloudflare."""
     claude = _find_claude()
@@ -173,27 +223,86 @@ def run_agent(card_id, topic, action="blog-pipeline"):
                 f"4. Run /blog-wordpress-stage on the output file\n\n"
                 f"Run each step in order. Wait for each to complete before starting the next."
             )
+    elif action == "resume":
+        slug = kwargs.get("slug", "")
+        from_stage = kwargs.get("from_stage", "")
+        file_path = f"blog-output/{slug}.md"
+        steps = []
+        if from_stage == "copyedit":
+            steps = [
+                f"Run /blog-copyeditor on {file_path}",
+                f"Run /blog-header-image on {file_path}",
+                f"Run /blog-wordpress-stage on {file_path}",
+            ]
+        elif from_stage == "header_image":
+            steps = [
+                f"Run /blog-header-image on {file_path}",
+                f"Run /blog-wordpress-stage on {file_path}",
+            ]
+        elif from_stage == "staging":
+            steps = [
+                f"Run /blog-wordpress-stage on {file_path}",
+            ]
+        if not steps:
+            return
+        numbered = "\n".join(f"{i+1}. {s}" for i, s in enumerate(steps))
+        prompt = (
+            f"Resume the blog pipeline for: {file_path}\n\n"
+            f"{numbered}\n\n"
+            f"Run each step in order. Wait for each to complete before starting the next."
+        )
     elif action == "schedule":
         prompt = f"Run /blog-wordpress-scheduler reschedule \"{topic}\" next"
     else:
         return
 
     def _run():
+        proc = None
+        _agent_logger.info("start: card=%s action=%s topic=%s", card_id, action, topic)
         try:
-            result = subprocess.run(
-                [claude, "--plugin-dir", plugin_root_abs, "-p", "--dangerously-skip-permissions", prompt],
+            proc = subprocess.Popen(
+                [claude, "--plugin-dir", plugin_root_abs, "-p",
+                 "--permission-mode", "auto"],
                 cwd=plugin_root_abs,
-                timeout=1800,
-                capture_output=True,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
             )
-            if result.returncode != 0:
-                error_msg = (result.stderr or result.stdout or "Agent exited with error").strip()
-                state.set_error(card_id, f"Agent failed (exit {result.returncode}): {error_msg[:500]}")
+            with _agent_pids_lock:
+                _agent_pids[card_id] = proc.pid
+            _agent_logger.info("spawned: card=%s pid=%d", card_id, proc.pid)
+            stdout, stderr = proc.communicate(input=prompt, timeout=1800)
+            _agent_logger.info("exit: card=%s rc=%d", card_id, proc.returncode)
+            if stdout:
+                _agent_logger.info("stdout: card=%s\n%s", card_id, stdout[-2000:])
+            if stderr:
+                _agent_logger.info("stderr: card=%s\n%s", card_id, stderr[-2000:])
+            if proc.returncode != 0:
+                error_msg = (stderr or stdout or "Agent exited with error").strip()
+                state.set_error(card_id, f"Agent failed (exit {proc.returncode}): {error_msg[:500]}")
+            elif action == "blog-pipeline":
+                card = state.get_card(card_id)
+                if card and card["stage"] == "writing":
+                    slug = card["slug"]
+                    if not os.path.exists(os.path.join(BLOG_OUTPUT_DIR, f"{slug}.md")):
+                        _agent_logger.warning("no output: card=%s slug=%s", card_id, slug)
+                        state.set_error(
+                            card_id,
+                            "Agent finished but no blog post was written. "
+                            f"Delete this card and re-run the pipeline to retry."
+                        )
         except subprocess.TimeoutExpired:
+            _agent_logger.error("timeout: card=%s", card_id)
+            if proc:
+                proc.kill()
             state.set_error(card_id, "Agent timed out after 30 minutes")
         except Exception as e:
+            _agent_logger.exception("error: card=%s %s", card_id, e)
             state.set_error(card_id, str(e))
+        finally:
+            with _agent_pids_lock:
+                _agent_pids.pop(card_id, None)
 
     threading.Thread(target=_run, daemon=True).start()
 
@@ -245,17 +354,22 @@ def _request_calendar_refresh():
     def _sync():
         global _calendar_refresh_running
         _calendar_refresh_running = True
+        _agent_logger.info("start: calendar sync")
         try:
-            subprocess.run(
-                [claude, "--plugin-dir", plugin_root_abs, "-p", "--dangerously-skip-permissions",
-                 "Run /blog-wordpress-scheduler list to sync the editorial calendar"],
+            result = subprocess.run(
+                [claude, "--plugin-dir", plugin_root_abs, "-p",
+                 "--permission-mode", "auto"],
+                input="Run /blog-wordpress-scheduler list to sync the editorial calendar",
                 cwd=plugin_root_abs,
                 timeout=120,
                 capture_output=True,
                 text=True,
             )
-        except Exception:
-            pass
+            _agent_logger.info("exit: calendar sync rc=%d", result.returncode)
+            if result.returncode != 0:
+                _agent_logger.warning("calendar sync failed: %s", (result.stderr or result.stdout or "")[:500])
+        except Exception as e:
+            _agent_logger.exception("calendar sync error: %s", e)
         finally:
             _calendar_refresh_running = False
 
@@ -355,6 +469,9 @@ def _wp_card(post, stage):
 @app.route("/")
 def index():
     cards_by_stage, calendar_error = _build_board()
+    saved_ideas = _get_unused_ideas()
+    with _agent_pids_lock:
+        agent_pids = dict(_agent_pids)
     return render_template(
         "board.html",
         stages=STAGES,
@@ -362,6 +479,8 @@ def index():
         cards_by_stage=cards_by_stage,
         calendar_error=calendar_error,
         creating_substage_labels=CREATING_SUBSTAGE_LABELS,
+        saved_ideas=saved_ideas,
+        agent_pids=agent_pids,
     )
 
 
@@ -406,6 +525,31 @@ def create_card():
         return redirect(url_for("index"))
     state.create_card(topic)
 
+    return redirect(url_for("index"))
+
+
+@app.route("/api/ideas/<idea_id>/add", methods=["POST"])
+def add_idea_to_board(idea_id):
+    """Create a kanban card from a saved idea."""
+    ideas = _read_ideas()
+    for idea in ideas:
+        if idea.get("id") == idea_id:
+            state.create_card(idea["title"])
+            idea["used"] = True
+            _write_ideas(ideas)
+            break
+    return redirect(url_for("index"))
+
+
+@app.route("/api/ideas/<idea_id>/dismiss", methods=["POST"])
+def dismiss_idea(idea_id):
+    """Mark a saved idea as used/dismissed without adding it."""
+    ideas = _read_ideas()
+    for idea in ideas:
+        if idea.get("id") == idea_id:
+            idea["used"] = True
+            _write_ideas(ideas)
+            break
     return redirect(url_for("index"))
 
 
@@ -508,25 +652,22 @@ if __name__ == "__main__":
     start_watcher(state)
 
     # Recover pipelines that were running when the server last stopped.
-    # A "writing" card with no output file and no live agent means the agent
-    # was killed (e.g. server restart). Restart it if it's been writing for
-    # more than 5 minutes (gives any orphaned subprocess time to finish first).
-    now_ts = time.time()
-    blog_output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "blog-output"))
+    # After a restart no agent PIDs are tracked, so any card in a
+    # creating substage with no running agent is a dead pipeline.
     for card in state.get_cards():
-        if card["stage"] != "writing" or card.get("error"):
+        if card.get("error"):
             continue
+        stage = card["stage"]
         slug = card["slug"]
-        if os.path.exists(os.path.join(blog_output_dir, f"{slug}.md")):
-            continue  # file already written — watcher will advance the card
-        writing_str = card.get("stage_history", {}).get("writing", "")
-        try:
-            elapsed_minutes = (now_ts - datetime.fromisoformat(writing_str).timestamp()) / 60
-        except (ValueError, TypeError):
-            elapsed_minutes = 999
-        if elapsed_minutes > 5:
-            print(f" * Recovering stale pipeline ({elapsed_minutes:.0f}m): {card['topic']}")
-            run_agent(card["id"], card["topic"], action="blog-pipeline")
+
+        if stage == "writing":
+            if not os.path.exists(os.path.join(BLOG_OUTPUT_DIR, f"{slug}.md")):
+                print(f" * Recovering stale pipeline (writing): {card['topic']}")
+                run_agent(card["id"], card["topic"], action="blog-pipeline")
+        elif stage in ("copyedit", "header_image", "staging"):
+            print(f" * Recovering stale pipeline ({stage}): {card['topic']}")
+            run_agent(card["id"], card["topic"], action="resume",
+                      slug=slug, from_stage=stage)
 
     print(" * Running on http://127.0.0.1:5001")
     print(" * Press Ctrl+C to quit")

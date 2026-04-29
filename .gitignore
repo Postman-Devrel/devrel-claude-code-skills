@@ -9,3 +9,5 @@ dashboard/queue.json
 dashboard/wp-calendar.json
 dashboard/__pycache__/
 dashboard/.venv/
+dashboard/*.log
+dashboard/ideas.json

@@ -142,6 +142,37 @@ Present results sorted by score (highest first):
 
 Save the report to `blog-output/blog-ideas-YYMMDD.md` where YYMMDD is the current date. Create the `blog-output` directory if it doesn't exist.
 
+### Step 6: Persist Ideas to Dashboard
+
+After writing the markdown report, **also append each idea to `dashboard/ideas.json`** so the dashboard can display them across sessions. Read the existing file first (or start with `[]` if it doesn't exist), then append new entries and write back.
+
+Each idea entry must have this JSON structure:
+
+```json
+{
+  "id": "<8-char hex uuid>",
+  "title": "Blog Title Idea",
+  "score": 88,
+  "urgency": "publish_asap",
+  "angle": "1-2 sentence recommended angle",
+  "keyword": "primary SEO keyword",
+  "why_now": "timeliness context",
+  "postman_tie_in": "Postman feature connection",
+  "focus_area": "user-specified focus or General",
+  "generated_date": "YYYY-MM-DD",
+  "used": false
+}
+```
+
+**Urgency values** based on score bands:
+- 80-100 → `"publish_asap"`
+- 60-79 → `"this_month"`
+- 40-59 → `"backlog"`
+
+**Deduplication:** Before appending, check if an idea with the same title (case-insensitive) already exists in the file. Skip duplicates.
+
+**Important:** Generate the `id` field using a random 8-character hex string (e.g., first 8 chars of a UUID4). The dashboard uses this ID for the add/dismiss buttons.
+
 ## Important Guidelines
 
 - **Be specific with titles** — "How to Build an MCP Server for Your REST API" beats "MCP Overview"

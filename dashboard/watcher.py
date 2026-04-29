@@ -1,5 +1,6 @@
 """File system watcher that auto-advances Kanban cards based on blog-output/ changes."""
 
+import logging
 import os
 import threading
 import time
@@ -9,8 +10,15 @@ import yaml
 
 BLOG_OUTPUT = os.path.join(os.path.dirname(__file__), "..", "blog-output")
 HEADER_DIR = os.path.join(BLOG_OUTPUT, "images", "header")
+LOG_FILE = os.path.join(os.path.dirname(__file__), "watcher.log")
 POLL_INTERVAL = 3  # seconds
 WRITING_TIMEOUT_MINUTES = 30  # mark error if stuck in writing longer than this
+
+_logger = logging.getLogger("watcher")
+_logger.setLevel(logging.INFO)
+_fh = logging.FileHandler(LOG_FILE)
+_fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+_logger.addHandler(_fh)
 
 # Track files we've already seen so we can detect new ones
 _known_markdown = set()
@@ -109,6 +117,7 @@ def check_and_advance(state_manager):
         if elapsed_minutes > WRITING_TIMEOUT_MINUTES:
             slug = card["slug"]
             if slug not in files["markdown"]:
+                _logger.warning("timeout: card %s (%s) stuck in writing for %.0fm", card["id"], slug, elapsed_minutes)
                 state_manager.set_error(
                     card["id"],
                     f"No output file found after {WRITING_TIMEOUT_MINUTES} minutes. "
@@ -154,6 +163,7 @@ def check_and_advance(state_manager):
             title = fm.get("suggested_title", card["topic"])
             _update_card(state_manager, card["id"], slug=matched_slug, topic=title)
             state_manager.advance_card(card["id"], "copyedit")
+            _logger.info("advance: card %s writing -> copyedit (slug=%s)", card["id"], matched_slug)
             changed = True
 
     # Any remaining new markdown files with no writing card to claim them
@@ -178,6 +188,7 @@ def check_and_advance(state_manager):
         if slug in files["copyedit"]:
             _known_copyedit.add(slug)
             state_manager.advance_card(card["id"], "header_image")
+            _logger.info("advance: card %s copyedit -> header_image (slug=%s)", card["id"], slug)
             changed = True
 
     # --- Stage: header_image → staging ---
@@ -191,6 +202,7 @@ def check_and_advance(state_manager):
                 card["id"], "staging",
                 header_image=f"header-{slug}.png",
             )
+            _logger.info("advance: card %s header_image -> staging (slug=%s)", card["id"], slug)
             changed = True
 
     # --- Stage: staging → review ---
@@ -205,6 +217,7 @@ def check_and_advance(state_manager):
                 wordpress_id=wp_id,
                 edit_link=f"https://blog.postman.com/wp-admin/post.php?post={wp_id}&action=edit",
             )
+            _logger.info("advance: card %s staging -> review (slug=%s, wp_id=%s)", card["id"], slug, wp_id)
             changed = True
 
     # --- Auto-discover: new files with no card at all ---
@@ -264,8 +277,8 @@ def start_watcher(state_manager):
         while True:
             try:
                 check_and_advance(state_manager)
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.exception("poll error: %s", e)
             time.sleep(POLL_INTERVAL)
 
     t = threading.Thread(target=_poll, daemon=True)

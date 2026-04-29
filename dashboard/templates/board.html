@@ -32,6 +32,34 @@
                 {% include "partials/card.html" %}
             {% endfor %}
         </div>
+
+        {% if saved_ideas %}
+        <div class="saved-ideas">
+            <div class="saved-ideas-header">Saved Ideas ({{ saved_ideas | length }})</div>
+            {% for idea in saved_ideas %}
+            <div class="card card-suggestion">
+                <div class="card-title">{{ idea.title | e }}</div>
+                <div class="card-meta">
+                    <span class="idea-score score-{{ idea.urgency | default('backlog') | replace(' ', '-') }}">{{ idea.score }}/100</span>
+                    {% if idea.focus_area %}
+                    <span class="idea-focus">{{ idea.focus_area | e }}</span>
+                    {% endif %}
+                </div>
+                {% if idea.angle %}
+                <div class="idea-angle">{{ idea.angle | e | truncate(120) }}</div>
+                {% endif %}
+                <div class="card-actions">
+                    <form action="/api/ideas/{{ idea.id }}/add" method="POST" class="inline-form">
+                        <button type="submit" class="btn btn-primary btn-sm">+ Add</button>
+                    </form>
+                    <form action="/api/ideas/{{ idea.id }}/dismiss" method="POST" class="inline-form">
+                        <button type="submit" class="btn btn-ghost btn-sm btn-danger" title="Dismiss">&#x2715;</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     {# Creating column #}

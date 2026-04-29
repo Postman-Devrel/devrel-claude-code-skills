@@ -267,6 +267,13 @@ main {
     white-space: nowrap;
 }
 
+.card-pid {
+    font-size: 10px;
+    color: var(--grey-400);
+    font-family: "SF Mono", Monaco, "Cascadia Code", Consolas, monospace;
+    margin-top: 4px;
+}
+
 .card-error-msg {
     font-size: 11px;
     color: var(--red);
@@ -712,6 +719,51 @@ main {
 }
 
 .btn-danger-solid:hover { background: #DC2626; }
+
+/* Saved ideas from blog-ideas skill */
+.saved-ideas {
+    margin-top: 12px;
+    border-top: 1px dashed var(--grey-200);
+    padding-top: 8px;
+}
+
+.saved-ideas-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--grey-400);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.card-suggestion {
+    background: var(--orange-bg);
+    border-color: var(--orange-light);
+}
+
+.idea-score {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.score-publish-asap { background: #FEE2E2; color: #DC2626; }
+.score-this-month { background: #FEF3C7; color: #D97706; }
+.score-backlog { background: #DBEAFE; color: #2563EB; }
+
+.idea-focus {
+    font-size: 10px;
+    color: var(--grey-500);
+}
+
+.idea-angle {
+    font-size: 11px;
+    color: var(--grey-500);
+    line-height: 1.4;
+    margin-top: 4px;
+}
 
 /* Responsive */
 @media (max-width: 1600px) {
