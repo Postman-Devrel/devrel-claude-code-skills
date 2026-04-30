@@ -224,8 +224,9 @@ def sync_calendar():
     now = datetime.now(PST)
 
     try:
+        three_weeks_ago = (now - timedelta(weeks=3)).strftime("%Y-%m-%dT00:00:00")
         drafts = _wp_get(
-            f"posts?status=draft&after=2026-03-31T00:00:00&per_page=50&orderby=modified&order=desc&_embed=wp:featuredmedia",
+            f"posts?status=draft&after={three_weeks_ago}&per_page=50&orderby=modified&order=desc&_embed=wp:featuredmedia",
             auth, cf_clearance
         )
 
