@@ -36,7 +36,7 @@ Scan the entire post for:
 - **Punctuation issues** — missing Oxford commas, incorrect apostrophes, misused semicolons
 - **Markdown syntax errors** — unclosed code blocks, broken links, malformed tables, missing language identifiers on code fences
 - **Broken or incomplete URLs** — check that link syntax is correct `[text](url)`
-- **Inconsistent capitalization** — especially for product names (Postman, GitHub, OAuth, Newman, JavaScript, Node.js)
+- **Inconsistent capitalization** — especially for product names (Postman, GitHub, OAuth, the Postman CLI, JavaScript, Node.js)
 
 ### 2. Repetitive Sentence Structures
 

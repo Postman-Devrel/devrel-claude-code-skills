@@ -1,12 +1,12 @@
 ---
 name: blog-wordpress-scheduler
-description: "Manage the blog.postman.com editorial calendar. List scheduled and recently published posts, reschedule drafts/future posts, and view monthly post counts. Enforces Tue/Thu-first scheduling (Mon/Wed only after all Tue/Thu slots in the next 2 weeks are booked), no same-day conflicts, no US public holidays."
-argument-hint: "[list | reschedule | monthly] (e.g. 'list', 'reschedule 12345 2026-04-21', 'reschedule 12345 next', 'monthly')"
+description: "Manage the blog.postman.com editorial calendar. List scheduled and recently published posts, reschedule drafts/future posts, view monthly post counts, and get a YTD summary with draft counts. Enforces Tue/Thu-first scheduling (Mon/Wed only after all Tue/Thu slots in the next 2 weeks are booked), no same-day conflicts, no US public holidays."
+argument-hint: "[list | reschedule | monthly | summary] (e.g. 'list', 'reschedule 12345 2026-04-21', 'reschedule 12345 next', 'monthly', 'summary')"
 ---
 
 # WordPress Blog Scheduler — blog.postman.com
 
-Manage the editorial calendar for the Postman blog. View scheduled and recently published posts, reschedule posts, and get monthly post counts — all times in PST.
+Manage the editorial calendar for the Postman blog. View scheduled and recently published posts, reschedule posts, get monthly post counts, and view a YTD summary — all times in PST.
 
 ## Input Handling
 
@@ -15,6 +15,7 @@ This skill accepts a subcommand as its argument:
 - **`list`** (default if no argument) — Show upcoming scheduled posts and recently published posts from the past 2 weeks
 - **`reschedule <post_id> <YYYY-MM-DD | next>`** — Change the scheduled date for a draft or future post. Use a specific date or `next` to automatically pick the next available open slot (Mon-Thu, no holidays, no conflicts)
 - **`monthly`** — Show a summary of post counts per month for the current year
+- **`summary`** — Show a compact YTD grid with Published, Draft, Scheduled, and Total counts per month
 
 If no argument is provided, default to `list`.
 
@@ -513,6 +514,79 @@ Current month detail (April 2026):
 ```
 
 Always include a detail breakdown for the current month showing each post with its date, day, status, and title.
+
+## Subcommand: `summary`
+
+A compact YTD overview grid showing Published, Draft, Scheduled, and Total counts per month. Only months up to and including the current month are shown.
+
+### Step 1: Fetch Posts for the Current Year
+
+Fetch published, scheduled, and draft posts for the current year:
+
+```python
+year = datetime.now(PST).year
+current_month = datetime.now(PST).month
+
+# Published posts
+pub_url = f"posts?status=publish&after={year}-01-01T00:00:00&before={year}-12-31T23:59:59&per_page=100&orderby=date&order=asc"
+published = wp_get(pub_url)
+
+# Scheduled (future) posts
+sched_url = f"posts?status=future&after={year}-01-01T00:00:00&before={year}-12-31T23:59:59&per_page=100&orderby=date&order=asc"
+scheduled = wp_get(sched_url)
+
+# Draft posts (use modified date to catch drafts worked on this year)
+draft_url = f"posts?status=draft&after={year}-01-01T00:00:00&per_page=100&orderby=modified&order=desc"
+drafts = wp_get(draft_url)
+```
+
+Handle pagination — if any query returns exactly 100 results, fetch additional pages until all posts are retrieved.
+
+### Step 2: Group by Month
+
+```python
+from collections import defaultdict
+import calendar
+
+monthly = defaultdict(lambda: {"published": 0, "draft": 0, "scheduled": 0})
+
+for post in published:
+    month_num = int(post["date"][5:7])
+    monthly[month_num]["published"] += 1
+
+for post in scheduled:
+    month_num = int(post["date"][5:7])
+    monthly[month_num]["scheduled"] += 1
+
+for post in drafts:
+    month_num = int(post["modified"][5:7])
+    monthly[month_num]["draft"] += 1
+```
+
+### Step 3: Display the Grid
+
+Present the results as a fixed-width grid. Only show months up to and including the current month. Include a YTD Total row at the bottom.
+
+```
+Blog Summary — 2026
+
+  Month        Published   Draft   Scheduled   Total
+  -----------  ---------   -----   ---------   -----
+  January            8       0         0          8
+  February           2       1         0          3
+  March              7       0         0          7
+  April             13       2         0         15
+  May                0       3         1          4
+  -----------  ---------   -----   ---------   -----
+  YTD Total         30       6         1         37
+```
+
+**Formatting rules:**
+- Right-align all numeric columns
+- Use consistent column widths so the grid stays aligned
+- Only show months January through the current month (do not show future months with zero counts)
+- The Total column is the sum of Published + Draft + Scheduled for that month
+- The YTD Total row sums each column
 
 ## Error Handling
 

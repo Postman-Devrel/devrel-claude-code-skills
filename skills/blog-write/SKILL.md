@@ -145,7 +145,7 @@ Always use correct Postman terminology:
 - Collections as documentation (examples show API behavior)
 - Pre-request scripts for dynamic data generation
 - Proper HTTP methods and status codes
-- Newman for CI/CD integration
+- The Postman CLI for CI/CD integration
 
 ### Common Patterns to Cover
 When relevant to the post topic:
@@ -187,7 +187,7 @@ Developers want to explore further. Every post MUST include:
 - Link to [Postman Learning Center](https://learning.postman.com/) for features you mention
 - Link to specific feature docs (e.g., [Environments](https://learning.postman.com/docs/sending-requests/managing-environments/))
 - Link to [Postman API documentation](https://www.postman.com/postman/workspace/postman-public-workspace/documentation/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a) when discussing API integration
-- Link to [Newman documentation](https://learning.postman.com/docs/running-collections/using-newman-cli/command-line-integration-with-newman/) for CLI topics
+- Link to [Postman CLI documentation](https://learning.postman.com/docs/postman-cli/postman-cli-overview/) for CLI topics
 - Use descriptive anchor text, not "click here" or raw URLs
 
 **GitHub Repositories:**
@@ -214,7 +214,7 @@ lets you execute all requests in a collection sequentially.
 ## Resources
 
 - [Postman Environments documentation](https://learning.postman.com/docs/sending-requests/managing-environments/)
-- [Newman CLI reference](https://learning.postman.com/docs/running-collections/using-newman-cli/command-line-integration-with-newman/)
+- [Postman CLI reference](https://learning.postman.com/docs/postman-cli/postman-cli-overview/)
 - [Example collection on GitHub](https://github.com/yourorg/example-collection)
 - [OAuth 2.0 specification](https://oauth.net/2/)
 ```
@@ -224,7 +224,7 @@ lets you execute all requests in a collection sequentially.
 You'll need:
 - [Postman Desktop](https://www.postman.com/downloads/) (or web version)
 - A [Postman account](https://identity.getpostman.com/signup) (free tier works)
-- [Node.js v14+](https://nodejs.org/) (if running Newman)
+- [Node.js v14+](https://nodejs.org/) (if running the Postman CLI)
 ```
 
 ## Developers Learn By Doing
@@ -322,7 +322,7 @@ Good: "Running Postman Collections in GitHub Actions"
 Good: "Building a Mock Server for Frontend Development"
 Good: "Data-Driven API Testing with CSV Files in Postman"
 Good: "Debugging WebSocket Connections in Postman"
-Good: "How I Set Up Contract Testing with Postman and Newman"
+Good: "How I Set Up Contract Testing with the Postman CLI"
 ```
 
 **Title rules:**
@@ -355,7 +355,7 @@ You'll need:
 - Postman Desktop (or web version)
 - A Postman account (free tier works)
 - API access credentials (I'll show you where to get them)
-- Node.js v14+ (if running Newman)
+- Node.js v14+ (if running the Postman CLI)
 ```
 
 ### Instructions with Postman
@@ -396,9 +396,9 @@ CRITICAL: Always specify the language for syntax highlighting. Developers learn 
 - Show realistic examples, not abstract "foo/bar" placeholders
 
 **Supported Languages to Use:**
-- `javascript` - Test scripts, pre-request scripts, Newman scripts
+- `javascript` - Test scripts, pre-request scripts, Postman CLI scripts
 - `json` - Request bodies, response examples, environment configs
-- `bash` - Terminal commands, Newman CLI, git operations
+- `bash` - Terminal commands, the Postman CLI, git operations
 - `http` - Raw HTTP requests (when showing request format)
 - `yaml` - CI/CD configs (GitHub Actions, etc.)
 - `typescript` - If showing typed code examples
@@ -495,7 +495,7 @@ Mirror the intro structure—technical summary, personal insight, then actionabl
 This setup gives you three key capabilities:
 1. **Secure credential management** through environment variables
 2. **Automated validation** via test scripts
-3. **CI/CD integration** with Newman for continuous testing
+3. **CI/CD integration** with the Postman CLI for continuous testing
 
 What I like about this approach is it scales from local development to team
 collaboration without changing your collection structure. The same tests that
@@ -508,9 +508,9 @@ your response schema and see what edge cases you catch.
 ## Resources
 
 - [Postman Test Scripts documentation](https://learning.postman.com/docs/writing-scripts/test-scripts/)
-- [Newman CLI reference](https://learning.postman.com/docs/running-collections/using-newman-cli/command-line-integration-with-newman/)
+- [Postman CLI reference](https://learning.postman.com/docs/postman-cli/postman-cli-overview/)
 - [Example collection on GitHub](https://github.com/yourorg/postman-ci-example)
-- [GitHub Actions integration guide](https://learning.postman.com/docs/running-collections/using-newman-cli/integration-with-github-actions/)
+- [GitHub Actions integration guide](https://learning.postman.com/docs/postman-cli/postman-cli-run-options/)
 ```
 
 **Every conclusion should include:**
@@ -557,10 +557,10 @@ When showing Postman UI elements:
 - Reference the screenshot: "In the screenshot above, you can see..."
 
 ### Terminal Output
-For Newman/CLI output, show realistic results:
+For Postman CLI output, show realistic results:
 
 ```bash
-$ newman run collection.json -e production.json
+$ postman collection run collection.json -e production.json
 
 -> User API Tests
   POST Create User [200 OK, 524B, 234ms]
