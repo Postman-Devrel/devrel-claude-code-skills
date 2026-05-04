@@ -116,6 +116,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts (Tue/Thu priority), list upcoming/published, view monthly counts |
 | `blog-dashboard-cleanup` | Remove stuck/stale Kanban cards before staging. Pass `--all` to clear the entire board. Safe to run anytime — never touches WordPress. |
 | `blog-ideas` | Search trending topics and generate scored blog content ideas |
+| `blog-prod-updates` | Scan #product-updates Slack channel (past 7 days), summarize shipped features for `blog-write`. Only includes Product Stage >= 4. Maintains memory of covered posts. |
 
 ### Other Skills
 
@@ -218,6 +219,7 @@ Each skill writes to a dedicated directory:
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `sentiment-output/` | `sentiment-apitools` | `sentiment-analysis-YYMMDD.md` |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
+| `prod-updates-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.memory.json` |
 
 ## Hooks
 
@@ -237,6 +239,7 @@ skills/
   blog-wordpress-stage/        # WordPress staging
   blog-wordpress-scheduler/    # Editorial calendar management
   blog-ideas/                  # Blog idea generation
+  blog-prod-updates/           # Product updates from Slack
   cfp-hunter/                  # CFP search
   sentiment-apitools/          # Sentiment analysis
   newsletter-agentsandapis/    # Newsletter generation
@@ -256,6 +259,7 @@ cfp-output/                    # CFP search results
 newsletter-output/             # Newsletter output
 sentiment-output/              # Sentiment analysis output
 influencer-output/             # Influencer candidate output
+prod-updates-output/           # Product update summaries + memory
 ```
 
 ## Usage Examples
@@ -277,6 +281,10 @@ influencer-output/             # Influencer candidate output
 
 # Generate blog content ideas
 /blog-ideas MCP
+
+# Summarize recent product updates for blog content
+/blog-prod-updates
+/blog-prod-updates 14
 
 # Find speaking opportunities
 /cfp-hunter
@@ -330,6 +338,32 @@ When using `reschedule <id> next`, the scheduler follows this logic:
 3. If the entire 2-week window is full → search beyond 2 weeks using Tue/Thu priority.
 
 If you manually pick a Monday or Wednesday date when open Tue/Thu slots still exist in the next 2 weeks, the scheduler will reject the date and show you the available Tue/Thu options.
+
+### Slack Setup (for `blog-prod-updates`)
+
+The `blog-prod-updates` skill reads from the Postman #product-updates Slack channel. You'll need a Slack Bot Token:
+
+1. Go to **api.slack.com/apps** and click **Create New App** > **From scratch**
+2. Name it (e.g. "DevRel Blog Bot") and select the Postman workspace
+3. Go to **OAuth & Permissions** in the sidebar
+4. Under **Bot Token Scopes**, add `channels:history` and `channels:read`
+5. Click **Install to Workspace** at the top and approve the permissions
+6. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
+7. In Slack, go to the #product-updates channel and type `/invite @DevRel Blog Bot` to give the bot access
+
+Add the token to your settings:
+
+```json
+{
+  "env": {
+    "SLACK_BOT_TOKEN": "xoxb-your-token-here"
+  }
+}
+```
+
+For local use, add it to `.claude/settings.local.json` (git-ignored). For Vercel deployment, set it as an environment variable in the Vercel project dashboard (Settings > Environment Variables).
+
+No redirect URL is needed — the bot token is issued directly on workspace install.
 
 ### Google Docs Setup (for `blog-create-from-gdoc`)
 

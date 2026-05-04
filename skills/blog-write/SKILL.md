@@ -111,7 +111,7 @@ Use a fluid mix of perspectives throughout:
 
 **Do:**
 - Use contractions naturally ("you'll", "it's", "won't")
-- Share real experience: "I've seen teams struggle with", "in production, I've found"
+- Share real experience: "I've seen teams struggle with", "in production, this tends to break when"
 - Add developer advocate personality: "This saved me hours of debugging", "Here's the gotcha"
 - Keep sentences punchy. Vary length. Like this.
 - Use "heads up" or "worth noting" instead of "Note:" or "Important:"
@@ -484,7 +484,7 @@ Here's where it gets interesting—we can chain this request with the next one.
 ```
 
 ```markdown
-I've found this pattern works well for managing multiple environments.
+This approach keeps your environments clean and your team out of trouble.
 ```
 
 ### Conclusions
@@ -602,12 +602,20 @@ Use for API endpoint references, status codes, or feature comparisons:
 
 ## Tips Section Pattern
 
-Name it something experienced: "Patterns I've Found Useful", "Things to Watch For", "Gotchas I've Hit"
+Vary the section name — don't default to a single formula. Pick one that fits the content:
+
+- "Things to Watch For" — when the tips are about avoiding mistakes
+- "Gotchas I've Hit" — when sharing hard-won lessons from real debugging
+- "What Worked (and What Didn't)" — when comparing approaches
+- "Tips from the Trenches" — when the advice is battle-tested and practical
+- "Before You Ship" — when the tips are about production readiness
+
+**Never use "Patterns I've Found Useful"** — it's generic and reads like filler. The heading should tell the reader what kind of value they're about to get.
 
 Structure each tip with context and practical advice:
 
 ```markdown
-## Patterns I've Found Useful
+## Before You Ship
 
 ### Separate Environments for Each Stage
 
