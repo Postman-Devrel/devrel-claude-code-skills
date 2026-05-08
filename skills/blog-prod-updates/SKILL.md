@@ -28,7 +28,7 @@ The target channel is **C08SPKCGZQ8** (`https://postman.enterprise.slack.com/arc
 
 ### Step 1: Load Memory
 
-Read the memory file at `prod-updates-output/.memory.json`. If it doesn't exist, initialize with:
+Read the memory file at `blog-output/.prod-update-memory.json`. If it doesn't exist, initialize with:
 
 ```json
 {
@@ -112,7 +112,7 @@ For each qualifying message, attempt to enrich it:
 
 ### Step 6: Generate Summary Markdown
 
-Write the output file to `prod-updates-output/prod-updates-YYMMDD.md` (where YYMMDD is today's date). Create the directory if it doesn't exist.
+Write the output file to `blog-output/prod-updates-YYMMDD.md` (where YYMMDD is today's date). Create the directory if it doesn't exist.
 
 **Output format:**
 
@@ -167,14 +167,14 @@ The following posts were excluded because their Product Stage is below 4:
 | [date] | [stage or "not specified"] | [first ~60 chars of post] |
 | [date] | [stage] | [snippet] |
 
-To review excluded posts, check `prod-updates-output/.memory.json` under `excluded_below_stage`.
+To review excluded posts, check `blog-output/.prod-update-memory.json` under `excluded_below_stage`.
 
 <!-- EXCLUDED_BELOW_STAGE_COUNT: [N] -->
 ```
 
 ### Step 7: Update Memory
 
-After writing the output file, update `prod-updates-output/.memory.json`:
+After writing the output file, update `blog-output/.prod-update-memory.json`:
 
 1. **Append** each included message to `processed_posts`:
 
@@ -199,13 +199,13 @@ After writing the output file, update `prod-updates-output/.memory.json`:
 Print a brief summary to the user:
 
 ```
-Product updates summary written to prod-updates-output/prod-updates-YYMMDD.md
+Product updates summary written to blog-output/prod-updates-YYMMDD.md
 
 Processed: X new posts with Product Stage >= 4 (Y duplicates skipped)
 Excluded:  Z posts with Product Stage < 4
 Areas:     [list of product areas covered]
 
-Run /devrel-skills:blog-write prod-updates-output/prod-updates-YYMMDD.md to draft a blog post.
+Run /devrel-skills:blog-write blog-output/prod-updates-YYMMDD.md to draft a blog post.
 ```
 
 ---
@@ -225,7 +225,7 @@ Run /devrel-skills:blog-write prod-updates-output/prod-updates-YYMMDD.md to draf
 
 ## Memory File Location
 
-The memory file lives at `prod-updates-output/.memory.json` — a dotfile so it doesn't clutter the output directory. The skill reads it at start and writes it at end of every run. Never delete this file manually; the 90-day pruning in Step 7 keeps it from growing unbounded.
+The memory file lives at `blog-output/.prod-update-memory.json` — a dotfile so it doesn't clutter the output directory. The skill reads it at start and writes it at end of every run. Never delete this file manually; the 90-day pruning in Step 7 keeps it from growing unbounded.
 
 ---
 

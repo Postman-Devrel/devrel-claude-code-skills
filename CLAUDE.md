@@ -50,7 +50,6 @@ Each skill writes output to a dedicated directory:
 - `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)
 - `influencer-output/` — Influencer candidate reports (`influencer-candidates-YYMMDD.md`)
 - `luma-output/` — Luma event stats reports (`luma-stats-{filter}.md`)
-- `prod-updates-output/` — Product update summaries (`prod-updates-YYMMDD.md`) and memory (`.memory.json`)
 - `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 
 ## Hooks

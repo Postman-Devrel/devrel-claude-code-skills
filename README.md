@@ -219,7 +219,7 @@ Each skill writes to a dedicated directory:
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `sentiment-output/` | `sentiment-apitools` | `sentiment-analysis-YYMMDD.md` |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
-| `prod-updates-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.memory.json` |
+| `blog-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.prod-update-memory.json` |
 
 ## Hooks
 
@@ -239,7 +239,6 @@ skills/
   blog-wordpress-stage/        # WordPress staging
   blog-wordpress-scheduler/    # Editorial calendar management
   blog-ideas/                  # Blog idea generation
-  blog-prod-updates/           # Product updates from Slack
   cfp-hunter/                  # CFP search
   sentiment-apitools/          # Sentiment analysis
   newsletter-agentsandapis/    # Newsletter generation
@@ -259,7 +258,6 @@ cfp-output/                    # CFP search results
 newsletter-output/             # Newsletter output
 sentiment-output/              # Sentiment analysis output
 influencer-output/             # Influencer candidate output
-prod-updates-output/           # Product update summaries + memory
 ```
 
 ## Usage Examples
