@@ -1,6 +1,6 @@
 ---
 name: blog-prod-updates
-description: "Scan the Postman product updates Slack channel for the past 7 days and produce a blog-ready summary of shipped features, fixes, and improvements. Maintains memory of previously covered posts to avoid duplicates. Only includes posts with Product Stage >= 4 (externally safe). Output is designed as input for blog-write."
+description: "Scan the Postman product updates Slack channel for the past 7 days and produce a blog-ready summary of shipped features, fixes, and improvements. Maintains memory of previously covered posts to avoid duplicates. Only includes posts with Product Stage >= 7 (externally safe). Output is designed as input for blog-write."
 argument-hint: "[days] (optional, defaults to 7 — e.g. '14' for two weeks)"
 ---
 
