@@ -43,7 +43,7 @@ Read the memory file at `blog-output/.prod-update-memory.json`. If it doesn't ex
 | Field | Type | Description |
 |-------|------|-------------|
 | `processed_posts` | array | Objects with `ts`, `date`, `summary`, `product_stage`, `output_file` for each previously covered post |
-| `excluded_below_stage` | array | Objects with `ts`, `date`, `product_stage`, `snippet` (first 80 chars) for posts excluded due to Product Stage < 4 |
+| `excluded_below_stage` | array | Objects with `ts`, `date`, `product_stage`, `snippet` (first 80 chars) for posts excluded due to Product Stage < 7 |
 | `last_run` | string | ISO 8601 timestamp of last successful run |
 
 ### Step 2: Fetch Slack Messages
@@ -75,13 +75,13 @@ Postman uses a **Product Stage** system to indicate whether content is ready for
 
 #### Rule
 
-- **Product Stage >= 4** → Include in the summary (externally safe)
-- **Product Stage < 4** → Exclude automatically and log to memory
+- **Product Stage >= 7** → Include in the summary (externally safe)
+- **Product Stage < 7** → Exclude automatically and log to memory
 
 #### How to Identify Product Stage
 
 Look for the Product Stage in the Slack message. It may appear as:
-- "Product Stage: 4" or "Stage 4" or "PS4" or "PS: 4"
+- "Product Stage: 7" or "Stage 7" or "PS7" or "PS: 7"
 - A field in a Slack message attachment or block
 - Part of a structured template the channel uses for updates
 
@@ -122,7 +122,7 @@ Write the output file to `blog-output/prod-updates-YYMMDD.md` (where YYMMDD is t
 **Period:** [start date] — [end date]
 **Generated:** [today's date]
 **Source:** #product-updates Slack channel
-**Posts analyzed:** [total] | **Included (Stage >= 4):** [count] | **Skipped (duplicate):** [count] | **Excluded (Stage < 4):** [count]
+**Posts analyzed:** [total] | **Included (Stage >= 7):** [count] | **Skipped (duplicate):** [count] | **Excluded (Stage < 7):** [count]
 
 ---
 
@@ -158,9 +158,9 @@ Based on this batch of updates, here are potential angles for `blog-write`:
 
 ---
 
-## Excluded Posts (Product Stage < 4)
+## Excluded Posts (Product Stage < 7)
 
-The following posts were excluded because their Product Stage is below 4:
+The following posts were excluded because their Product Stage is below 7:
 
 | Date | Product Stage | Snippet |
 |------|--------------|---------|
@@ -183,7 +183,7 @@ After writing the output file, update `blog-output/.prod-update-memory.json`:
   "ts": "1714800000.000100",
   "date": "2026-05-04",
   "summary": "API Catalog: Added service monitoring endpoints",
-  "product_stage": 5,
+  "product_stage": 8,
   "output_file": "prod-updates-260504.md"
 }
 ```
@@ -201,8 +201,8 @@ Print a brief summary to the user:
 ```
 Product updates summary written to blog-output/prod-updates-YYMMDD.md
 
-Processed: X new posts with Product Stage >= 4 (Y duplicates skipped)
-Excluded:  Z posts with Product Stage < 4
+Processed: X new posts with Product Stage >= 7 (Y duplicates skipped)
+Excluded:  Z posts with Product Stage < 7
 Areas:     [list of product areas covered]
 
 Run /devrel-skills:blog-write blog-output/prod-updates-YYMMDD.md to draft a blog post.
@@ -214,12 +214,9 @@ Run /devrel-skills:blog-write blog-output/prod-updates-YYMMDD.md to draft a blog
 
 | Product Stage | External Use | Description |
 |---------------|-------------|-------------|
-| 1 | No | Early exploration / internal prototype |
-| 2 | No | Active internal development |
-| 3 | No | Internal beta / dogfooding |
-| **4** | **Yes** | **Public beta or limited GA — safe for external content** |
-| **5** | **Yes** | **General availability — fully public** |
-| **6+** | **Yes** | **Established / mature feature** |
+| 1–6 | No | Internal stages — not ready for external content |
+| **7** | **Yes** | **Ready for external use — safe for blog content** |
+| **8+** | **Yes** | **Established / mature feature** |
 
 ---
 
@@ -242,7 +239,7 @@ The memory file lives at `blog-output/.prod-update-memory.json` — a dotfile so
 
 Before writing the output file:
 
-- [ ] Every included post has Product Stage >= 4
+- [ ] Every included post has Product Stage >= 7
 - [ ] Posts without a Product Stage were excluded by default
 - [ ] Each update has a clear product area categorization
 - [ ] Summaries are written in developer-facing language (not internal shorthand)

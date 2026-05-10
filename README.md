@@ -116,7 +116,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `blog-wordpress-scheduler` | Manage the editorial calendar — schedule posts (Tue/Thu priority), list upcoming/published, view monthly counts |
 | `blog-dashboard-cleanup` | Remove stuck/stale Kanban cards before staging. Pass `--all` to clear the entire board. Safe to run anytime — never touches WordPress. |
 | `blog-ideas` | Search trending topics and generate scored blog content ideas |
-| `blog-prod-updates` | Scan #product-updates Slack channel (past 7 days), summarize shipped features for `blog-write`. Only includes Product Stage >= 4. Maintains memory of covered posts. |
+| `blog-prod-updates` | Scan #product-updates Slack channel (past 7 days), summarize shipped features for `blog-write`. Only includes Product Stage >= 7. Maintains memory of covered posts. |
 
 ### Other Skills
 
