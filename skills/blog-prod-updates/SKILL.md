@@ -10,6 +10,18 @@ Read recent posts from the Postman product updates Slack channel and produce a d
 
 ---
 
+## Voice & Tone Rules
+
+These rules apply to ALL generated output — the summary markdown, blog angle suggestions, and any text shown to the user.
+
+1. **Highlight the positives and developer impact.** Every update should lead with what shipped and what it means for developers. Frame features in terms of workflows unlocked, friction removed, or capabilities gained. Do not qualify updates with caveats, limitations, or missing functionality.
+
+2. **No "what's missing" or internal commentary.** This is a changelog, not an opinion piece. Do not speculate about gaps, missing features, incomplete rollouts, or what "would be nice." Do not include internal context like team excitement, engineering effort, or behind-the-scenes details. Stick to what shipped and how developers can use it.
+
+3. **Write in third person: "we've shipped…"** Use "we" (Postman) and "you" (the developer reader). Never use first person singular ("I noticed", "I've been digging into", "I get why"). The voice is the Postman team announcing what's new, not an individual's personal take.
+
+---
+
 ## Prerequisites
 
 This skill requires a Slack Bot Token with `channels:history` and `channels:read` scopes for the Postman workspace.
@@ -134,7 +146,7 @@ Write the output file to `blog-output/prod-updates-YYMMDD.md` (where YYMMDD is t
 
 **Posted by:** [author] | **Date:** [date]
 
-[2-4 sentence summary written in developer-facing language. Focus on what changed, why it matters to API developers, and how they can use it. Include relevant API endpoints, UI changes, or configuration details.]
+[2-4 sentence summary written in third person ("we've shipped…", "you can now…"). Focus on what shipped, why it matters to API developers, and how they can use it. Lead with the positive impact. Include relevant API endpoints, UI changes, or configuration details. Do not mention limitations, missing features, or internal context.]
 
 **Key details:**
 - [Bullet point with specific technical detail]
@@ -242,7 +254,9 @@ Before writing the output file:
 - [ ] Every included post has Product Stage >= 7
 - [ ] Posts without a Product Stage were excluded by default
 - [ ] Each update has a clear product area categorization
-- [ ] Summaries are written in developer-facing language (not internal shorthand)
+- [ ] Summaries are written in third person ("we've shipped", "you can now") — no first person singular ("I noticed", "I think", "I get why")
+- [ ] Every update leads with the positive impact for developers — no caveats, limitations, or "what's missing" commentary
+- [ ] No internal commentary (team excitement, engineering effort, behind-the-scenes context) — only what shipped and how to use it
 - [ ] Blog angle suggestions reference specific updates from this batch
 - [ ] Memory file is updated with all processed posts and excluded-below-stage posts
 - [ ] Output filename uses correct YYMMDD date format
