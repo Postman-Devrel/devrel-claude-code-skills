@@ -203,7 +203,14 @@ If either is missing, tell the user:
    - `primary_keyword` — use as the Yoast focus keyphrase
    - `secondary_keywords` — for reference
 3. Extract the markdown body (everything after the frontmatter closing `---`)
-4. If `meta_description` is missing from frontmatter, generate one from the first two paragraphs of the post (under 155 characters, includes the primary topic and a call to action)
+4. **Generate a meta description if missing or empty.** If `meta_description` is absent, blank, or a generic placeholder in the frontmatter, generate one by reading the full post body. The meta description must be:
+   - Under 155 characters
+   - A single complete sentence that summarizes what the reader will learn or accomplish
+   - Include the primary topic/keyword naturally
+   - Written in active voice, addressed to the reader (e.g., "Learn how to..." or "Build a...")
+   - No marketing fluff — factual and specific to the post's content
+   
+   After generating, write the meta description back into the markdown file's `meta_description` frontmatter field using the Edit tool so the local file stays in sync.
 
 ### Step 2: Convert Markdown to HTML
 
@@ -475,13 +482,16 @@ if os.path.exists("/tmp/wp-image-results.json"):
     with open("/tmp/wp-image-results.json", "r") as f:
         image_results = json.load(f)
 
+meta_description = "META_DESCRIPTION_HERE"  # From Step 1 (extracted or generated)
+
 post_data = {
     "title": "POST_TITLE",
     "content": html_content,
     "status": "draft",
+    "excerpt": meta_description,
     "tags": [],  # Replace with tag_ids from Step 5
     "meta": {
-        "_yoast_wpseo_metadesc": "META_DESCRIPTION_HERE",
+        "_yoast_wpseo_metadesc": meta_description,
         "_yoast_wpseo_focuskw": "FOCUS_KEYPHRASE_HERE",
     },
 }
