@@ -234,6 +234,10 @@ if len(parts) >= 3:
 else:
     body = content.strip()
 
+# Strip the leading H1 title — it goes into the WordPress title field, not the body
+import re
+body = re.sub(r'^#\s+.+\n*', '', body, count=1).strip()
+
 html = markdown.markdown(body, extensions=["fenced_code", "codehilite", "tables", "toc"])
 
 # Write HTML to temp file for the post creation script to read
