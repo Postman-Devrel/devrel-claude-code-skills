@@ -33,6 +33,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-wordpress-stats` | Show the number of blog posts published between two dates on blog.postman.com |
 | `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `/devrel-skills:event-sponsorships` | Find events with sponsorship opportunities in the API/AI space — classifies PLG vs SLG, scores relevance to Postman. Filter by AI, API, or mixed |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:sentiment-apitools` | Reactive Reddit sentiment analysis of API developer tools — skewed towards PLG offerings (Postman, Bruno, Insomnia, etc.) |
 | `/devrel-skills:influencer-autoagent` | Find and rank developer influencers for product launches — scores candidates on technical credibility, audience reach, and topic alignment |
@@ -47,6 +48,7 @@ Each skill writes output to a dedicated directory:
 - `blog-output/` — Blog posts (slugified title, includes SEO frontmatter)
 - `blog-output/images/header/` — Blog header images (`header-*.png`, 2560×1355 PNG)
 - `cfp-output/` — CFP search results (`current-cfps.md`)
+- `sponsorship-output/` — Event sponsorship opportunities (`event-sponsorships.md`)
 - `newsletter-output/` — Newsletters (prefixed with `YYYY-MM`)
 - `sentiment-output/` — Sentiment analysis reports (`sentiment-analysis-YYMMDD.md`)
 - `influencer-output/` — Influencer candidate reports (`influencer-candidates-YYMMDD.md`)
