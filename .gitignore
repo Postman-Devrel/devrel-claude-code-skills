@@ -11,3 +11,4 @@ dashboard/__pycache__/
 dashboard/.venv/
 dashboard/*.log
 dashboard/ideas.json
+.DS_Store
