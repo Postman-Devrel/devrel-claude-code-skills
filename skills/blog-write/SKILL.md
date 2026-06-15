@@ -33,12 +33,14 @@ Before writing, read and internalize the Postman writing style guide files. Thes
 3. Read `postman-writing-style-guide/wordlist.md` — A-Z word list of approved/prohibited terms and usage (e.g., use "run" not "execute", use "sign in" not "log in")
 4. Read `postman-writing-style-guide/inclusivewords.md` — inclusive language requirements (e.g., use "allowlist" not "whitelist", use "primary/secondary" not "master/slave")
 5. Read `postman-writing-style-guide/formatting.md` — text formatting rules for code, UX elements, paths, and emphasis
+6. Read `skills/blog-write/resources/humanizer.md` — patterns that make writing sound AI-generated (em dashes, rule-of-three, significance inflation, copula avoidance, etc.) and how to avoid them
 
 Apply all style guide rules throughout the writing process. Pay special attention to:
 - Branded term capitalization (these change frequently — always check the guide)
 - Prohibited words and their approved alternatives
 - Inclusive language substitutions
 - Formatting conventions for code, keys, and UI elements
+- AI writing patterns from `humanizer.md` — before finalizing, scan the draft for em dashes, rule-of-three lists, significance inflation, copula avoidance ("serves as", "stands as"), and overused AI vocabulary ("pivotal", "vibrant", "tapestry", "underscore", "showcase"). Rewrite any instances found.
 
 ## Research Phase (Run in Parallel)
 

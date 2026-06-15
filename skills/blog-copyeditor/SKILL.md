@@ -23,6 +23,7 @@ Before editing, read the Postman writing style guide files. These are the author
 3. Read `postman-writing-style-guide/wordlist.md` — A-Z word list of approved/prohibited terms and usage
 4. Read `postman-writing-style-guide/inclusivewords.md` — inclusive language requirements
 5. Read `postman-writing-style-guide/formatting.md` — text formatting rules for code, UX elements, paths, and emphasis
+6. Read `skills/blog-write/resources/humanizer.md` — the full catalogue of AI writing patterns to detect and rewrite (em dashes, rule-of-three, significance inflation, copula avoidance, overused AI vocabulary, sycophantic openers, etc.)
 
 Use these guides as the primary reference when flagging issues. Any violations of the style guide should be reported in the copy edit report under a dedicated **Style Guide Violations** section.
 
@@ -76,6 +77,23 @@ Check the post against all five style guide files:
 - Flag any code blocks using plain ``` without a language specifier
 - Verify JSON examples are valid JSON structure
 - Check that API examples show both request AND response where applicable
+
+### 5. AI Pattern Detection (Humanizer Pass)
+
+Using the patterns catalogued in `skills/blog-write/resources/humanizer.md`, scan the post for AI writing tells and flag or rewrite them:
+
+- **Em dashes** (— or –) — hard ban; replace with a period, comma, colon, or restructured sentence
+- **Overused AI vocabulary** — "pivotal", "vibrant", "tapestry", "underscore", "showcase", "delve", "crucial", "landscape" (abstract), "testament", "foster", "garner"
+- **Copula avoidance** — "serves as", "stands as", "boasts", "features" used instead of plain "is/has/are"
+- **Rule-of-three padding** — forced groupings of three; rewrite as prose or cut to what's real
+- **Significance inflation** — phrases like "marks a pivotal moment", "reflects broader trends", "shaping the landscape"
+- **Sycophantic/servile openers** — "Let's dive in", "Here's what you need to know", "Great question!"
+- **Staccato drama** — runs of short punchy fragments stacked for manufactured effect
+- **Inline-header bullet lists** — bold term + colon + restatement; rewrite as prose or genuine bullets
+- **Generic positive conclusions** — "the future looks bright", "exciting times lie ahead"
+- **Passive/subjectless fragments** — "No configuration needed", "Results are preserved automatically"
+
+Report findings in a dedicated **AI Pattern Violations** section in the copy edit report, with original text, pattern name, and a rewritten version. In Hook Mode, auto-apply clear-cut rewrites (em dashes, AI vocabulary swaps); flag subjective restructuring for author review.
 
 ## SEO Optimization Pass
 
@@ -172,6 +190,13 @@ Structure your review as follows:
 | # | Type | Original | Correction | Guide Reference |
 |---|------|----------|------------|-----------------|
 | 1 | [branded term/word list/inclusive language/formatting] | [original] | [corrected] | [which style guide file] |
+
+## AI Pattern Violations
+[List AI writing tells found, using humanizer.md patterns. Include original text, pattern name, and suggested rewrite.]
+
+| # | Pattern | Original | Rewrite |
+|---|---------|----------|---------|
+| 1 | [e.g., em dash / AI vocabulary / copula avoidance] | [original] | [rewrite] |
 
 ## Readability Issues
 [List issues with suggestions]
