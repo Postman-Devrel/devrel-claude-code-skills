@@ -20,6 +20,8 @@ These rules apply to ALL generated output — the summary markdown, blog angle s
 
 3. **Write in third person: "we've shipped…"** Use "we" (Postman) and "you" (the developer reader). Never use first person singular ("I noticed", "I've been digging into", "I get why"). The voice is the Postman team announcing what's new, not an individual's personal take.
 
+4. **No customer names.** Never include customer or company names in the output. We do not have permission to use customer names in external blog content. Replace any customer references from Slack posts with generic terms like "teams", "enterprise users", or "customers".
+
 ---
 
 ## Prerequisites
@@ -257,6 +259,7 @@ Before writing the output file:
 - [ ] Summaries are written in third person ("we've shipped", "you can now") — no first person singular ("I noticed", "I think", "I get why")
 - [ ] Every update leads with the positive impact for developers — no caveats, limitations, or "what's missing" commentary
 - [ ] No internal commentary (team excitement, engineering effort, behind-the-scenes context) — only what shipped and how to use it
+- [ ] No customer or company names appear anywhere in the output — all replaced with generic terms
 - [ ] Blog angle suggestions reference specific updates from this batch
 - [ ] Memory file is updated with all processed posts and excluded-below-stage posts
 - [ ] Output filename uses correct YYMMDD date format
