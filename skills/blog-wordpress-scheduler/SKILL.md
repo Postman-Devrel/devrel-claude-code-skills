@@ -423,11 +423,12 @@ If validation fails, show the errors and suggest the next 3 available open slots
 If validation passes, update the post's date to the target date at 8:00 AM PST (which is 16:00 UTC):
 
 ```python
-# 8:00 AM PST = 16:00 UTC
+# Always 8:00 AM PST = 16:00 UTC — hardcoded regardless of system timezone or user location.
+# Use date_gmt (UTC), NOT date (site local time). Sending T16:00:00 to date_gmt = 8am PST.
 schedule_datetime = f"{target_str}T16:00:00"
 
 post_data = json.dumps({
-    "date": schedule_datetime,
+    "date_gmt": schedule_datetime,
     "status": "future"
 }).encode()
 
@@ -602,6 +603,6 @@ Blog Summary — 2026
 - **Tuesday and Thursday are the primary publishing days** — always fill Tue/Thu slots in the next 2 weeks before offering Mon/Wed. Only suggest or accept Mon/Wed when all Tue and Thu slots in the next 2 weeks are already booked.
 - **Never allow scheduling on a US public holiday** — check the holiday list for the target year.
 - **Never allow two posts on the same day** — always check for conflicts before rescheduling.
-- **Rescheduling sets the time to 8:00 AM PST** — this is the standard publish time for all posts.
+- **Rescheduling sets the time to 8:00 AM PST (16:00 UTC)** — always use the `date_gmt` field with value `T16:00:00`. Never use the `date` field (site local time) and never adjust the time based on the user's system timezone or location. This is hardcoded and must not vary regardless of where the user is running the skill.
 - **Do not publish posts directly** — rescheduling sets the status to `future`, not `publish`. The post goes live automatically at the scheduled time.
 - **Pagination** — if there are more than 100 posts in a query, make multiple paginated requests to get them all.
