@@ -166,9 +166,9 @@ Write the output file to `blog-output/prod-updates-YYMMDD.md` (where YYMMDD is t
 
 Based on this batch of updates, here are potential angles for `blog-write`:
 
-1. **[Suggested title]** — [1 sentence on why this angle works, which updates it combines]
-2. **[Suggested title]** — [1 sentence on angle]
-3. **[Suggested title]** — [1 sentence on angle]
+1. **What's new in Postman: [Suggested title]** — [1 sentence on why this angle works, which updates it combines]
+2. **What's new in Postman: [Suggested title]** — [1 sentence on angle]
+3. **What's new in Postman: [Suggested title]** — [1 sentence on angle]
 
 ---
 
@@ -260,6 +260,7 @@ Before writing the output file:
 - [ ] Every update leads with the positive impact for developers — no caveats, limitations, or "what's missing" commentary
 - [ ] No internal commentary (team excitement, engineering effort, behind-the-scenes context) — only what shipped and how to use it
 - [ ] No customer or company names appear anywhere in the output — all replaced with generic terms
+- [ ] All blog angle suggestion titles start with "What's new in Postman: "
 - [ ] Blog angle suggestions reference specific updates from this batch
 - [ ] Memory file is updated with all processed posts and excluded-below-stage posts
 - [ ] Output filename uses correct YYMMDD date format
