@@ -2,6 +2,7 @@
 name: blog-dashboard-cleanup
 description: "Clean up the blog pipeline Kanban dashboard — removes cards that are stuck before the staging column (ideas, creating substages). Leaves cards in staging, review, and scheduled untouched."
 argument-hint: "[--all] (omit to remove only pre-staging cards; pass --all to clear every card)"
+allowed-tools: ["Read", "Write", "Bash"]
 ---
 
 # Blog Dashboard Cleanup
@@ -24,53 +25,17 @@ If the user passes `--all`, remove every card regardless of stage.
 
 ## State File Location
 
-The dashboard state lives at `dashboard/state.json` relative to the plugin root. Locate it using the `CLAUDE_PLUGIN_ROOT` env var if set, otherwise resolve it relative to this skill file:
-
-```python
-import os, json, fcntl
-
-plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT") or os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..")
-)
-state_path = os.path.join(plugin_root, "dashboard", "state.json")
-```
+The dashboard state lives at `dashboard/state.json` relative to the plugin root. Read `references/state-file-ops.md` for the path-resolution and file-locking patterns used in the steps below.
 
 ## Steps
 
 ### Step 1: Read Current State
 
-```python
-if not os.path.exists(state_path):
-    print("Dashboard state file not found — is the dashboard installed?")
-    print(f"Expected: {state_path}")
-    raise SystemExit(1)
-
-with open(state_path, "r") as f:
-    fcntl.flock(f, fcntl.LOCK_SH)
-    try:
-        data = json.load(f)
-    finally:
-        fcntl.flock(f, fcntl.LOCK_UN)
-
-cards = data.get("cards", [])
-```
+Use the path resolution and shared-lock read pattern from `references/state-file-ops.md`. Load `cards = data.get("cards", [])`.
 
 ### Step 2: Identify Cards to Remove
 
-```python
-# Argument passed by user (may be None or "--all")
-arg = "ARGUMENT_HERE"
-remove_all = arg and arg.strip().lower() == "--all"
-
-PRE_STAGING_STAGES = {"ideas", "writing", "copyedit", "header_image", "creating"}
-
-if remove_all:
-    to_remove = cards
-    to_keep = []
-else:
-    to_remove = [c for c in cards if c.get("stage") in PRE_STAGING_STAGES]
-    to_keep = [c for c in cards if c.get("stage") not in PRE_STAGING_STAGES]
-```
+Use the filter-cards pattern from `references/state-file-ops.md`, passing the user's argument (`None` or `"--all"`).
 
 ### Step 3: Confirm Before Removing
 
@@ -105,16 +70,7 @@ Cancelled — no cards removed.
 
 ### Step 4: Write Updated State
 
-```python
-data["cards"] = to_keep
-
-with open(state_path, "w") as f:
-    fcntl.flock(f, fcntl.LOCK_EX)
-    try:
-        json.dump(data, f, indent=2)
-    finally:
-        fcntl.flock(f, fcntl.LOCK_UN)
-```
+Set `data["cards"] = to_keep`, then use the exclusive-lock write pattern from `references/state-file-ops.md`.
 
 ### Step 5: Confirm Result
 

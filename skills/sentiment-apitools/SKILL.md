@@ -1,6 +1,8 @@
 ---
 name: sentiment-apitools
-description: Reactive sentiment analysis of Reddit developer discussions about API tools. Captures grassroots developer sentiment — highly skewed towards PLG (product-led growth) offerings that generate organic community discussion. Tools with enterprise/sales-led motions (e.g., Apigee) will be underrepresented. Searches Reddit for Postman, Apigee, Bruno, HTTPie, Insomnia, RapidAPI (includes Paw), Yaak, and Hopscotch. Also analyzes how AI coding agents and MCP are disrupting API testing workflows. Categorizes sentiment by key capabilities and provides rankings from 0-100. Use for directional competitive intelligence on PLG-oriented API tools.
+description: "Reddit sentiment analysis of API developer tools (Postman, Bruno, HTTPie, Insomnia, RapidAPI, Yaak, Hopscotch, Apigee) — scores 0-100 with PLG-skew notes. Use for directional competitive intelligence on PLG-oriented API tools."
+argument-hint: "[tool name] (optional — omit to analyze all tools)"
+allowed-tools: ["WebSearch", "WebFetch", "Bash", "Write"]
 ---
 
 # API Tool Sentiment Analyzer
@@ -301,146 +303,9 @@ For each tool and category, calculate a **Relative Strength Score (0-100)**:
 
 ### Step 6: Output Format
 
-**REQUIRED**: Save the report to a file named `sentiment-output/sentiment-analysis-YYMMDD.md` where YYMMDD is the current date (e.g., `sentiment-output/sentiment-analysis-260127.md` for January 27, 2026). Create the `sentiment-output/` directory if it doesn't exist.
+Read `references/output-template.md` for the required report structure and save to `sentiment-output/sentiment-analysis-YYMMDD.md`. Create the directory if it doesn't exist.
 
-Present results in this structure:
-
-```markdown
-# API Tools Sentiment Analysis — Reactive Developer Sentiment
-
-> **What this is:** Reactive analysis of unprompted developer discussions on Reddit. Scores reflect grassroots PLG sentiment — what individual developers say when choosing and evaluating tools on their own. Tools with enterprise/sales-led motions (Apigee, RapidAPI Enterprise) are structurally underrepresented. Use as directional intelligence for the PLG developer audience, not as a comprehensive competitive analysis.
-
-**Analysis Period:** [X] days (from [date] to [date])
-**Total Comments Analyzed:** [number]
-**Subreddits Searched:** [list]
-
----
-
-## Executive Summary
-
-### Key Takeaways
-- [3-5 bullet points highlighting the most important findings]
-- [Focus on actionable insights for product and strategy teams]
-- [Include any surprising or counter-intuitive discoveries]
-
-### Market Sentiment Snapshot
-[1-2 sentences describing the overall competitive landscape and where Postman stands]
-
-### Top Trends
-1. **[Trend Name]**: [Brief description of emerging pattern in developer sentiment]
-2. **[Trend Name]**: [Brief description of emerging pattern in developer sentiment]
-3. **[Trend Name]**: [Brief description of emerging pattern in developer sentiment]
-
-### Recommended Actions
-- **Immediate**: [Quick wins or urgent items based on sentiment]
-- **Short-term**: [Actions for the next quarter]
-- **Strategic**: [Longer-term considerations]
-
----
-
-## Overall Rankings
-
-*Scores reflect reactive Reddit sentiment, not market share. Discussion volume indicates PLG community engagement — low volume does not mean low adoption.*
-
-| Rank | Tool | Overall Score | Discussion Volume | Trend |
-|------|------|---------------|-------------------|-------|
-| 1 | [Tool] | [XX]/100 | [High/Med/Low] | ↑/↓/→ |
-| 2 | [Tool] | [XX]/100 | [High/Med/Low] | ↑/↓/→ |
-| ... | ... | ... | ... | ... |
-
----
-
-## Detailed Breakdown by Tool
-
-### [Tool Name]
-**Overall Score: [XX]/100**
-
-| Category | Score | Summary |
-|----------|-------|---------|
-| API Development & Testing | [XX]/100 | [1-2 sentence summary] |
-| Pricing Model | [XX]/100 | [1-2 sentence summary] |
-| Offline/Local Storage | [XX]/100 | [1-2 sentence summary] |
-| Team Collaboration | [XX]/100 | [1-2 sentence summary] |
-| API Management | [XX]/100 | [1-2 sentence summary] |
-| Uptime Monitoring | [XX]/100 | [1-2 sentence summary] |
-| Security / Enterprise | [XX]/100 | [1-2 sentence summary] |
-
-**Key Positive Themes:**
-- [Bullet point summaries of positive sentiment]
-
-**Key Concerns:**
-- [Bullet point summaries of negative sentiment]
-
-**Notable Quotes:**
-> "[Direct quote from Reddit]" - r/[subreddit]
-
----
-
-[Repeat for each tool]
-
----
-
-## Category Leaderboards
-
-| Tool | API Dev | Pricing | Offline | Collab | API Mgmt | Monitoring | Security |
-|------|---------|---------|---------|--------|----------|------------|----------|
-| [Tool 1] | [XX] | [XX] | [XX] | [XX] | [XX] | [XX] | [XX] |
-| [Tool 2] | [XX] | [XX] | [XX] | [XX] | [XX] | [XX] | [XX] |
-| ... | ... | ... | ... | ... | ... | ... | ... |
-
-*Scores out of 100. API Dev = API Development & Testing, Collab = Team Collaboration, API Mgmt = API Management*
-
----
-
-## Competitive Insights
-
-### Postman Position
-[2-3 paragraphs analyzing Postman's competitive position based on the sentiment data]
-
-### Emerging Threats
-[Analysis of tools gaining positive sentiment momentum]
-
-### Opportunities
-[Areas where competitors are weak that Postman could capitalize on]
-
----
-
-## AI Agents & MCP: The Emerging Disruption Layer
-
-[Analyze how AI coding agents and MCP are reshaping API testing workflows. This section should NOT score AI agents as direct competitors but instead analyze them as a workflow-level disruption. Cover:]
-
-### What's Happening
-[How developers are using AI agents (Claude Code, Cursor, Copilot) for API testing tasks. Volume and nature of discussion.]
-
-### Claude Code's Role in API Workflows
-[Specific API testing capabilities: natural language test execution, MCP server consumption, integration with Postman via MCP]
-
-### Postman's Strategic Response
-[How Postman is adapting: MCP server, AI Agent Builder, MCP Generator. Assess whether the response is adequate.]
-
-### The "Postman for MCP" Category
-[Emerging tools built specifically for testing MCP servers (e.g., Hoot). New category formation.]
-
-### Developer Sentiment
-[How developers view the relationship between AI agents and API clients: complementary vs competitive. What the discussion patterns reveal.]
-
-### Implications for Postman
-[Risk/opportunity matrix: ad-hoc testing, test automation, API discovery, developer onboarding, collection management]
-
-### Key Takeaway
-[1 paragraph synthesis: workflow disruption vs tool replacement, and what it means for Postman's strategy]
-
----
-
-## Methodology Notes
-- **What this measures:** Reactive, unprompted developer sentiment on Reddit — a proxy for PLG community engagement
-- **Structural bias:** Reddit skews towards individual developers evaluating PLG tools. Enterprise-sold tools (Apigee, RapidAPI Enterprise) have lower discussion volume regardless of actual adoption. Market leaders (Postman) attract disproportionate criticism due to visibility
-- **What this does NOT measure:** Market share, revenue, enterprise adoption, or overall competitive position
-- Search method used: [Web Search / Reddit API]
-- Search queries used: [list]
-- Comments excluded: [spam, off-topic, etc.]
-- Additional limitations: [any data gaps or caveats]
-```
+The full report structure (Executive Summary, Rankings, Detailed Tool Breakdown, Category Leaderboards, Competitive Insights, AI Agents & MCP Disruption Analysis, and Methodology Notes) is in `references/output-template.md`.
 
 ## Tools to Analyze
 

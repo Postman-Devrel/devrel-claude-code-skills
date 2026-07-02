@@ -1,6 +1,8 @@
 ---
 name: cfp-hunter
-description: Search for open Call-for-Papers (CFPs) for API and AI developer conferences
+description: "Search for open Call-for-Papers (CFPs) for API and AI developer conferences. Runs 8 parallel WebSearch queries and writes results to cfp-output/current-cfps.md; never fetches individual conference pages."
+argument-hint: "[focus] (optional, e.g. 'AI', 'API', 'DevOps')"
+allowed-tools: ["WebSearch", "Write"]
 ---
 
 Search the internet for currently open Call-for-Papers (CFPs) for developer conferences and events. I work as a Developer Advocate at Postman.com and am looking for speaking opportunities.
@@ -14,73 +16,7 @@ Search the internet for currently open Call-for-Papers (CFPs) for developer conf
 
 ## Target Developer Personas
 
-Find CFPs that target these audiences:
-
-### API Developers
-- Backend developers building and testing APIs
-- Frontend developers integrating with APIs
-- QA engineers testing API functionality and performance
-- DevOps engineers managing API infrastructure and automation
-
-### AI Developers
-- AI application builders — Developers integrating LLMs into products via APIs (OpenAI, Anthropic, etc.) and needing to test prompts, manage context, and debug responses
-- MCP server developers — Building tools/resources that AI agents can access; need to test server implementations and simulate client interactions
-- Agentic workflow builders — Creating multi-step AI agents that orchestrate tools, APIs, and data sources
-- Prompt engineers / AI product teams — Iterating on prompts and evaluating outputs systematically
-
-### Technical Leadership (Manager+)
-
-**Platform Engineering**
-- Director, Platform Engineering
-- Director, Developer Platform
-- Product Delivery Vice President, Enterprise Technology
-- Director of Digital Transformation and Data Platforms
-- Manager, Platform Delivery
-
-**DevOps**
-- Director, Cloud and DevOps
-- Director, DevOps
-
-**Developer Experience**
-- Vice President, Experience (NOT User Experience or UX)
-- Director, DevEx
-- Developer Experience Director
-- Head of Partner Connectivity and Developer Experience
-
-**Architect**
-- Enterprise Architect
-- Vice President, Enterprise Architecture
-- Solutions Architect / Cloud Solutions Architect Leader
-- AI Architect / AI Architecture Lead
-- System Architect / Lead System Architect
-- Digital Solution Architect
-- Global Director, Digital Solutions Payments Solutions
-
-**Cloud**
-- Director, Cloud and DevOps
-- Manager, Cloud Technologies
-- Cloud Infrastructure Lead
-- Cloud Application Infrastructure Lead
-
-**Infrastructure**
-- Cloud Application Infrastructure Lead
-- Cloud Infrastructure Manager
-- Director, Infrastructure
-- Head of Infrastructure Architecture
-
-**Data Strategy & Governance** (note: not "data engineering")
-- Senior Director, Data Strategy
-- Director, Data Strategy and Collection
-- Data Strategy and Governance-Global Payments Solutions
-
-**API Delivery**
-- Head of Delivery and Data Governance
-- Manager, Platform Delivery
-
-**API Ecosystem**
-- Director, Product Ecosystem
-- Vice President, Platform and Ecosystem
-- Global Head Platform Ecosystem Transformation
+Read `references/personas.md` for the full target persona taxonomy (API developers, AI developers, technical leadership).
 
 ## Search Strategy
 
@@ -100,14 +36,9 @@ Run ALL 8 searches IN PARALLEL in a single tool-use block:
 7. `site:github.com developers-conferences-agenda 2026 CFP`
 8. `Linux Foundation events 2026 call for proposals CFP open`
 
-## Reference Sites (for manual checking)
+## Reference Sites
 
-These curated CFP sources are useful for manual follow-up:
-- https://confs.tech/cfp
-- https://github.com/scraly/developers-conferences-agenda
-- https://sessionize.com/linux-foundation-events
-- https://www.papercall.io/events?keywords=API
-- https://www.womenonstage.net/conferences
+Read `references/cfp-sites.md` for curated CFP tracking sites to check manually.
 
 **CRITICAL: Do NOT make any WebFetch calls.** The search results contain sufficient information. Write results immediately after searches complete.
 

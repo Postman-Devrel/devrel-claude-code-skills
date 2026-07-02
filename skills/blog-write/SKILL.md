@@ -2,6 +2,7 @@
 name: blog-write
 description: Write technical blog posts about Postman.com and APIs with an expert developer advocate voice. Use when asked to write blog posts, tutorials, guides, or walkthroughs about API development, Postman features, or API testing. Produces content that balances deep technical expertise with approachable teaching—authoritative yet friendly. ALWAYS includes proper syntax highlighting, links to official documentation, GitHub repositories, and hands-on examples developers can run.
 argument-hint: "[topic, file path to draft/prompt, or URL] (e.g. 'OAuth 2.0 in Postman' or 'prompts/my-draft.md')"
+allowed-tools: ["WebSearch", "WebFetch", "Read", "Write"]
 ---
 
 # Developer Advocate Blogger - Postman.com Expert
@@ -657,121 +658,11 @@ full workflows (create > read > update > delete) in sequence.
 
 ## Common Blog Post Types
 
-### Tutorial Posts
-Walk through a complete workflow:
-- Problem/challenge intro
-- Prerequisites clearly listed (with links to download pages)
-- Step-by-step with Postman UI and/or API calls
-- Test scripts included with syntax highlighting
-- Working example at the end
-- GitHub repo with complete runnable code
-- Importable Postman collection
-- Tips section with gotchas
-- Resources section with all relevant links
-
-**Must Include:**
-- Link to Postman Learning Center for features used
-- GitHub repo with working example
-- Specific "Try it yourself" section with clone/import instructions
-
-### Pattern Posts
-Share a reusable approach:
-- When to use this pattern
-- The pattern explained with code (fully highlighted)
-- Variations for different scenarios
-- Real-world example with actual API
-- Tradeoffs discussion
-- GitHub gist or repo demonstrating the pattern
-- Link to Postman docs for related features
-
-**Must Include:**
-- Copy-paste ready code examples
-- Link to working example (GitHub or public Postman workspace)
-- Suggestions for customization/experimentation
-
-### Feature Deep-Dives
-Explore a Postman feature:
-- What the feature solves (real problem)
-- How it works (with live examples)
-- Best practices from experience
-- Common mistakes to avoid
-- Integration with other features
-- Sample collection demonstrating the feature
-- Link to official Postman documentation
-
-**Must Include:**
-- Direct link to Postman Learning Center page for the feature
-- Importable collection showing feature in action
-- Progressive examples (basic > advanced)
-
-### Integration Posts
-Connect Postman with other tools:
-- The use case (why integrate)
-- Setup steps for both tools (with links)
-- Working example with all config files
-- Automation possibilities
-- CI/CD considerations if relevant
-- GitHub repo with complete integration example
-- Links to both tools' documentation
-
-**Must Include:**
-- Links to both tool's official docs
-- GitHub repo with working CI/CD pipeline or integration
-- Environment variables/config templates
-- Step-by-step to get it running
+Read `resources/post-types.md` for the required elements of Tutorial, Pattern, Feature Deep-Dive, and Integration posts.
 
 ## Final Checklist
 
-Before finishing a post, verify:
-
-**Content & Structure:**
-- [ ] Title is developer-oriented and leads with the specific technical topic (not a marketing pitch)
-- [ ] Intro starts with API challenge, transitions to what you'll show
-- [ ] Postman features referenced by correct names
-- [ ] Instructions lead with action, not setup
-- [ ] Personal experience and lessons learned included
-- [ ] Conclusion summarizes capabilities, ends with personal insight
-
-**Code Quality:**
-- [ ] ALL code blocks have language identifiers (```javascript, ```json, ```bash)
-- [ ] No plain ``` code blocks without language
-- [ ] Code examples are complete and runnable
-- [ ] Examples use realistic data, not foo/bar placeholders
-- [ ] Proper indentation and formatting in all code
-
-**Hands-On Elements:**
-- [ ] Working example provided (GitHub repo or importable collection)
-- [ ] Progressive complexity (simple example first, then advanced)
-- [ ] Specific experimentation suggestions included
-- [ ] CTA is actionable ("Import and modify...", "Run against your API...")
-- [ ] Clear instructions to run examples locally
-
-**Links & Resources:**
-- [ ] Linked to relevant Postman Learning Center documentation
-- [ ] Linked to specific feature docs for features mentioned
-- [ ] Included GitHub repo links for examples/patterns
-- [ ] Linked to external tools/libraries mentioned
-- [ ] "Resources" section at end with all relevant links
-- [ ] Descriptive anchor text (not "click here")
-
-**Style Guide Compliance:**
-- [ ] All Postman branded terms match `brandedterms.md` (capitalization, usage)
-- [ ] No prohibited words from `wordlist.md` (e.g., "execute", "utilize", "navigate", "log in")
-- [ ] Inclusive language per `inclusivewords.md` (no "whitelist", "master/slave", "disabled")
-- [ ] Grammar rules per `languageandgrammar.md` (sentence case headings, simple present tense, contractions)
-- [ ] Formatting rules per `formatting.md` (bold for UX elements, code font for paths)
-
-**Best Practices:**
-- [ ] Environment variables used (not hardcoded credentials)
-- [ ] Test scripts included where relevant
-- [ ] HTTP methods and status codes are accurate
-- [ ] Security considerations mentioned if handling auth/credentials
-- [ ] No "leverage", "seamless", "supercharge", "unlock", or "simply"
-
-**Developer Advocate Voice:**
-- [ ] CTA is casual but specific ("Give it a try", "Let me know how it goes")
-- [ ] Hybrid perspective used (I/you/we appropriately)
-- [ ] Conversational but authoritative tone throughout
+Before finishing, read `resources/final-checklist.md` and verify every item.
 
 ## Post-Write: Auto Copy Edit
 

@@ -2,6 +2,7 @@
 name: blog-create-from-gdoc
 description: "Convert a Google Doc to a blog-ready markdown file with images. Takes a Google Docs URL, exports the content as markdown, downloads embedded images, and saves everything to blog-output/."
 argument-hint: "[Google Docs URL] (e.g. 'https://docs.google.com/document/d/1abc.../edit')"
+allowed-tools: ["Bash", "Read", "Write"]
 ---
 
 # Blog from Google Doc

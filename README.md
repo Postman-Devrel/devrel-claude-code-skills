@@ -126,6 +126,45 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `sentiment-apitools` | Analyze Reddit sentiment about API developer tools |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
+| `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+
+## Meetup Calendar
+
+The `meetup-calendar` skill reads, syncs, and updates the internal Postman meetup and user group calendar spreadsheet.
+
+| Command | What it does |
+|---------|-------------|
+| `/meetup-calendar` | Summarize all events grouped by upcoming/past and region |
+| `/meetup-calendar upcoming` | Upcoming events only |
+| `/meetup-calendar past` | Past events only |
+| `/meetup-calendar 2026` | Events from a specific year |
+| `/meetup-calendar London` | Events from a specific city or region |
+| `/meetup-calendar --sync` | Match Luma events to spreadsheet rows and write Luma URLs. Prompts before creating any missing events — pick one, many, or all. |
+| `/meetup-calendar --sync https://luma.com/calendar/manage/cal-.../events` | Same, using a specific Luma calendar |
+| `/meetup-calendar --sync --dry-run` | Preview matches without writing anything |
+| `/meetup-calendar --update-stats` | Fetch Luma registration, waitlist, and attendance counts and write them back to the sheet. Prompts before fetching. |
+
+### `--sync` event creation
+
+When `--sync` finds spreadsheet rows with no matching Luma event, it lists them and asks which to create. You can pick one, many, or all. For each created event:
+
+- Clones the template event for description, timezone, and structure
+- Generates the slug as `YY-MM-agents-and-apis-{city}` (e.g. `26-09-agents-and-apis-berlin`)
+- Sets visibility to **private**
+- **Cover image**: reuses the cover from a past Luma event in the same city if one exists; otherwise generates a new Postman-branded image via Gemini and uploads it directly to the Luma event
+- Writes the new Luma URL back to the spreadsheet
+
+### Required env vars
+
+| Variable | Used by | Set in |
+|----------|---------|--------|
+| `MEETUP_SHEET_ID` | all | `~/.claude/settings.json` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | all | `~/.claude/settings.local.json` |
+| `LUMA_API_KEY` | `--sync`, `--update-stats` | `~/.claude/settings.json` |
+| `LUMA_CALENDAR_ID` | `--sync` | `~/.claude/settings.json` |
+| `GEMINI_API_KEY` | `--sync` (image generation) | `~/.claude/settings.json` |
+
+---
 
 ## Blog Pipeline
 
@@ -295,6 +334,21 @@ influencer-output/             # Influencer candidate output
 
 # Find influencers for a product launch
 /influencer-autoagent Autonomous Agent
+
+# Summarize events
+/meetup-calendar                          # all events, grouped by upcoming/past and region
+/meetup-calendar upcoming                 # upcoming events only
+/meetup-calendar past                     # past events only
+/meetup-calendar 2026                     # events from a specific year
+/meetup-calendar London                   # events from a specific city or region
+
+# Match Luma events to spreadsheet rows and write Luma URLs
+/meetup-calendar --sync                   # match and write; prompts before creating missing events
+/meetup-calendar --sync https://luma.com/calendar/manage/cal-TGqTNpY4iyl7XYe/events  # use a specific calendar
+/meetup-calendar --sync --dry-run         # preview matches without writing anything
+
+# Fetch Luma registration, waitlist, and attendance and write to sheet
+/meetup-calendar --update-stats
 ```
 
 ## Prerequisites
@@ -362,6 +416,62 @@ Add the token to your settings:
 For local use, add it to `.claude/settings.local.json` (git-ignored). For Vercel deployment, set it as an environment variable in the Vercel project dashboard (Settings > Environment Variables).
 
 No redirect URL is needed — the bot token is issued directly on workspace install.
+
+### Google Sheets Setup (for `meetup-calendar`)
+
+The `meetup-calendar` skill reads a private internal Google Sheet using the Sheets API v4, authenticated via a Google Cloud service account. This is a one-time setup per machine.
+
+#### Step 1 — Create a Google Cloud project and enable the Sheets API
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com) and select or create a project
+2. Navigate to **APIs & Services → Enable APIs & Services**
+3. Search for **Google Sheets API** and click **Enable**
+
+#### Step 2 — Create a service account
+
+1. Go to **IAM & Admin → Service Accounts**
+2. Click **Create Service Account**
+3. Give it a name (e.g. `devrel-skills`) and click **Done** — no IAM roles are needed
+4. Click on the service account you just created
+5. Go to the **Keys** tab → **Add Key → Create new key → JSON**
+6. A `.json` file downloads to your machine — save it somewhere safe (e.g. `~/.config/gcloud/devrel-sheets-sa.json`)
+
+> **Important:** Never commit this file to git. It is a private key. The repo's `.gitignore` already excludes `skills/meetup-calendar/*.json` if you store it there.
+
+#### Step 3 — Share the spreadsheet with the service account
+
+1. Open the [Postman meetup calendar spreadsheet](https://docs.google.com/spreadsheets/d/1vu5Nr_xP0-fBj9zJITb5xhC5iTKpPMkI3H9uMFaHNEI)
+2. Click **Share** (top right)
+3. Paste the service account email — it looks like `devrel-skills@your-project-id.iam.gserviceaccount.com` and can be found in the Google Cloud Console under Service Accounts
+4. Set the role to **Editor** (required for future write-back features)
+5. Click **Send**
+
+#### Step 4 — Add credentials to Claude settings
+
+Add to `~/.claude/settings.json` (global, so the skill works from any directory):
+
+```json
+{
+  "env": {
+    "MEETUP_SHEET_ID": "1vu5Nr_xP0-fBj9zJITb5xhC5iTKpPMkI3H9uMFaHNEI",
+    "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your-service-account-key.json"
+  }
+}
+```
+
+Replace the path with wherever you saved the JSON key file in Step 2.
+
+#### Verifying the setup
+
+Run the skill with no arguments — it will validate both env vars and attempt to fetch the sheet before producing output:
+
+```bash
+/devrel-skills:meetup-calendar
+```
+
+If you see a 403 error from the Sheets API, the service account hasn't been granted access to the sheet — repeat Step 3. If the credentials file isn't found, check the path in `GOOGLE_APPLICATION_CREDENTIALS`.
+
+---
 
 ### Google Docs Setup (for `blog-create-from-gdoc`)
 

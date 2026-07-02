@@ -12,3 +12,4 @@ dashboard/.venv/
 dashboard/*.log
 dashboard/ideas.json
 .DS_Store
+skills/meetup-calendar/*.json

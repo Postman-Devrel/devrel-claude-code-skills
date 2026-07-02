@@ -1,7 +1,8 @@
 ---
 name: blog-wordpress-scheduler
-description: "Manage the blog.postman.com editorial calendar. List scheduled and recently published posts, reschedule drafts/future posts, view monthly post counts, and get a YTD summary with draft counts. Enforces Tue/Thu-first scheduling (Mon/Wed only after all Tue/Thu slots in the next 2 weeks are booked), no same-day conflicts, no US public holidays."
+description: "Manage the blog.postman.com editorial calendar — list, reschedule, view monthly counts, or get a YTD summary. Enforces Tue/Thu-first scheduling with no conflicts or US public holidays."
 argument-hint: "[list | reschedule | monthly | summary] (e.g. 'list', 'reschedule 12345 2026-04-21', 'reschedule 12345 next', 'monthly', 'summary')"
+allowed-tools: ["Bash", "Read", "Write"]
 ---
 
 # WordPress Blog Scheduler — blog.postman.com
@@ -37,28 +38,7 @@ If either is missing, tell the user:
 
 ## Shared Setup — Authentication & PST Timezone
 
-All Python scripts in this skill should start with this common setup:
-
-```python
-import os, json, base64, urllib.request, urllib.parse
-from datetime import datetime, timedelta, timezone
-
-WP_BASE = "https://blog.postman.com/wp-json/wp/v2"
-username = os.environ["WP_USERNAME"]
-app_password = os.environ["WP_APP_PASSWORD"]
-auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-headers = {
-    "Authorization": f"Basic {auth}",
-    "User-Agent": "PostmanDevRelDashboard/1.0",
-}
-
-# All schedule times use PST (UTC-8)
-PST = timezone(timedelta(hours=-8))
-
-def wp_get(path):
-    req = urllib.request.Request(f"{WP_BASE}/{path}", headers=headers)
-    return json.loads(urllib.request.urlopen(req, timeout=30).read())
-```
+Read `references/wp-shared-setup.py` at the start of every script. It provides `WP_BASE`, `headers`, `PST`, `wp_get()`, and `us_public_holidays()`.
 
 ## US Public Holidays
 
@@ -78,49 +58,7 @@ The following US public holidays must be blocked from scheduling. Before schedul
 | Thanksgiving | Fourth Thursday in November |
 | Christmas Day | December 25 |
 
-Use this Python function to compute holiday dates for a given year:
-
-```python
-def us_public_holidays(year):
-    """Return a set of date strings (YYYY-MM-DD) for US public holidays in the given year."""
-    from datetime import date
-    holidays = set()
-
-    # Fixed-date holidays
-    for month, day in [(1,1), (6,19), (7,4), (11,11), (12,25)]:
-        holidays.add(date(year, month, day).isoformat())
-
-    # Nth weekday helpers
-    def nth_weekday(y, m, weekday, n):
-        """Find the nth occurrence of weekday (0=Mon) in month m of year y."""
-        first = date(y, m, 1)
-        offset = (weekday - first.weekday()) % 7
-        return date(y, m, 1 + offset + 7 * (n - 1))
-
-    def last_weekday(y, m, weekday):
-        """Find the last occurrence of weekday (0=Mon) in month m of year y."""
-        if m == 12:
-            last_day = date(y + 1, 1, 1) - timedelta(days=1)
-        else:
-            last_day = date(y, m + 1, 1) - timedelta(days=1)
-        offset = (last_day.weekday() - weekday) % 7
-        return last_day - timedelta(days=offset)
-
-    # MLK Day — 3rd Monday in January
-    holidays.add(nth_weekday(year, 1, 0, 3).isoformat())
-    # Presidents' Day — 3rd Monday in February
-    holidays.add(nth_weekday(year, 2, 0, 3).isoformat())
-    # Memorial Day — last Monday in May
-    holidays.add(last_weekday(year, 5, 0).isoformat())
-    # Labor Day — 1st Monday in September
-    holidays.add(nth_weekday(year, 9, 0, 1).isoformat())
-    # Columbus Day — 2nd Monday in October
-    holidays.add(nth_weekday(year, 10, 0, 2).isoformat())
-    # Thanksgiving — 4th Thursday in November
-    holidays.add(nth_weekday(year, 11, 3, 4).isoformat())
-
-    return holidays
-```
+The `us_public_holidays(year)` function is in `references/wp-shared-setup.py`.
 
 ## Subcommand: `list`
 
@@ -159,60 +97,9 @@ drafts = wp_get(url)
 
 ### Step 3: Write Dashboard Calendar File
 
-After fetching scheduled, published, and draft posts, write the results to `dashboard/wp-calendar.json` so the Kanban dashboard can display them without calling the WordPress API directly. This file is the bridge between the agent and the dashboard UI.
+Read `references/wp-write-calendar.py` and run its logic inline (it expects `today`, `scheduled`, `published`, and `drafts` already in scope from Steps 1–2b). This writes `dashboard/wp-calendar.json` for the Kanban UI.
 
-```python
-import os
-
-calendar_data = {
-    "updated_at": today.isoformat(),
-    "scheduled": [
-        {
-            "id": p["id"],
-            "title": p["title"]["rendered"],
-            "date": p["date"],
-            "status": "future",
-            "link": p.get("link", ""),
-            "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
-        }
-        for p in scheduled
-    ],
-    "published": [
-        {
-            "id": p["id"],
-            "title": p["title"]["rendered"],
-            "date": p["date"],
-            "status": "publish",
-            "link": p.get("link", ""),
-            "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
-        }
-        for p in published
-    ],
-    "drafts": [
-        {
-            "id": p["id"],
-            "title": p["title"]["rendered"],
-            "modified": p["modified"],
-            "status": "draft",
-            "link": p.get("link", ""),
-            "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
-        }
-        for p in drafts
-    ],
-}
-
-calendar_path = os.path.join(os.path.dirname(__file__), "..", "..", "dashboard", "wp-calendar.json")
-# Also check relative to CLAUDE_PLUGIN_ROOT if available
-if os.environ.get("CLAUDE_PLUGIN_ROOT"):
-    calendar_path = os.path.join(os.environ["CLAUDE_PLUGIN_ROOT"], "dashboard", "wp-calendar.json")
-
-os.makedirs(os.path.dirname(calendar_path), exist_ok=True)
-with open(calendar_path, "w") as f:
-    json.dump(calendar_data, f, indent=2)
-print(f"Dashboard calendar updated: {len(calendar_data['scheduled'])} scheduled, {len(calendar_data['published'])} published, {len(calendar_data['drafts'])} drafts")
-```
-
-**IMPORTANT:** Always write this file when running the `list` subcommand. The dashboard reads it on page load.
+**IMPORTANT:** Always run this step when executing the `list` subcommand. The dashboard reads it on page load.
 
 ### Step 4: Display Results
 
@@ -275,146 +162,18 @@ If the user presses Enter or says no, proceed without an embargo constraint.
 
 If the user passed `next` instead of a date, resolve it to the next available open slot before validating. **If an embargo date was set in Step 0, skip any candidate dates before the embargo date.**
 
-```python
-from datetime import date
+If `date_arg` is `"next"`, read `references/wp-find-slot.py` and run its logic inline — it expects `today_date`, `POST_ID`, `EMBARGO_DATE`, `wp_get`, and `us_public_holidays` in scope, and resolves `target` to the next available date.
 
-date_arg = "TARGET_DATE_OR_NEXT"
+If `date_arg` is a specific `YYYY-MM-DD`, parse it directly: `target = date.fromisoformat(date_arg)`.
 
-if date_arg.lower() == "next":
-    # Find the next available slot using Tue/Thu-first priority.
-    # Mon/Wed are only eligible if ALL Tue/Thu slots in the next 2 weeks are booked.
+Then validate `target` against these rules (fail fast and suggest next 3 open slots if any rule fails):
 
-    today_date = datetime.now(PST).date()
-    holidays = us_public_holidays(today_date.year)
-
-    # EMBARGO_DATE should be set from Step 0 (None if no embargo)
-    EMBARGO_DATE = None  # Replace with date object if embargo was provided
-
-    # Start searching from tomorrow, or from the embargo date if later
-    earliest = today_date + timedelta(days=1)
-    if EMBARGO_DATE and EMBARGO_DATE > earliest:
-        earliest = EMBARGO_DATE
-
-    two_weeks_out = today_date + timedelta(weeks=2)
-    if two_weeks_out.year != today_date.year:
-        holidays |= us_public_holidays(two_weeks_out.year)
-
-    def slot_available(candidate):
-        cand_str = candidate.isoformat()
-        if cand_str in holidays:
-            return False
-        url = f"posts?status=future&after={cand_str}T00:00:00&before={cand_str}T23:59:59&per_page=10"
-        existing = wp_get(url)
-        return not [p for p in existing if p["id"] != POST_ID]
-
-    target = None
-
-    # Step 1: Look for available Tue/Thu in next 2 weeks
-    candidate = earliest
-    while candidate <= two_weeks_out:
-        if candidate.weekday() in (1, 3):  # Tue or Thu
-            if slot_available(candidate):
-                target = candidate
-                break
-        candidate += timedelta(days=1)
-
-    # Step 2: All Tue/Thu in next 2 weeks are booked — open Mon/Wed within 2 weeks
-    if not target:
-        candidate = earliest
-        while candidate <= two_weeks_out:
-            if candidate.weekday() in (0, 2):  # Mon or Wed
-                if slot_available(candidate):
-                    target = candidate
-                    break
-            candidate += timedelta(days=1)
-
-    # Step 3: Nothing in 2 weeks — search beyond with Tue/Thu priority [Tue, Thu, Wed, Mon]
-    if not target:
-        priority_days = [1, 3, 2, 0]
-        check_from = two_weeks_out + timedelta(days=1)
-        week_start = check_from - timedelta(days=check_from.weekday())
-        while not target:
-            if week_start.year != today_date.year:
-                holidays |= us_public_holidays(week_start.year)
-            for weekday in priority_days:
-                candidate = week_start + timedelta(days=weekday)
-                if candidate < check_from:
-                    continue
-                if slot_available(candidate):
-                    target = candidate
-                    break
-            if not target:
-                week_start += timedelta(weeks=1)
-
-    target_str = target.isoformat()
-    if EMBARGO_DATE:
-        print(f"Next available date (after embargo {EMBARGO_DATE}): {target.strftime('%A, %B %d, %Y')}")
-    else:
-        print(f"Next available date: {target.strftime('%A, %B %d, %Y')}")
-else:
-    target = date.fromisoformat(date_arg)
-target_str = target.isoformat()
-holidays = us_public_holidays(target.year)
-
-errors = []
-
-# Rule 0: Must not be before embargo date
-if EMBARGO_DATE and target < EMBARGO_DATE:
-    errors.append(f"{target_str} is before the embargo date ({EMBARGO_DATE.isoformat()}). Must schedule on or after the embargo.")
-
-# Rule 1: Must be Mon-Thu (weekday 0-3)
-if target.weekday() > 3:
-    day_name = target.strftime("%A")
-    errors.append(f"{target_str} is a {day_name}. Posts can only be scheduled Monday through Thursday.")
-
-# Rule 1b: Mon/Wed only allowed if all Tue/Thu in next 2 weeks are booked
-if target.weekday() in (0, 2):  # Mon or Wed
-    today_date = date.today()
-    two_weeks_out = today_date + timedelta(weeks=2)
-    check_holidays = us_public_holidays(today_date.year)
-    if two_weeks_out.year != today_date.year:
-        check_holidays |= us_public_holidays(two_weeks_out.year)
-    open_tue_thu = []
-    c = today_date + timedelta(days=1)
-    while c <= two_weeks_out:
-        if c.weekday() in (1, 3) and c.isoformat() not in check_holidays:
-            url = f"posts?status=future&after={c.isoformat()}T00:00:00&before={c.isoformat()}T23:59:59&per_page=10"
-            existing = wp_get(url)
-            if not [p for p in existing if p["id"] != POST_ID]:
-                open_tue_thu.append(c)
-        c += timedelta(days=1)
-    if open_tue_thu:
-        day_name = target.strftime("%A")
-        open_list = ", ".join(d.strftime("%a %b %d") for d in open_tue_thu[:3])
-        errors.append(
-            f"{target_str} is a {day_name}, but open Tuesday/Thursday slots exist in the next 2 weeks: {open_list}. "
-            f"Fill Tue/Thu first, or use 'next' to auto-assign."
-        )
-
-# Rule 2: Must not be a US public holiday
-if target_str in holidays:
-    errors.append(f"{target_str} is a US public holiday. Choose a different date.")
-
-# Rule 3: Must not conflict with another scheduled post
-url = f"posts?status=future&after={target_str}T00:00:00&before={target_str}T23:59:59&per_page=10"
-existing = wp_get(url)
-# Exclude the post being rescheduled from conflict check
-conflicts = [p for p in existing if p["id"] != POST_ID]
-if conflicts:
-    titles = ", ".join(f'"{p["title"]["rendered"]}"' for p in conflicts)
-    errors.append(f"{target_str} already has a scheduled post: {titles}. Choose a different date.")
-
-# Rule 4: Must not be in the past
-if target <= date.today():
-    errors.append(f"{target_str} is in the past. Choose a future date.")
-
-if errors:
-    print("Cannot reschedule to this date:")
-    for e in errors:
-        print(f"  - {e}")
-    # Suggest next 3 open slots
-    # ... (use the same open-slot logic from the list subcommand)
-```
+- **Rule 0:** Must not be before `EMBARGO_DATE` (if set)
+- **Rule 1:** Must be Mon–Thu (`weekday() <= 3`)
+- **Rule 1b:** Mon/Wed only allowed if all Tue/Thu in the next 2 weeks are booked
+- **Rule 2:** Must not be a US public holiday (`us_public_holidays(target.year)`)
+- **Rule 3:** No existing scheduled post on the same day (exclude the post being rescheduled)
+- **Rule 4:** Must not be in the past
 
 If validation fails, show the errors and suggest the next 3 available open slots.
 

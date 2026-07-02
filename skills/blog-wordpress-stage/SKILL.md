@@ -2,6 +2,7 @@
 name: blog-wordpress-stage
 description: "Stage a blog post to WordPress (blog.postman.com). Takes a markdown file, header image, or a Google Docs URL. When given a Google Doc, converts it to markdown first. Creates or updates a draft post, uploads the featured image, sets SEO metadata."
 argument-hint: "[markdown file path | Google Docs URL] [header image path] (e.g. 'blog-output/my-post.md' or 'https://docs.google.com/document/d/1abc.../edit')"
+allowed-tools: ["Bash", "Read", "Write", "Edit"]
 ---
 
 # WordPress Blog Post Stager — blog.postman.com
@@ -28,120 +29,15 @@ If no arguments are provided, ask the user whether they have a local markdown fi
 
 Skip this step if the input is already a local markdown file.
 
-### Step 0a: Extract the Document ID
+### Steps 0a–0d: Extract, fetch, download images, convert to markdown
 
-```python
-import re
+Read `references/gdoc-to-markdown.py`, write it to `/tmp/gdoc-to-markdown.py`, replace `GOOGLE_DOCS_URL_HERE` with the actual URL, then run it:
 
-url = "GOOGLE_DOCS_URL_HERE"
-
-match = re.search(r'/document/d/([a-zA-Z0-9_-]+)', url)
-if not match:
-    raise ValueError(f"Could not extract document ID from URL: {url}")
-doc_id = match.group(1)
-print(f"Document ID: {doc_id}")
+```bash
+python3 /tmp/gdoc-to-markdown.py
 ```
 
-### Step 0b: Fetch and Parse the Document
-
-```python
-import urllib.request, re, urllib.parse
-
-# Fetch as HTML to get the title and content
-html_url = f"https://docs.google.com/document/d/{doc_id}/export?format=html"
-req = urllib.request.Request(html_url, headers={"User-Agent": "PostmanDevRelSkill/1.0"})
-html_content = urllib.request.urlopen(req, timeout=30).read().decode("utf-8")
-
-# Extract title
-title_match = re.search(r'<title>(.*?)</title>', html_content)
-doc_title = title_match.group(1).strip() if title_match else "untitled"
-
-# Slugify
-slug = re.sub(r'[^\w\s-]', '', doc_title.lower().strip())
-slug = re.sub(r'[\s_]+', '-', slug)
-slug = re.sub(r'-+', '-', slug).strip('-')
-print(f"Title: {doc_title}  Slug: {slug}")
-```
-
-### Step 0c: Download Images
-
-```python
-import os
-
-image_dir = f"blog-output/images/{slug}"
-os.makedirs(image_dir, exist_ok=True)
-
-img_pattern = re.compile(r'<img[^>]+src="([^"]+)"', re.IGNORECASE)
-img_urls = img_pattern.findall(html_content)
-
-image_map = {}
-for i, img_url in enumerate(img_urls, 1):
-    try:
-        if not img_url.startswith("http"):
-            continue
-        req = urllib.request.Request(img_url, headers={"User-Agent": "PostmanDevRelSkill/1.0"})
-        img_data = urllib.request.urlopen(req, timeout=30).read()
-        ext = "jpg" if any(img_url.endswith(e) for e in [".jpg", ".jpeg"]) else "gif" if img_url.endswith(".gif") else "png"
-        filename = f"image-{i}.{ext}"
-        filepath = os.path.join(image_dir, filename)
-        with open(filepath, "wb") as f:
-            f.write(img_data)
-        image_map[img_url] = f"images/{slug}/{filename}"
-        print(f"Downloaded: {filename}")
-    except Exception as e:
-        print(f"Failed to download image {i}: {e}")
-```
-
-### Step 0d: Convert to Markdown and Save
-
-```python
-import subprocess, sys
-subprocess.check_call([sys.executable, "-m", "pip", "install", "html2text", "-q"])
-import html2text
-
-h = html2text.HTML2Text()
-h.body_width = 0
-h.ignore_links = False
-h.ignore_images = False
-h.unicode_snob = True
-h.skip_internal_links = True
-markdown = h.handle(html_content)
-
-# Replace Google-hosted image URLs with local paths
-for old_url, local_path in image_map.items():
-    markdown = markdown.replace(old_url, local_path)
-
-# Unwrap Google redirect links
-google_redirect = re.compile(r'https://www\.google\.com/url\?q=(.*?)&[^)]*')
-markdown = google_redirect.sub(lambda m: urllib.parse.unquote(m.group(1)), markdown)
-
-# Remove excessive blank lines and Google bookmark anchors
-markdown = re.sub(r'\n{3,}', '\n\n', markdown)
-markdown = re.sub(r'\[([^\]]*)\]\(#[^)]*\)', r'\1', markdown)
-
-# Extract meta_description from first paragraph
-first_para_match = re.search(r'\n\n([^#\n].{20,})', markdown)
-meta_desc = ""
-if first_para_match:
-    meta_desc = first_para_match.group(1).strip()[:155]
-    meta_desc = meta_desc[:meta_desc.rfind(' ')] if len(meta_desc) == 155 else meta_desc
-
-frontmatter = f"""---
-suggested_title: "{doc_title}"
-meta_description: "{meta_desc}"
-seo_score: 0
-primary_keyword: ""
-secondary_keywords: []
-source_gdoc: "https://docs.google.com/document/d/{doc_id}/edit"
----
-
-"""
-
-output_path = f"blog-output/{slug}.md"
-with open(output_path, "w") as f:
-    f.write(frontmatter + markdown)
-print(f"Saved: {output_path}")
-```
+This outputs `blog-output/{slug}.md` with frontmatter and local image references.
 
 After Step 0d completes, tell the user the Google Doc was converted and saved to `blog-output/{slug}.md`, then immediately proceed to Step 0e.
 
@@ -216,35 +112,10 @@ If either is missing, tell the user:
 
 Write and run a Python script to convert the markdown body to HTML suitable for WordPress. **CRITICAL: Save the HTML to a temp file** — do NOT try to embed the HTML inline in the post creation script, as this will break on quotes and special characters.
 
-```python
-import subprocess, sys
+Read `references/wp-md-to-html.py`, write it to `/tmp/wp-md-to-html.py`, replace `INPUT_FILE` with the actual markdown path, then run it:
 
-# Install markdown if needed
-subprocess.check_call([sys.executable, "-m", "pip", "install", "markdown", "-q"])
-
-import markdown
-
-with open("INPUT_FILE", "r") as f:
-    content = f.read()
-
-# Strip frontmatter
-parts = content.split("---", 2)
-if len(parts) >= 3:
-    body = parts[2].strip()
-else:
-    body = content.strip()
-
-# Strip the leading H1 title — it goes into the WordPress title field, not the body
-import re
-body = re.sub(r'^#\s+.+\n*', '', body, count=1).strip()
-
-html = markdown.markdown(body, extensions=["fenced_code", "codehilite", "tables", "toc"])
-
-# Write HTML to temp file for the post creation script to read
-with open("/tmp/wp-post-content.html", "w") as f:
-    f.write(html)
-
-print(f"HTML saved to /tmp/wp-post-content.html ({len(html)} chars)")
+```bash
+python3 /tmp/wp-md-to-html.py
 ```
 
 The HTML is now at `/tmp/wp-post-content.html` for use in Step 5.
@@ -265,144 +136,22 @@ Also check for the featured header image (auto-detected from `blog-output/images
 
 For each local image, upload it to WordPress via the Media REST API and record the mapping from local path to WordPress URL.
 
-Write and run a Python script at `/tmp/wp-upload-images.py`:
+Read `references/wp-upload-images.py`, write it to `/tmp/wp-upload-images.py`, replace `MARKDOWN_FILE` and `HEADER_IMAGE` with actual paths, then run it:
 
-```python
-import os, json, base64, re, urllib.request, mimetypes
-
-WP_BASE = "https://blog.postman.com/wp-json/wp/v2"
-username = os.environ["WP_USERNAME"]
-app_password = os.environ["WP_APP_PASSWORD"]
-auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-headers_base = {
-    "Authorization": f"Basic {auth}",
-    "User-Agent": "PostmanDevRelDashboard/1.0",
-}
-
-BLOG_OUTPUT = "blog-output"  # Adjust if needed
-MARKDOWN_FILE = "INPUT_FILE_HERE"
-
-def upload_image(image_path):
-    """Upload a single image to WordPress and return {id, source_url}."""
-    filename = os.path.basename(image_path)
-    mime_type = mimetypes.guess_type(image_path)[0] or "image/png"
-    with open(image_path, "rb") as f:
-        image_data = f.read()
-    req = urllib.request.Request(
-        f"{WP_BASE}/media",
-        data=image_data,
-        headers={
-            **headers_base,
-            "Content-Type": mime_type,
-            "Content-Disposition": f'attachment; filename="{filename}"',
-        },
-        method="POST",
-    )
-    resp = json.loads(urllib.request.urlopen(req, timeout=60).read())
-    return {"id": resp["id"], "source_url": resp["source_url"]}
-
-# Read the HTML content
-with open("/tmp/wp-post-content.html", "r") as f:
-    html_content = f.read()
-
-# Find all image src references in the HTML
-img_srcs = re.findall(r'<img[^>]+src="([^"]+)"', html_content, re.IGNORECASE)
-
-# Also find markdown image references: ![alt](path)
-with open(MARKDOWN_FILE, "r") as f:
-    md_content = f.read()
-md_imgs = re.findall(r'!\[[^\]]*\]\(([^)]+)\)', md_content)
-all_img_refs = set(img_srcs + md_imgs)
-
-# Upload local images and build a replacement map
-image_map = {}  # local path → WP URL
-featured_media_id = None
-
-for ref in all_img_refs:
-    # Skip external URLs
-    if ref.startswith("http://") or ref.startswith("https://"):
-        continue
-
-    # Resolve the local path relative to blog-output/
-    candidates = [
-        ref,
-        os.path.join(BLOG_OUTPUT, ref),
-        os.path.join(os.path.dirname(MARKDOWN_FILE), ref),
-    ]
-    local_path = None
-    for c in candidates:
-        if os.path.isfile(c):
-            local_path = c
-            break
-
-    if not local_path:
-        print(f"Skipping (not found): {ref}")
-        continue
-
-    try:
-        result = upload_image(local_path)
-        image_map[ref] = result["source_url"]
-        print(f"Uploaded: {ref} → {result['source_url']}")
-    except Exception as e:
-        print(f"Failed to upload {ref}: {e}")
-
-# Upload the featured header image
-HEADER_IMAGE = "HEADER_IMAGE_PATH_OR_NONE"  # Replace with actual path or None
-if HEADER_IMAGE and os.path.isfile(HEADER_IMAGE):
-    try:
-        result = upload_image(HEADER_IMAGE)
-        featured_media_id = result["id"]
-        print(f"Featured image uploaded: {result['source_url']}")
-    except Exception as e:
-        print(f"Failed to upload featured image: {e}")
-
-# Replace local paths with WordPress URLs in the HTML
-for local_ref, wp_url in image_map.items():
-    html_content = html_content.replace(local_ref, wp_url)
-
-# Save the updated HTML
-with open("/tmp/wp-post-content.html", "w") as f:
-    f.write(html_content)
-
-print(f"\nUploaded {len(image_map)} inline image(s)")
-print(f"Featured media ID: {featured_media_id}")
-# Save results for Step 6
-with open("/tmp/wp-image-results.json", "w") as f:
-    json.dump({"image_map": image_map, "featured_media_id": featured_media_id}, f)
+```bash
+python3 /tmp/wp-upload-images.py
 ```
 
-Save the `featured_media_id` for use in Step 6. The HTML file now has WordPress URLs for all images.
+Results are saved to `/tmp/wp-image-results.json`. The HTML at `/tmp/wp-post-content.html` is updated with WordPress URLs.
 
 ### Step 4: Check for an Existing Post
 
 Before creating a new post, search for an existing post with the same title to avoid duplicates. Only treat a post as a match if the title is **exactly** the same (case-insensitive comparison after stripping HTML entities):
 
-```python
-import os, json, base64, urllib.request, urllib.parse, html
+Read `references/wp-check-post.py`, write it to `/tmp/wp-check-post.py`, replace `POST_TITLE_HERE` with the actual title, then run it:
 
-WP_BASE = "https://blog.postman.com/wp-json/wp/v2"
-username = os.environ["WP_USERNAME"]
-app_password = os.environ["WP_APP_PASSWORD"]
-auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-
-post_title = "POST_TITLE_HERE"
-search_query = urllib.parse.quote(post_title)
-url = f"{WP_BASE}/posts?search={search_query}&status=draft,pending,future,publish&per_page=10"
-
-req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
-resp = json.loads(urllib.request.urlopen(req, timeout=30).read())
-
-# Only match if the title is exactly the same (WordPress search returns partial matches)
-exact_match = None
-for post in resp:
-    wp_title = html.unescape(post["title"]["rendered"]).strip()
-    if wp_title.lower() == post_title.strip().lower():
-        exact_match = post
-        print(json.dumps({"id": post["id"], "title": wp_title, "status": post["status"], "link": post["link"]}))
-        break
-
-if not exact_match:
-    print("No exact title match found — will create a new post.")
+```bash
+python3 /tmp/wp-check-post.py
 ```
 
 - If an **exact** title match is found, use its `post_id` to **update** the existing post in Step 5
@@ -417,126 +166,20 @@ Use the `primary_keyword` and `secondary_keywords` from the frontmatter as a sta
 
 For each tag, check if it already exists in WordPress. If it does, use the existing tag ID. If not, create it.
 
-```python
-import os, json, base64, urllib.request, urllib.parse
+Read `references/wp-manage-tags.py`, write it to `/tmp/wp-manage-tags.py`, replace `TAG_NAMES` with 3 tags chosen from the post content, then run it:
 
-WP_BASE = "https://blog.postman.com/wp-json/wp/v2"
-username = os.environ["WP_USERNAME"]
-app_password = os.environ["WP_APP_PASSWORD"]
-auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-headers = {
-    "Authorization": f"Basic {auth}",
-    "Content-Type": "application/json",
-    "User-Agent": "PostmanDevRelDashboard/1.0",
-}
-
-TAG_NAMES = ["Tag One", "Tag Two", "Tag Three"]  # Replace with your 3 chosen tags
-
-tag_ids = []
-for tag_name in TAG_NAMES:
-    # Search for existing tag
-    search_url = f"{WP_BASE}/tags?search={urllib.parse.quote(tag_name)}&per_page=5"
-    req = urllib.request.Request(search_url, headers=headers)
-    existing = json.loads(urllib.request.urlopen(req, timeout=30).read())
-
-    found = None
-    for t in existing:
-        if t["name"].lower() == tag_name.lower():
-            found = t["id"]
-            break
-
-    if found:
-        tag_ids.append(found)
-    else:
-        # Create the tag
-        create_req = urllib.request.Request(
-            f"{WP_BASE}/tags",
-            data=json.dumps({"name": tag_name}).encode(),
-            headers=headers,
-            method="POST",
-        )
-        new_tag = json.loads(urllib.request.urlopen(create_req, timeout=30).read())
-        tag_ids.append(new_tag["id"])
-
-print(f"Tag IDs: {tag_ids}")
+```bash
+python3 /tmp/wp-manage-tags.py
 ```
 
-Save the `tag_ids` list for use in Step 6.
+Save the printed tag IDs for use in Step 6.
 
 ### Step 6: Create or Update the Post
 
-Write and run a Python script at `/tmp/wp-stage-post.py`. **CRITICAL: Read the HTML content from `/tmp/wp-post-content.html`** — never embed the HTML inline as a string literal, as it will break on quotes, backticks, and special characters.
+Read `references/wp-stage-post.py`, write it to `/tmp/wp-stage-post.py`, then fill in `POST_TITLE`, `META_DESCRIPTION_HERE`, `FOCUS_KEYPHRASE_HERE`, `TAG_IDS`, and `POST_ID` (from previous steps), and run it:
 
-```python
-import os, json, base64, urllib.request
-
-WP_BASE = "https://blog.postman.com/wp-json/wp/v2"
-username = os.environ["WP_USERNAME"]
-app_password = os.environ["WP_APP_PASSWORD"]
-auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
-
-# Read HTML from temp file — NEVER embed HTML inline
-with open("/tmp/wp-post-content.html", "r") as f:
-    html_content = f.read()
-
-# Load image upload results from Step 3
-import os
-image_results = {}
-if os.path.exists("/tmp/wp-image-results.json"):
-    with open("/tmp/wp-image-results.json", "r") as f:
-        image_results = json.load(f)
-
-meta_description = "META_DESCRIPTION_HERE"  # From Step 1 (extracted or generated)
-
-post_data = {
-    "title": "POST_TITLE",
-    "content": html_content,
-    "status": "draft",
-    "excerpt": meta_description,
-    "tags": [],  # Replace with tag_ids from Step 5
-    "meta": {
-        "_yoast_wpseo_metadesc": meta_description,
-        "_yoast_wpseo_focuskw": "FOCUS_KEYPHRASE_HERE",
-    },
-}
-
-# Add tags from Step 5
-TAG_IDS = []  # Replace with actual tag IDs
-if TAG_IDS:
-    post_data["tags"] = TAG_IDS
-
-# Add featured image from Step 3
-featured_media_id = image_results.get("featured_media_id")
-if featured_media_id:
-    post_data["featured_media"] = featured_media_id
-
-# POST to create, or PUT to update if post_id exists
-POST_ID = None  # Replace with existing post ID or None
-if POST_ID:
-    url = f"{WP_BASE}/posts/{POST_ID}"
-    method = "PUT"
-else:
-    url = f"{WP_BASE}/posts"
-    method = "POST"
-
-req = urllib.request.Request(
-    url,
-    data=json.dumps(post_data).encode(),
-    headers={
-        "Authorization": f"Basic {auth}",
-        "Content-Type": "application/json",
-    },
-    method=method,
-)
-
-resp = json.loads(urllib.request.urlopen(req, timeout=60).read())
-print(json.dumps({
-    "id": resp["id"],
-    "title": resp["title"]["rendered"],
-    "status": resp["status"],
-    "link": resp["link"],
-    "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={resp['id']}&action=edit"
-}, indent=2))
+```bash
+python3 /tmp/wp-stage-post.py
 ```
 
 ### Step 7: Write WordPress Post ID Back to Markdown

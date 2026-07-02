@@ -2,6 +2,7 @@
 name: influencer-autoagent
 description: "Find and rank developer influencers for an upcoming product launch. Searches across X/Twitter, YouTube, LinkedIn, Substack, Dev.to, and GitHub to identify technically credible voices in AI, APIs, agentic workflows, MCP, and developer tooling. Returns a scored and ranked list of influencer candidates."
 argument-hint: "[product name or focus area] (optional, defaults to 'Autonomous Agent')"
+allowed-tools: ["WebSearch", "WebFetch", "Read", "Write"]
 ---
 
 # Influencer Finder for Product Launches
@@ -155,12 +156,12 @@ Present results sorted by score (highest first):
 | Criterion | Max Points | What We Looked For |
 |-----------|-----------|-------------------|
 | Developer Audience | 15 | Primarily dev/eng followers; engagement rate over raw count |
-| Technical Content Quality | 20 | Tutorials, demos, code walkthroughs; builds with the tech, not just reports on it |
-| AI Launch Coverage | 15 | 2-3+ major AI launches covered in past 6 months with original content |
+| Technical Content Quality | 15 | Tutorials, demos, code walkthroughs; builds with the tech, not just reports on it |
+| AI Launch Coverage | 25 | 2-3+ major AI launches covered in past 6 months with original content |
 | Platform Reach & Cadence | 10 | Active on dev platforms; consistent publishing; multi-platform bonus |
 | Technical Credibility | 15 | Verifiable eng/research background; cited by peers; independent opinions |
 | Amplification Behavior | 10 | Posts within 24-72hrs of launches; creates original content; sparks discussion |
-| Topic Alignment | 15 | Covers APIs, agentic AI, dev tooling, MCP, Claude Code; US/EU audience; constructive tone |
+| Topic Alignment | 10 | Covers APIs, agentic AI, dev tooling, MCP, Claude Code; US/EU audience; constructive tone |
 
 ---
 
@@ -194,12 +195,12 @@ For each candidate, also include a detail block below the table:
 | Criterion | Score | Evidence |
 |-----------|-------|----------|
 | Developer Audience | XX/15 | [specific evidence] |
-| Technical Content Quality | XX/20 | [specific evidence] |
-| AI Launch Coverage | XX/15 | [launches covered with links if available] |
+| Technical Content Quality | XX/15 | [specific evidence] |
+| AI Launch Coverage | XX/25 | [launches covered with links if available] |
 | Platform Reach & Cadence | XX/10 | [specific evidence] |
 | Technical Credibility | XX/15 | [background, repos, citations] |
 | Amplification Behavior | XX/10 | [specific evidence] |
-| Topic Alignment | XX/15 | [relevant topics covered] |
+| Topic Alignment | XX/10 | [relevant topics covered] |
 
 **Why this person:** [2-3 sentences on why they're a strong fit for this specific launch]
 **Recent relevant content:** [1-3 examples with links]

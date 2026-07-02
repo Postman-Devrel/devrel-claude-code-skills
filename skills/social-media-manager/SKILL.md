@@ -2,6 +2,7 @@
 name: social-media-manager
 description: "Weekly social media agent team — researches Postman blog, release notes, and trending news, creates 5 LinkedIn/Twitter posts, packages an employee advocacy kit, and auto-posts to Twitter on Mon/Wed at 10am PST."
 argument-hint: "[twitter-handle] (e.g. @getpostman) — the Twitter/X account to post from"
+allowed-tools: ["Bash", "Write"]
 ---
 
 # Social Media Manager — Agent Team

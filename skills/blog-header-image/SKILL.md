@@ -2,6 +2,7 @@
 name: blog-header-image
 description: "Generate a Postman-branded blog header image (2560×1355 PNG, no text) using the Gemini image generation API (nanobanana). Analyzes reference images and follows the Postman design system for consistent brand visuals."
 argument-hint: "[blog topic or path to blog post] (e.g. 'OAuth 2.0 in Postman' or 'blog-output/my-post.md')"
+allowed-tools: ["Bash", "Read", "Write"]
 ---
 
 # Blog Header Image Generator
@@ -259,7 +260,7 @@ Present the result to the user:
 
 **If the score is below 12/12 (any failed criterion):**
 1. Tell the user which specific design elements are missing or incorrect
-2. Ask: "This image scored X/10. Would you like me to regenerate with a revised prompt to fix: [list missing elements]?"
+2. Ask: "This image scored X/12. Would you like me to regenerate with a revised prompt to fix: [list missing elements]?"
 3. If the user says yes:
    - Delete the failed image: `rm ${CLAUDE_PLUGIN_ROOT}/blog-output/images/header/FILENAME.png`
    - Revise the prompt to emphasize the missing design elements

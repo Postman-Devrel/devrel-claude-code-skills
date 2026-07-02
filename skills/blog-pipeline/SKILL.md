@@ -2,6 +2,7 @@
 name: blog-pipeline
 description: "Full blog creation pipeline — write (from topic, draft, or Google Doc), copyedit, generate header image, and stage to WordPress. Detects input type automatically."
 argument-hint: "[topic, file path, or Google Docs URL] (e.g. 'OAuth 2.0 in Postman', 'prompts/draft.md', or Google Docs URL)"
+allowed-tools: ["Bash", "Write"]
 ---
 
 # Blog Pipeline
