@@ -124,9 +124,10 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 |-------|-------------|
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
-| `sentiment-apitools` | Analyze Reddit sentiment about API developer tools |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+
+> `sentiment-apitools` moved to its own plugin repo: [Postman-Devrel/competitor-sentiment-analysis](https://github.com/Postman-Devrel/competitor-sentiment-analysis).
 
 ## Meetup Calendar
 
@@ -256,7 +257,6 @@ Each skill writes to a dedicated directory:
 | `blog-output/images/{slug}/` | `blog-create-from-gdoc` | Downloaded images from Google Docs |
 | `cfp-output/` | `cfp-hunter` | `current-cfps.md` |
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
-| `sentiment-output/` | `sentiment-apitools` | `sentiment-analysis-YYMMDD.md` |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
 | `blog-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.prod-update-memory.json` |
 
@@ -279,7 +279,6 @@ skills/
   blog-wordpress-scheduler/    # Editorial calendar management
   blog-ideas/                  # Blog idea generation
   cfp-hunter/                  # CFP search
-  sentiment-apitools/          # Sentiment analysis
   newsletter-agentsandapis/    # Newsletter generation
   influencer-autoagent/        # Influencer finder
 hooks/
@@ -295,7 +294,6 @@ dashboard/                     # Kanban web dashboard
 blog-output/                   # Blog post output
 cfp-output/                    # CFP search results
 newsletter-output/             # Newsletter output
-sentiment-output/              # Sentiment analysis output
 influencer-output/             # Influencer candidate output
 ```
 
@@ -328,9 +326,6 @@ influencer-output/             # Influencer candidate output
 
 # Generate this month's newsletter
 /newsletter-agentsandapis March
-
-# Run API tool sentiment analysis
-/sentiment-apitools
 
 # Find influencers for a product launch
 /influencer-autoagent Autonomous Agent
@@ -485,25 +480,6 @@ Header image generation requires a Gemini API key:
 {
   "env": {
     "GEMINI_API_KEY": "your-gemini-api-key"
-  }
-}
-```
-
-### Reddit API Setup (for `sentiment-apitools`)
-
-The `sentiment-apitools` skill can use web search with no setup, but for deeper analysis with full comment threads, configure Reddit API credentials:
-
-1. Go to https://www.reddit.com/prefs/apps and click "create another app..."
-2. Select **script** as the app type
-3. Set redirect URI to `http://localhost:8080`
-4. Note your `client_id` (string under the app name) and `client_secret`
-
-```json
-{
-  "env": {
-    "REDDIT_CLIENT_ID": "your_client_id",
-    "REDDIT_CLIENT_SECRET": "your_client_secret",
-    "REDDIT_USER_AGENT": "competitor-sentiment-analyzer/1.0"
   }
 }
 ```
