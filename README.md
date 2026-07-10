@@ -122,8 +122,8 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 
 | Skill | Description |
 |-------|-------------|
-| `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
-| `cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page (add/update/delete/archive, status tracking). Confluence is the single source of truth |
+| `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
+| `cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page (add/update/delete/archive, status tracking incl. **Planned**). Imports CFPs discovered by `cfp-hunter`. Confluence is the single source of truth |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
@@ -323,8 +323,9 @@ influencer-output/             # Influencer candidate output
 /blog-prod-updates
 /blog-prod-updates 14
 
-# Find speaking opportunities
+# Find speaking opportunities, then track the ones worth pursuing
 /cfp-hunter
+/cfp-tracker add the top 3 from the hunter results   # imports them as "Planned"
 
 # Generate this month's newsletter
 /newsletter-agentsandapis March

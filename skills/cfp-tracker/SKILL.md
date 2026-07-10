@@ -3,10 +3,12 @@ name: cfp-tracker
 description: >-
   Manage the team's Call-for-Papers (CFP) submissions on the Confluence "Team CFP
   Tracker" page. Use whenever the user wants to add, update, delete, or archive a
-  CFP, change a submission's status (submitted / accepted / rejected / waitlisted /
-  withdrawn), record a CFP response or event date, or asks "what CFPs are open",
-  "which talks did we submit", "mark the AXA talk accepted", "archive last year's
-  events". Confluence is the single source of truth — there is no spreadsheet.
+  CFP, change a submission's status (planned / submitted / accepted / rejected /
+  waitlisted / withdrawn), record a CFP response or event date, import CFPs
+  discovered by cfp-hunter as "planned" to submit to, or asks "what CFPs are open",
+  "which talks did we submit", "track these CFPs I want to submit to", "mark the AXA
+  talk accepted", "archive last year's events". Confluence is the single source of
+  truth — there is no spreadsheet.
 ---
 
 # CFP Tracker
@@ -51,6 +53,8 @@ The "Active submissions" table has exactly these columns, in order:
 
 ### Status values (and chip colors)
 
+- **Planned** — `data-color="purple"` — discovered CFP the team intends to submit
+  to, but has not submitted yet (e.g. imported from `cfp-hunter`)
 - **Submitted** — `data-color="blue"` — awaiting decision
 - **Accepted** — `data-color="green"` — confirmed
 - **Rejected** — `data-color="red"` — declined
@@ -58,6 +62,10 @@ The "Active submissions" table has exactly these columns, in order:
 - **Withdrawn** — `data-color="neutral"` — pulled by speaker
 
 Status chip HTML: `<span data-type="status" data-color="blue">Submitted</span>`.
+
+Lifecycle: a CFP typically starts as **Planned** (we want to speak there), moves to
+**Submitted** once the abstract is sent, then to a decided value
+(Accepted / Rejected / Waitlisted) or **Withdrawn**.
 
 ## Actions
 
@@ -71,6 +79,31 @@ Add a new CFP as a row in the "Active submissions" table.
    "Pending" and ask only if a required field is truly unknown.
 2. Append a new `<tr>` following the column contract.
 3. Recompute the Summary counts.
+
+### add from cfp-hunter results
+Import CFPs the `cfp-hunter` skill discovered into the tracker as **Planned** rows.
+This is the handoff for "I ran the hunter, now track these so we can plan to
+submit."
+
+1. Read the hunter output at `cfp-output/current-cfps.md` (relative to the repo /
+   working directory). If it is missing, tell the user to run
+   `/devrel-skills:cfp-hunter` first.
+2. Show the discovered events and let the user pick which to add (by number, event
+   name, or "all"). **Do not auto-add everything** — the user chooses.
+3. For each chosen event, map the hunter columns to the column contract:
+   - Event → **Event**
+   - Location → **Location**
+   - CFP Closes → **CFP Deadline** (`<time datetime="YYYY-MM-DD">`)
+   - CFP Link → **Links** (as the "CFP" link)
+   - Summary → context only; not a stored column (may inform the abstract later)
+   - **Status** → **Planned** (`data-color="purple"`)
+   - **CFP Response Date** → "Pending"
+   - **Talk Title**, **Lead**, **Speaker(s)**, **Duration**, **Event Date** → leave
+     as "TBD" (a discovered CFP has no talk/owner yet). Ask only if the user offers
+     the info; do not block the import on it.
+4. Skip events already present in the active table (match on Event + Talk Title) so
+   re-running the hunter doesn't create duplicates. Report what was skipped.
+5. Append one `<tr>` per chosen event and recompute the Summary counts.
 
 ### update
 Change fields on an existing CFP (most often Status or CFP Response Date).
