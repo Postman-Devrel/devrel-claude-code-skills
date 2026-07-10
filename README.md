@@ -471,6 +471,44 @@ If you see a 403 error from the Sheets API, the service account hasn't been gran
 
 ---
 
+### Atlassian / Confluence Setup (for `cfp-tracker`)
+
+The `cfp-tracker` skill reads and writes the "Team CFP Tracker" Confluence page
+(`postmanlabs.atlassian.net`, page ID `8268251220`) directly through the official
+**Atlassian MCP server**. Without this connector, the skill cannot fetch or update
+the page. This is a one-time setup per machine.
+
+#### Step 1 — Add the Atlassian MCP server
+
+The Atlassian remote MCP server uses OAuth (no API token to manage). Add it to
+Claude Code:
+
+```bash
+claude mcp add --transport http atlassian https://mcp.atlassian.com/v1/mcp
+```
+
+#### Step 2 — Authenticate
+
+Start Claude Code and run `/mcp`. Select **atlassian** and complete the OAuth flow
+in your browser, signing in to the `postmanlabs.atlassian.net` site. You only need
+to authorize once; tokens refresh automatically.
+
+#### Step 3 — Verify
+
+Run the skill with no arguments — it will fetch the tracker page before doing
+anything else:
+
+```bash
+/devrel-skills:cfp-tracker
+```
+
+If you see an error that the `getConfluencePage` / `updateConfluencePage` tools
+aren't available, the connector isn't loaded — re-check `/mcp` and confirm the
+Atlassian server shows as **connected**. If a fetch fails with a permissions error,
+make sure your Atlassian account has access to the DE (Developer Evangelism) space.
+
+---
+
 ### Google Docs Setup (for `blog-create-from-gdoc`)
 
 The Google Doc must be shared with "Anyone with the link can view" access. No API keys required — the skill uses the public export URL.
