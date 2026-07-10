@@ -34,7 +34,8 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts, YTD summary with drafts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
 | `/devrel-skills:blog-wordpress-stats` | Show the number of blog posts published between two dates on blog.postman.com |
 | `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
-| `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes to `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
+| `/devrel-skills:cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page — add, update, delete, or archive submissions and track status (planned/submitted/accepted/rejected/waitlisted/withdrawn). Can import CFPs discovered by `cfp-hunter` as **Planned** rows. Confluence is the single source of truth |
 | `/devrel-skills:event-sponsorships` | Find events with sponsorship opportunities in the API/AI space — classifies PLG vs SLG, scores relevance to Postman. Filter by AI, API, or mixed |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:influencer-autoagent` | Find and rank developer influencers for product launches — scores candidates on technical credibility, audience reach, and topic alignment |
