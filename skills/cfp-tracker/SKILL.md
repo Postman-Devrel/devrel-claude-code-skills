@@ -67,6 +67,44 @@ Lifecycle: a CFP typically starts as **Planned** (we want to speak there), moves
 **Submitted** once the abstract is sent, then to a decided value
 (Accepted / Rejected / Waitlisted) or **Withdrawn**.
 
+## Identity & duplicate handling
+
+A submission is uniquely identified by **Event name + Event year + Talk Title**
+(case-insensitive, trimmed). This is deliberate:
+
+- The same talk can be submitted to **multiple events** — different Event, so not a
+  duplicate.
+- One event can host **multiple talks** — different Talk Title, so not a duplicate.
+- A recurring conference in a **different year** (e.g. "DevBcn 2025" vs "DevBcn
+  2026") is **not** a duplicate — the year is part of the key. Derive the year from
+  the Event name, the CFP deadline, or the event date; if none is available, ask.
+
+**Before adding any CFP** — whether typed manually or imported from cfp-hunter —
+check the active table for a row with the same key. If a match exists, **do not
+silently add or silently skip**. Tell the user it already exists (show the matching
+row) and ask which they want:
+
+- **Update** — apply the new details to the existing row (see the `update` action), or
+- **Skip** — leave the existing row unchanged.
+
+Only append a brand-new `<tr>` when no matching row exists. When importing several
+CFPs at once, resolve each match individually and summarize update/skip/added counts
+at the end.
+
+## Archived CFPs
+
+Archived rows (past events or finally-decided CFPs moved to the "Archived" section)
+are **not tracked as active**. By default:
+
+- Reads / listings ("what CFPs are open", "which talks did we submit") show only the
+  **active** table and exclude the Archived section — unless the user explicitly
+  asks (e.g. "include archived", "show last year's events").
+- The cfp-hunter import skips any discovered CFP whose deadline has already passed,
+  and never adds into the Archived section, unless the user explicitly asks to track
+  a closed/archived one.
+- Duplicate checks match against the **active** table only; an archived row does not
+  block re-adding an event that has come around again.
+
 ## Actions
 
 ### add
@@ -77,8 +115,11 @@ Add a new CFP as a row in the "Active submissions" table.
    give a Confluence abstract URL, fetch it for the title and use it as the
    Abstract link. Do not invent missing values — leave CFP Response Date as
    "Pending" and ask only if a required field is truly unknown.
-2. Append a new `<tr>` following the column contract.
-3. Recompute the Summary counts.
+2. Run the duplicate check (Event + year + Talk Title, see "Identity & duplicate
+   handling"). If a matching active row exists, offer update-or-skip instead of
+   appending.
+3. Append a new `<tr>` following the column contract.
+4. Recompute the Summary counts.
 
 ### add from cfp-hunter results
 Import CFPs the `cfp-hunter` skill discovered into the tracker as **Planned** rows.
@@ -101,9 +142,14 @@ submit."
    - **Talk Title**, **Lead**, **Speaker(s)**, **Duration**, **Event Date** → leave
      as "TBD" (a discovered CFP has no talk/owner yet). Ask only if the user offers
      the info; do not block the import on it.
-4. Skip events already present in the active table (match on Event + Talk Title) so
-   re-running the hunter doesn't create duplicates. Report what was skipped.
-5. Append one `<tr>` per chosen event and recompute the Summary counts.
+4. Skip any discovered CFP whose deadline has already passed (do not import
+   closed/archived CFPs unless the user explicitly asks).
+5. For each chosen event, run the duplicate check (Event + year + Talk Title, see
+   "Identity & duplicate handling"). If a matching active row already exists, ask the
+   user whether to **update** it or **skip** it — don't silently skip and don't
+   create a second row.
+6. Append one `<tr>` per newly-added event, and summarize added / updated / skipped
+   counts. Recompute the Summary counts.
 
 ### update
 Change fields on an existing CFP (most often Status or CFP Response Date).
