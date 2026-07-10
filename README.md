@@ -123,6 +123,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | Skill | Description |
 |-------|-------------|
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page (add/update/delete/archive, status tracking). Confluence is the single source of truth |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
@@ -279,6 +280,7 @@ skills/
   blog-wordpress-scheduler/    # Editorial calendar management
   blog-ideas/                  # Blog idea generation
   cfp-hunter/                  # CFP search
+  cfp-tracker/                 # CFP submission tracking (Confluence)
   newsletter-agentsandapis/    # Newsletter generation
   influencer-autoagent/        # Influencer finder
 hooks/
