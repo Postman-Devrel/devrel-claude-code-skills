@@ -4,9 +4,10 @@ Developer advocacy toolkit for Postman.com — a Claude Code plugin with skills 
 
 ## Plugin Structure
 
-This project is a Claude Code plugin. Install it with:
+This project is a Claude Code plugin. Recommended install (if you don't plan to update the skills):
 
 ```bash
+claude plugin marketplace add Postman-Devrel/devrel-claude-code-skills
 claude plugin install devrel-skills
 ```
 

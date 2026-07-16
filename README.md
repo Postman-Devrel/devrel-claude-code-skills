@@ -4,7 +4,18 @@ A Claude Code plugin used by the Postman Developer Relations team for content cr
 
 ## Installation
 
-### As a Local Project (recommended approach)
+### As a Plugin (recommended if you don't plan to update the skills)
+
+Add the marketplace, then install the plugin:
+
+```bash
+claude plugin marketplace add Postman-Devrel/devrel-claude-code-skills
+claude plugin install devrel-skills
+```
+
+Skills are available with the `devrel-skills:` namespace prefix.
+
+### As a Local Project (recommended if you plan to modify skills)
 
 Clone the repo and open Claude Code in the project directory:
 
@@ -15,16 +26,6 @@ claude --plugin-dir /path/to/devrel-claude-code-skills
 ```
 
 When running locally, skills are available without the namespace prefix.
-
-Once installed, skills are available in any project with the `devrel-skills:` namespace prefix.
-
-### As a Plugin (not yet available)
-
-Install directly from the repository:
-
-```bash
-claude plugin install devrel-skills
-```
 
 ## Quickstart
 
@@ -126,8 +127,6 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
-
-> `sentiment-apitools` moved to its own plugin repo: [Postman-Devrel/competitor-sentiment-analysis](https://github.com/Postman-Devrel/competitor-sentiment-analysis).
 
 ## Meetup Calendar
 
