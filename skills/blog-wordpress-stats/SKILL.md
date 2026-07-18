@@ -1,6 +1,6 @@
 ---
 name: blog-wordpress-stats
-description: "Show the number of blog posts published on blog.postman.com between two dates. Prompts for a start and end date, then queries WordPress and displays the count with a post listing."
+description: "Show the number of blog posts published on blog.postman.com between two dates. Prompts for a start and end date, then queries WordPress and displays the count with a post listing, broken down by month and author."
 argument-hint: "[YYYY-MM-DD YYYY-MM-DD] (e.g. '2026-01-01 2026-03-31')"
 allowed-tools: ["Bash", "Write"]
 ---
@@ -63,11 +63,11 @@ Blog Stats — blog.postman.com
 
 Total posts published: 14
 
-  Date             Day   Title
-  --------------   ---   ------------------------------------------
-  Jan 07, 2026     Wed   "What's New in Postman v11"
-  Jan 09, 2026     Thu   "GraphQL Testing with Postman"
-  Jan 14, 2026     Tue   "API Security Best Practices for 2026"
+  Date             Day   Author          Title
+  --------------   ---   -------------   ------------------------------------------
+  Jan 07, 2026     Wed   Jane Doe        "What's New in Postman v11"
+  Jan 09, 2026     Thu   John Smith      "GraphQL Testing with Postman"
+  Jan 14, 2026     Tue   Jane Doe        "API Security Best Practices for 2026"
   ...
 
 Posts per month:
@@ -76,13 +76,22 @@ Posts per month:
   March      — 7
   ─────────────────
   Total      — 14
+
+Posts per author:
+  Jane Doe      — 6
+  John Smith    — 5
+  Alex Lee      — 3
+  ─────────────────
+  Total         — 14
 ```
 
 **Formatting rules:**
 - Show the total count prominently at the top
-- List every post with its date, day of week, and title
-- Include a per-month breakdown at the bottom
+- List every post with its date, day of week, author, and title
+- Include a per-month breakdown and a per-author breakdown at the bottom
+- Sort the per-author breakdown by post count, descending
 - If the range spans a single month, skip the per-month breakdown
+- If all posts share one author, skip the per-author breakdown
 - If zero posts were found, say "No posts were published in this date range."
 
 ## Error Handling
