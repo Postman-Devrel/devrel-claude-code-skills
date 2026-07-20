@@ -19,9 +19,23 @@
                 <li>
                     <span class="summary-post-date">{{ post.date }}</span>
                     <a href="{{ post.link }}" target="_blank" class="summary-post-link">{{ post.title }}</a>
+                    <span class="summary-post-author">{{ post.author }}</span>
                 </li>
                 {% endfor %}
             </ul>
+            {% if data.leaderboard | length > 1 %}
+            <div class="leaderboard">
+                <div class="leaderboard-title">Author leaderboard</div>
+                <ul class="leaderboard-list">
+                    {% for author, count in data.leaderboard %}
+                    <li>
+                        <span class="leaderboard-author">{{ author }}</span>
+                        <span class="leaderboard-count">{{ count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

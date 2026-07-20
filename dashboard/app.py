@@ -458,6 +458,7 @@ def _wp_card(post, stage):
         "post_link": post.get("link", ""),
         "header_image": None,
         "featured_image": post.get("featured_image"),
+        "author": post.get("author", ""),
         "created_at": post.get("date", ""),
         "stage_history": {},
         "error": None,
@@ -502,16 +503,26 @@ def clear_all_cards():
 @app.route("/published")
 def published():
     cal = _read_calendar()
-    monthly_summary = defaultdict(lambda: {"count": 0, "posts": []})
+    monthly_summary = defaultdict(lambda: {"count": 0, "posts": [], "author_counts": defaultdict(int)})
     if cal:
         for post in cal.get("published", []):
             month_key = post.get("date", "")[:7]
+            author = post.get("author", "Unknown")
             monthly_summary[month_key]["count"] += 1
             monthly_summary[month_key]["posts"].append({
                 "title": post["title"],
                 "date": post.get("date", "")[:10],
                 "link": post.get("link", ""),
+                "author": author,
             })
+            monthly_summary[month_key]["author_counts"][author] += 1
+
+    for data in monthly_summary.values():
+        data["leaderboard"] = sorted(
+            data["author_counts"].items(), key=lambda kv: kv[1], reverse=True
+        )
+        del data["author_counts"]
+
     return render_template(
         "published.html",
         monthly_summary=dict(monthly_summary),

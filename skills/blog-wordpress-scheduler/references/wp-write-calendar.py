@@ -3,7 +3,15 @@
 import os, json
 
 # Expects: today (datetime), scheduled (list), published (list), drafts (list)
-# All sourced from wp_get() calls in the list subcommand steps.
+# All sourced from wp_get() calls in the list subcommand steps (with _embed=author).
+
+
+def _author_name(p):
+    embedded_author = p.get("_embedded", {}).get("author", [])
+    if embedded_author:
+        return embedded_author[0].get("name", "Unknown")
+    return "Unknown"
+
 
 calendar_data = {
     "updated_at": today.isoformat(),
@@ -15,6 +23,7 @@ calendar_data = {
             "status": "future",
             "link": p.get("link", ""),
             "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
+            "author": _author_name(p),
         }
         for p in scheduled
     ],
@@ -26,6 +35,7 @@ calendar_data = {
             "status": "publish",
             "link": p.get("link", ""),
             "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
+            "author": _author_name(p),
         }
         for p in published
     ],
@@ -37,6 +47,7 @@ calendar_data = {
             "status": "draft",
             "link": p.get("link", ""),
             "edit_link": f"https://blog.postman.com/wp-admin/post.php?post={p['id']}&action=edit",
+            "author": _author_name(p),
         }
         for p in drafts
     ],

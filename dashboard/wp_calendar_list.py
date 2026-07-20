@@ -30,22 +30,29 @@ after = today.strftime("%Y-%m-%dT00:00:00")
 until = (today + timedelta(weeks=8)).strftime("%Y-%m-%dT23:59:59")
 scheduled = wp_get(
     "posts?status=future&after=" + after + "&before=" + until
-    + "&per_page=100&orderby=date&order=asc"
+    + "&per_page=100&orderby=date&order=asc&_embed=author"
 )
 
 # Fetch recently published posts (past 6 months)
 six_months_ago = (today - timedelta(days=180)).strftime("%Y-%m-%dT00:00:00")
 published = wp_get(
     "posts?status=publish&after=" + six_months_ago
-    + "&per_page=100&orderby=date&order=desc"
+    + "&per_page=100&orderby=date&order=desc&_embed=author"
 )
 
 # Fetch recent drafts (past 3 weeks)
 three_weeks_ago = (today - timedelta(weeks=3)).strftime("%Y-%m-%dT00:00:00")
 drafts = wp_get(
     "posts?status=draft&after=" + three_weeks_ago
-    + "&per_page=100&orderby=modified&order=desc"
+    + "&per_page=100&orderby=modified&order=desc&_embed=author"
 )
+
+
+def get_author_name(p):
+    embedded_author = p.get("_embedded", {}).get("author", [])
+    if embedded_author:
+        return embedded_author[0].get("name", "Unknown")
+    return "Unknown"
 
 # Build calendar data
 calendar_data = {"updated_at": today.isoformat(), "scheduled": [], "published": [], "drafts": []}
@@ -58,6 +65,7 @@ for p in scheduled:
         "status": "future",
         "link": p.get("link", ""),
         "edit_link": "https://blog.postman.com/wp-admin/post.php?post=" + str(p["id"]) + "&action=edit",
+        "author": get_author_name(p),
     }
     calendar_data["scheduled"].append(entry)
 
@@ -69,6 +77,7 @@ for p in published:
         "status": "publish",
         "link": p.get("link", ""),
         "edit_link": "https://blog.postman.com/wp-admin/post.php?post=" + str(p["id"]) + "&action=edit",
+        "author": get_author_name(p),
     }
     calendar_data["published"].append(entry)
 
@@ -80,6 +89,7 @@ for p in drafts:
         "status": "draft",
         "link": p.get("link", ""),
         "edit_link": "https://blog.postman.com/wp-admin/post.php?post=" + str(p["id"]) + "&action=edit",
+        "author": get_author_name(p),
     }
     calendar_data["drafts"].append(entry)
 
@@ -99,10 +109,10 @@ print(
 # Output structured data
 output = {"scheduled": [], "published": [], "drafts": []}
 for p in scheduled:
-    output["scheduled"].append({"id": p["id"], "date": p["date"], "title": p["title"]["rendered"]})
+    output["scheduled"].append({"id": p["id"], "date": p["date"], "title": p["title"]["rendered"], "author": get_author_name(p)})
 for p in published:
-    output["published"].append({"id": p["id"], "date": p["date"], "title": p["title"]["rendered"]})
+    output["published"].append({"id": p["id"], "date": p["date"], "title": p["title"]["rendered"], "author": get_author_name(p)})
 for p in drafts:
-    output["drafts"].append({"id": p["id"], "modified": p["modified"], "title": p["title"]["rendered"]})
+    output["drafts"].append({"id": p["id"], "modified": p["modified"], "title": p["title"]["rendered"], "author": get_author_name(p)})
 
 print("DATA_JSON:" + json.dumps(output))

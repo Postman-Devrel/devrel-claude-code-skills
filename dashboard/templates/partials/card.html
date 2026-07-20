@@ -98,6 +98,10 @@
     {% endif %}
 
 
+    {% if card.author %}
+        <div class="card-author">{{ card.author }}</div>
+    {% endif %}
+
     {% if card.slug and card.stage not in ['ideas', 'published'] %}
         <div class="card-slug">{{ card.slug }}</div>
     {% endif %}

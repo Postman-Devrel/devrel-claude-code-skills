@@ -71,7 +71,7 @@ today = datetime.now(PST)
 after = today.strftime("%Y-%m-%dT00:00:00")
 until = (today + timedelta(weeks=8)).strftime("%Y-%m-%dT23:59:59")
 
-url = f"posts?status=future&after={after}&before={until}&per_page=100&orderby=date&order=asc"
+url = f"posts?status=future&after={after}&before={until}&per_page=100&orderby=date&order=asc&_embed=author"
 scheduled = wp_get(url)
 ```
 
@@ -81,7 +81,7 @@ Fetch posts published in the past 6 months:
 
 ```python
 six_months_ago = (today - timedelta(days=180)).strftime("%Y-%m-%dT00:00:00")
-url = f"posts?status=publish&after={six_months_ago}&per_page=100&orderby=date&order=desc"
+url = f"posts?status=publish&after={six_months_ago}&per_page=100&orderby=date&order=desc&_embed=author"
 published = wp_get(url)
 ```
 
@@ -91,7 +91,7 @@ Fetch draft posts modified in the past 3 weeks:
 
 ```python
 three_weeks_ago = (today - timedelta(weeks=3)).strftime("%Y-%m-%dT00:00:00")
-url = f"posts?status=draft&after={three_weeks_ago}&per_page=100&orderby=modified&order=desc"
+url = f"posts?status=draft&after={three_weeks_ago}&per_page=100&orderby=modified&order=desc&_embed=author"
 drafts = wp_get(url)
 ```
 
