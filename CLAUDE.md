@@ -34,6 +34,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-wordpress-stage` | Stage a blog post to blog.postman.com WordPress as a draft — accepts a local markdown file or a Google Docs URL (converts the doc first), with SEO metadata |
 | `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts, YTD summary with drafts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
 | `/devrel-skills:blog-wordpress-stats` | Show the number of blog posts published between two dates on blog.postman.com, with breakdowns by month and author |
+| `/devrel-skills:blog-dashboard` | Start or stop the blog pipeline Kanban dashboard Flask app (`http://localhost:5001`) — `start` or `stop` |
 | `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
 | `/devrel-skills:event-sponsorships` | Find events with sponsorship opportunities in the API/AI space — classifies PLG vs SLG, scores relevance to Postman. Filter by AI, API, or mixed |
