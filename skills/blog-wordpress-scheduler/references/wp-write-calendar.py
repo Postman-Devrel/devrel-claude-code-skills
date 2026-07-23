@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Write scheduled/published/draft posts to dashboard/wp-calendar.json for the Kanban UI."""
-import os, json
+import html, os, json
 
 # Expects: today (datetime), scheduled (list), published (list), drafts (list)
 # All sourced from wp_get() calls in the list subcommand steps (with _embed=author).
@@ -18,7 +18,7 @@ calendar_data = {
     "scheduled": [
         {
             "id": p["id"],
-            "title": p["title"]["rendered"],
+            "title": html.unescape(p["title"]["rendered"]),
             "date": p["date"],
             "status": "future",
             "link": p.get("link", ""),
@@ -30,7 +30,7 @@ calendar_data = {
     "published": [
         {
             "id": p["id"],
-            "title": p["title"]["rendered"],
+            "title": html.unescape(p["title"]["rendered"]),
             "date": p["date"],
             "status": "publish",
             "link": p.get("link", ""),
@@ -42,7 +42,7 @@ calendar_data = {
     "drafts": [
         {
             "id": p["id"],
-            "title": p["title"]["rendered"],
+            "title": html.unescape(p["title"]["rendered"]),
             "modified": p["modified"],
             "status": "draft",
             "link": p.get("link", ""),
@@ -55,7 +55,7 @@ calendar_data = {
 
 calendar_path = os.path.join(os.environ.get("CLAUDE_PLUGIN_ROOT", ""), "dashboard", "wp-calendar.json")
 if not os.environ.get("CLAUDE_PLUGIN_ROOT"):
-    calendar_path = os.path.join(os.path.dirname(__file__), "..", "..", "dashboard", "wp-calendar.json")
+    calendar_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dashboard", "wp-calendar.json")
 
 os.makedirs(os.path.dirname(calendar_path), exist_ok=True)
 with open(calendar_path, "w") as f:

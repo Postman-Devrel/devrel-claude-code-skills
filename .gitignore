@@ -15,3 +15,4 @@ dashboard/*.pid
 dashboard/ideas.json
 .DS_Store
 skills/meetup-calendar/*.json
+__pycache__/
