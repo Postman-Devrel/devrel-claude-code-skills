@@ -2,7 +2,7 @@
 name: blog-copyeditor
 description: "Copy edit blog post output for grammar, syntax errors, repetitive sentence structures, and SEO optimization. Suggests an SEO-friendly title and 150-character meta description. Runs automatically as a hook after blog-write, or standalone via /blog-copyeditor [filename]."
 argument-hint: "[filename] (optional, defaults to most recently modified .md blog post)"
-allowed-tools: ["Read", "Write"]
+allowed-tools: ["Read", "Write", "Bash"]
 ---
 
 # Blog Copy Editor & SEO Optimizer
@@ -79,7 +79,16 @@ Check the post against all five style guide files:
 - Verify JSON examples are valid JSON structure
 - Check that API examples show both request AND response where applicable
 
-### 5. AI Pattern Detection (Humanizer Pass)
+### 5. Link Validation
+
+Extract every URL from the post (both `[text](url)` markdown links and bare URLs) and check them:
+
+1. **Broken links** — Run `curl -sL -o /dev/null -w '%{http_code}' --max-time 10 <url>` for each URL. Flag any link that returns a non-2xx status code (404, 500, timeout, connection refused). Report the URL, the HTTP status, and the link text so the author can fix or remove it.
+2. **Pre-production URLs** — Flag any link pointing to `postman-beta.com` or any other `-beta` subdomain. These are internal staging URLs that must be replaced with their production equivalents before publishing. Report each one with a suggested production URL (typically the same path on `postman.com`).
+
+In Hook Mode, do NOT auto-fix link issues — always flag them for author review since broken links may need context to resolve and beta URLs may not yet have production equivalents.
+
+### 6. AI Pattern Detection (Humanizer Pass)
 
 Using the patterns catalogued in `skills/blog-write/resources/humanizer.md`, scan the post for AI writing tells and flag or rewrite them:
 
@@ -198,6 +207,13 @@ Structure your review as follows:
 | # | Pattern | Original | Rewrite |
 |---|---------|----------|---------|
 | 1 | [e.g., em dash / AI vocabulary / copula avoidance] | [original] | [rewrite] |
+
+## Link Issues
+[List broken links and pre-production URLs that need author attention]
+
+| # | URL | Issue | Link Text | Suggested Fix |
+|---|-----|-------|-----------|---------------|
+| 1 | [url] | [broken (HTTP status) / beta URL] | [link text] | [fix or production URL] |
 
 ## Readability Issues
 [List issues with suggestions]
