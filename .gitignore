@@ -16,3 +16,4 @@ dashboard/ideas.json
 .DS_Store
 skills/meetup-calendar/*.json
 __pycache__/
+.claude/settings.json
