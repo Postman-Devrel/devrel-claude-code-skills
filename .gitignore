@@ -5,6 +5,7 @@ blog-prompt/
 blog-output/
 influencer-prompt/
 prompts/
+/content-metrics/
 dashboard/state.json
 dashboard/queue.json
 dashboard/wp-calendar.json
