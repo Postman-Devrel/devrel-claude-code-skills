@@ -128,6 +128,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+| `content-metrics` | Pull blog + YouTube stats, join Postman product attribution (signups / first-run / D-7 / D-30) via Looker, and post a Content → Product digest to Slack. Defaults to a 30-day window; pass an integer or phrase (`7`, `last week`, `90`, `last quarter`) to change it. See `docs/content-funnel.md` for the funnel model and `skills/content-metrics/SKILL.md` for setup. |
 
 ## Meetup Calendar
 
