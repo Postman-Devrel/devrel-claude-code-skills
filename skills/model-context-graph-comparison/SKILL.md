@@ -1,5 +1,5 @@
 ---
-name: model-context-graph
+name: model-context-graph-comparison
 description: "Autopilot skill that fires within an hour of a new AI model or coding framework/harness release, benchmarks it against Postman's context graph, produces a short study with charts + token-optimization data, posts to all Postman social accounts, and regenerates the harness config to use the new model. Focus: APIs, coding, agentic autonomy."
 argument-hint: "[--now [model-name]] | [--watchlist] | [--dry-run]"
 allowed-tools: ["Bash", "WebSearch", "WebFetch", "Read", "Write", "Edit"]
@@ -52,7 +52,7 @@ Release-detection sources (checked in parallel per run):
 | GitHub releases | `github.com/anthropics/claude-code`, `github.com/openai/openai-agents-python`, `github.com/langchain-ai/langgraph`, `github.com/pydantic/pydantic-ai`, `github.com/cursor-ai/cursor`, `github.com/paul-gauthier/aider` |
 | HuggingFace | Trending models filtered to last 24h |
 
-State is kept in `model-context-graph-output/seen.json` (release id → first-seen timestamp) so we never post the same drop twice.
+State is kept in `model-context-graph-comparison-output/seen.json` (release id → first-seen timestamp) so we never post the same drop twice.
 
 ## Required environment variables
 
@@ -70,7 +70,7 @@ If a credential is missing, that channel is skipped and the run log records `cha
 
 ## Output directory
 
-All output goes to `model-context-graph-output/`:
+All output goes to `model-context-graph-comparison-output/`:
 
 | File | Description |
 |------|-------------|
@@ -150,7 +150,7 @@ Required charts:
 7. **Radar (optional)** — model self-reported benchmarks vs measured-with-graph across the four suites.
 8. **Header image** — hand off to `/devrel-skills:blog-header-image` with a prompt like `Postman context graph amplifying <model-name>` (2560×1355 PNG, no text).
 
-Chart script location: `skills/model-context-graph/references/make_charts.py` (matplotlib, uses the dataviz palette).
+Chart script location: `skills/model-context-graph-comparison/references/make_charts.py` (matplotlib, uses the dataviz palette).
 
 ### Stage 4 — Write the study (target: ≤ 10 min)
 
@@ -262,17 +262,17 @@ Every posted URL is recorded in `run-log-YYYYMMDD-<slug>.md`.
 ### Autopilot (default)
 
 ```
-/devrel-skills:model-context-graph
+/devrel-skills:model-context-graph-comparison
 ```
 
 Sets up the hourly cron. First invocation:
-1. Writes `model-context-graph-output/seen.json` seeded with the last 7 days of releases so it doesn't backfill-spam.
+1. Writes `model-context-graph-comparison-output/seen.json` seeded with the last 7 days of releases so it doesn't backfill-spam.
 2. Schedules an hourly `CronCreate` to invoke this skill.
 
 ### Manual run against a known drop
 
 ```
-/devrel-skills:model-context-graph --now "Claude 5.1 Opus"
+/devrel-skills:model-context-graph-comparison --now "Claude 5.1 Opus"
 ```
 
 Skips detection, targets the named model, runs Stages 2–6.
@@ -280,7 +280,7 @@ Skips detection, targets the named model, runs Stages 2–6.
 ### Dry run
 
 ```
-/devrel-skills:model-context-graph --dry-run
+/devrel-skills:model-context-graph-comparison --dry-run
 ```
 
 Executes Stages 1–5 but writes posts to disk without publishing. Use before enabling autopilot in a new environment.
@@ -288,12 +288,12 @@ Executes Stages 1–5 but writes posts to disk without publishing. Use before en
 ### Watchlist
 
 ```
-/devrel-skills:model-context-graph --watchlist              # list
-/devrel-skills:model-context-graph --watchlist add <url>    # add a source
-/devrel-skills:model-context-graph --watchlist remove <url> # remove a source
+/devrel-skills:model-context-graph-comparison --watchlist              # list
+/devrel-skills:model-context-graph-comparison --watchlist add <url>    # add a source
+/devrel-skills:model-context-graph-comparison --watchlist remove <url> # remove a source
 ```
 
-Watchlist is persisted at `model-context-graph-output/watchlist.json`.
+Watchlist is persisted at `model-context-graph-comparison-output/watchlist.json`.
 
 ## Related skills
 
