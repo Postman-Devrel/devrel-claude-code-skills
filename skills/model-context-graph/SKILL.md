@@ -97,13 +97,27 @@ The full run is a single deterministic pipeline. Every stage writes intermediate
 
 ### Stage 2 — Benchmark against the context graph (target: ≤ 25 min)
 
-Run the model on three task suites, first **without** the context graph (baseline) then **with** it. Reuse the same seeds and prompts so the delta is causal, not noise.
+Run the model on four task suites, first **without** the context graph (baseline) then **with** it. Reuse the same seeds and prompts so the delta is causal, not noise.
 
 | Suite | What it measures | Task count | Metric |
 |-------|------------------|------------|--------|
 | `api-tasks` | Call the right endpoint with the right params from a natural-language ask against a Postman workspace | 30 | Task success rate, tokens per successful task, wall-clock |
 | `coding-tasks` | Fix or extend code that calls the same APIs (SWE-bench-lite-style, scoped to API-integration bugs) | 20 | Pass@1, tokens per task, wall-clock |
 | `autonomy-tasks` | Multi-step goals that require chaining 3+ endpoints with no human turn (τ-bench-style) | 15 | Goal completion rate, tool-call efficiency (calls-per-goal), tokens per goal |
+| `downstream-update-tasks` | Given an upstream API change (new version, deprecated field, renamed param, tightened auth, changed response shape), identify every downstream consumer and generate correct patches for each | 20 | Consumer recall (%), consumer precision (%), patch correctness (pass@1), tokens per completed migration, wall-clock |
+
+**Why `downstream-update-tasks` is a first-class suite.** This is the task the context graph is uniquely built for. A vanilla model sees the upstream change and then has to grep-and-guess across the codebase — it doesn't know which collections, environments, integrations, or repos call the endpoint, and it doesn't know which fields are actually read downstream. The context graph carries that topology: `endpoint → consumers → the specific request/response fields each one touches`. In practice this collapses a "read every file that mentions `/v1/users`" search into "traverse three edges of the graph."
+
+Each `downstream-update-tasks` scenario ships with a seeded fixture repo + workspace + collection so the run is reproducible:
+- `upstream_change` — the exact diff to the OpenAPI spec / collection.
+- `ground_truth_consumers` — the full list of downstream artifacts that require edits.
+- `ground_truth_patches` — the reference patch for each consumer, plus a test suite that must pass after patching.
+
+For every scenario record:
+- `consumers_identified` (set) — used to compute recall vs `ground_truth_consumers`.
+- `consumers_touched_but_not_needed` (set) — used to compute precision.
+- `patch_test_pass_rate` — fraction of ground-truth tests that pass after the model's patches are applied.
+- `tokens_in`, `tokens_out`, `tool_calls`, `wall_ms`.
 
 For every task record:
 - `tokens_in`, `tokens_out`, `tool_calls`, `wall_ms`, `success (bool)`, `error_category`
@@ -115,6 +129,9 @@ Compute:
 - `token_delta_pct` = (tokens_baseline − tokens_with_graph) / tokens_baseline
 - `cost_per_success_delta` using the vendor's published $/1M pricing
 - `autonomy_delta` = (goals completed with ≤ N tool calls with graph) − (baseline)
+- `dependency_recall_delta` = consumer recall with graph − baseline
+- `dependency_precision_delta` = consumer precision with graph − baseline
+- `migration_pass_delta` = patch_test_pass_rate with graph − baseline
 
 Write the raw rows to `studies/YYYYMMDD-<slug>/data.csv`.
 
@@ -124,12 +141,14 @@ Follow the `dataviz` skill's conventions for palette, mark specs, and legend rul
 
 Required charts:
 
-1. **Bar chart** — Task success rate: baseline vs context graph, one bar pair per suite. Include the delta as an inline label.
+1. **Bar chart** — Task success rate: baseline vs context graph, one bar pair per suite (4 pairs). Include the delta as an inline label.
 2. **Grouped bar** — Tokens per successful task, baseline vs context graph, one group per suite. Percentage saving labeled on top of the "with graph" bar.
 3. **Bar chart** — Cost per successful task, baseline vs context graph. Same layout as (2), but in USD.
 4. **Line chart** — Cumulative goal completion over tool-call budget (autonomy suite). One line per condition. The X axis is "tool calls allowed"; the Y is "goals completed."
-5. **Radar (optional)** — model self-reported benchmarks vs measured-with-graph across the three suites.
-6. **Header image** — hand off to `/devrel-skills:blog-header-image` with a prompt like `Postman context graph amplifying <model-name>` (2560×1355 PNG, no text).
+5. **Scatter or 2×2 quadrant** — Downstream-update suite: consumer recall (X) vs consumer precision (Y), one point per scenario. Two series (baseline / context graph). The context-graph cluster should sit in the top-right; the baseline cluster typically drifts down-and-left. A dashed diagonal marks the "F1 = 1" line for reference.
+6. **Stacked bar** — Migration cost per scenario in the downstream-update suite: tokens split into `discovery` (finding consumers) vs `patching` (writing edits). The delta on the discovery segment is usually the dramatic one — that's the context graph's job.
+7. **Radar (optional)** — model self-reported benchmarks vs measured-with-graph across the four suites.
+8. **Header image** — hand off to `/devrel-skills:blog-header-image` with a prompt like `Postman context graph amplifying <model-name>` (2560×1355 PNG, no text).
 
 Chart script location: `skills/model-context-graph/references/make_charts.py` (matplotlib, uses the dataviz palette).
 
@@ -147,9 +166,10 @@ keywords: [...]
 ---
 
 ## The one-line result
-<Model> ships today. On API + coding + autonomy tasks, Postman's context graph
-lifts task success by X%, cuts tokens per successful task by Y%, and reduces
-cost per completed goal by Z%.
+<Model> ships today. On API + coding + autonomy + downstream-migration tasks,
+Postman's context graph lifts task success by X%, cuts tokens per successful
+task by Y%, reduces cost per completed goal by Z%, and finds W% more of the
+downstream consumers that need updating when an upstream API changes.
 
 ## Why it matters (qualitative)
 - The model isn't the bottleneck; the *context* it's given is.
@@ -157,8 +177,10 @@ cost per completed goal by Z%.
   "here is the exact slice you need."
 - For agentic autonomy, this is the difference between a demo and a shippable
   agent.
+- For downstream migrations, the context graph is the API's dependency map —
+  the model no longer has to grep-and-guess which consumers use a field.
 
-## The three benchmarks
+## The four benchmarks
 ### API tasks
 <chart 1 embed>
 <paragraph with 2–3 concrete task examples and what changed>
@@ -170,6 +192,13 @@ cost per completed goal by Z%.
 ### Agentic autonomy
 <chart 4 embed>
 <paragraph>
+
+### Downstream dependency updates
+<chart 5 + 6 embed>
+Walk through one concrete migration end-to-end: the upstream diff, the list
+of consumers the graph surfaced (that a vanilla model missed or hallucinated),
+the patch it generated, and the test pass rate. Show the token split between
+discovery and patching — this is where the context graph earns its keep.
 
 ## Token economics
 <chart 2 + 3 embed>
@@ -212,7 +241,7 @@ Open a PR against the appropriate config file if the harness lives in the repo; 
 
 Reuse the posting patterns from `social-media-manager`. Post to every channel where credentials are configured, in parallel:
 
-1. **Twitter/X** — 5–7 tweet thread. Tweet 1 is the headline delta. Tweet 2 is chart 1. Tweet 3 is chart 2. Tweet 4 is the qualitative why. Tweet 5 links to the study. Tweet 6 links to the regenerated harness config.
+1. **Twitter/X** — 6–8 tweet thread. Tweet 1 is the headline delta. Tweet 2 is chart 1 (success rate across all four suites). Tweet 3 is chart 2 (token savings). Tweet 4 is chart 5 (downstream-update recall/precision) with a one-line "the model finds the consumers it couldn't grep for" caption. Tweet 5 is the qualitative why. Tweet 6 links to the study. Tweet 7 links to the regenerated harness config.
 2. **LinkedIn** — long-form post version, chart 1 as the cover image, chart 2 inline. CTA: read the study, try the harness config.
 3. **YouTube Short** — 30–60s script + b-roll callouts (charts, terminal, Postman UI). Written to `posts/*-youtube-short.md`; production hand-off is manual for now.
 4. **Blog** — stage the study to WordPress via `/devrel-skills:blog-wordpress-stage` as a draft with the header image and SEO frontmatter.
