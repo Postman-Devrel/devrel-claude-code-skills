@@ -123,7 +123,8 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 
 | Skill | Description |
 |-------|-------------|
-| `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
+| `cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page (add/update/delete/archive, status tracking incl. **Planned**). Imports CFPs discovered by `cfp-hunter`. Confluence is the single source of truth |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
@@ -278,6 +279,7 @@ skills/
   blog-wordpress-scheduler/    # Editorial calendar management
   blog-ideas/                  # Blog idea generation
   cfp-hunter/                  # CFP search
+  cfp-tracker/                 # CFP submission tracking (Confluence)
   newsletter-agentsandapis/    # Newsletter generation
   influencer-autoagent/        # Influencer finder
 hooks/
@@ -320,8 +322,9 @@ influencer-output/             # Influencer candidate output
 /blog-prod-updates
 /blog-prod-updates 14
 
-# Find speaking opportunities
+# Find speaking opportunities, then track the ones worth pursuing
 /cfp-hunter
+/cfp-tracker add the top 3 from the hunter results   # imports them as "Planned"
 
 # Generate this month's newsletter
 /newsletter-agentsandapis March
@@ -464,6 +467,44 @@ Run the skill with no arguments — it will validate both env vars and attempt t
 ```
 
 If you see a 403 error from the Sheets API, the service account hasn't been granted access to the sheet — repeat Step 3. If the credentials file isn't found, check the path in `GOOGLE_APPLICATION_CREDENTIALS`.
+
+---
+
+### Atlassian / Confluence Setup (for `cfp-tracker`)
+
+The `cfp-tracker` skill reads and writes the "Team CFP Tracker" Confluence page
+(`postmanlabs.atlassian.net`, page ID `8268251220`) directly through the official
+**Atlassian MCP server**. Without this connector, the skill cannot fetch or update
+the page. This is a one-time setup per machine.
+
+#### Step 1 — Add the Atlassian MCP server
+
+The Atlassian remote MCP server uses OAuth (no API token to manage). Add it to
+Claude Code:
+
+```bash
+claude mcp add --transport http atlassian https://mcp.atlassian.com/v1/mcp
+```
+
+#### Step 2 — Authenticate
+
+Start Claude Code and run `/mcp`. Select **atlassian** and complete the OAuth flow
+in your browser, signing in to the `postmanlabs.atlassian.net` site. You only need
+to authorize once; tokens refresh automatically.
+
+#### Step 3 — Verify
+
+Run the skill with no arguments — it will fetch the tracker page before doing
+anything else:
+
+```bash
+/devrel-skills:cfp-tracker
+```
+
+If you see an error that the `getConfluencePage` / `updateConfluencePage` tools
+aren't available, the connector isn't loaded — re-check `/mcp` and confirm the
+Atlassian server shows as **connected**. If a fetch fails with a permissions error,
+make sure your Atlassian account has access to the DE (Developer Evangelism) space.
 
 ---
 
