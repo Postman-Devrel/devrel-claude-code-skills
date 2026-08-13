@@ -14,6 +14,40 @@ Every time a new AI model or coding framework/harness ships, we want a data-back
 - **Context graph** — Postman's structured, machine-readable representation of an API surface (endpoints, schemas, examples, auth, dependencies). Fed to a model, it collapses the "what tools do I have and how do I call them" reasoning into a single lookup.
 - **AI harness** — the software infrastructure that wraps around an LLM to turn it into an autonomous agent. The LLM is the brain; the harness provides the tools, sandboxed environments, memory, and security guardrails required to safely execute multi-step coding tasks. When a new model ships, the harness config (model ID, context window, tool schemas, sampling params) needs to be regenerated to unlock the new model's capabilities.
 
+## Context Graph API — placeholder (release TBD, expected mid-August 2026)
+
+The skill talks to the context graph through the forthcoming **Context Graph API**. That API is not GA yet, so the client below is stubbed. Everything else in the pipeline is real; only the network call is faked.
+
+```
+# skills/model-context-graph-comparison/references/context_graph_client.py (to be added)
+# TODO(release): replace stub with real HTTP client when the Context Graph API ships.
+
+BASE_URL = os.getenv(
+    "POSTMAN_CONTEXT_GRAPH_API_URL",
+    "https://api.postman.com/context-graph/v1",  # placeholder — confirm on release
+)
+API_KEY = os.getenv("POSTMAN_CONTEXT_GRAPH_API_KEY")  # not yet issued
+```
+
+Expected endpoints (based on internal spec — subject to change on release):
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/graphs/{workspace_id}` | Fetch the full graph for a workspace |
+| `POST` | `/graphs/{workspace_id}/query` | Return a task-relevant slice given a natural-language ask or endpoint ref |
+| `GET` | `/graphs/{workspace_id}/consumers` | List all downstream consumers of an endpoint or field (powers `downstream-update-tasks`) |
+| `GET` | `/graphs/{workspace_id}/diff?from=...&to=...` | Compute upstream-change → downstream-impact for a given version bump |
+
+**Stub behavior until GA.** The client returns fixture data from `references/fixtures/context_graph/` so benchmark runs still complete end-to-end and the pipeline is exercised on every release. When the API goes live, only the client module changes; the four suites and the harness template layer are unaffected.
+
+**Swap-in checklist (do this the day the API ships):**
+- [ ] Replace `BASE_URL` placeholder with the announced production URL.
+- [ ] Issue a `POSTMAN_CONTEXT_GRAPH_API_KEY` and add it to `~/.claude/settings.json`.
+- [ ] Confirm the four expected endpoints match the final spec; adjust `context_graph_client.py` if renamed.
+- [ ] Delete `references/fixtures/context_graph/` (or keep it as an offline-mode fallback — decide at release).
+- [ ] Bump the `schema_ref` in the harness template from `postman.context_graph.v1.stub` to `postman.context_graph.v1`.
+- [ ] Run `/devrel-skills:model-context-graph-comparison --dry-run` end-to-end against a real workspace before re-enabling autopilot.
+
 ## When it runs
 
 - **Hourly cron** (default). Checks the watchlist below; if a new release is detected, kicks off the pipeline.
@@ -61,7 +95,9 @@ State is kept in `model-context-graph-comparison-output/seen.json` (release id �
 | `ANTHROPIC_API_KEY` | Run benchmarks against Claude models |
 | `OPENAI_API_KEY` | Run benchmarks against OpenAI models |
 | `GOOGLE_API_KEY` | Run benchmarks against Gemini |
-| `POSTMAN_API_KEY` | Pull the context graph for a target workspace / collection |
+| `POSTMAN_API_KEY` | Pull workspaces / collections / environments |
+| `POSTMAN_CONTEXT_GRAPH_API_KEY` | **Placeholder — not yet issued.** Auth for the forthcoming Context Graph API (release mid-August 2026). Until GA, the client falls back to fixtures in `references/fixtures/context_graph/`. |
+| `POSTMAN_CONTEXT_GRAPH_API_URL` | Optional base URL override for the Context Graph API. Defaults to the placeholder `https://api.postman.com/context-graph/v1` — confirm on release. |
 | `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET` | Auto-post to @getpostman |
 | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_ORG_ID` | Post to the Postman LinkedIn company page |
 | `WP_USERNAME`, `WP_APP_PASSWORD` | Publish the study as a blog post via `blog-wordpress-stage` |
@@ -221,7 +257,9 @@ Emit `harness/YYYYMMDD-<slug>.json`:
   "context_window": <int>,
   "pricing": {"input_per_1m": <float>, "output_per_1m": <float>},
   "tools": [
-    {"name": "context_graph.query", "schema_ref": "postman.context_graph.v1"},
+    {"name": "context_graph.query", "schema_ref": "postman.context_graph.v1.stub", "endpoint": "POST /graphs/{workspace_id}/query"},
+    {"name": "context_graph.consumers", "schema_ref": "postman.context_graph.v1.stub", "endpoint": "GET /graphs/{workspace_id}/consumers"},
+    {"name": "context_graph.diff", "schema_ref": "postman.context_graph.v1.stub", "endpoint": "GET /graphs/{workspace_id}/diff"},
     {"name": "http_request", "schema_ref": "postman.http.v1"},
     {"name": "collection_run", "schema_ref": "postman.collection_runner.v1"}
   ],
