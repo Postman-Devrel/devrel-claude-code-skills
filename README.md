@@ -127,6 +127,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+| `model-context-graph` | Autopilot: within an hour of a new AI model or coding framework release, benchmarks it against Postman's context graph, publishes a study with charts + token-optimization data, posts to all social accounts, and regenerates the AI harness config |
 
 ## Meetup Calendar
 
