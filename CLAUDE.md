@@ -45,6 +45,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-prod-updates` | Scan #product-updates Slack channel (past 7 days), summarize shipped features for blog-write input. Maintains memory of covered posts, auto-excludes internal-only content |
 | `/devrel-skills:social-media-manager` | Weekly social media agent team — researches blog, release notes, and trending news; creates 5 LinkedIn/Twitter posts; packages employee advocacy kit; auto-posts to Twitter Mon/Wed at 10am PST |
 | `/devrel-skills:meetup-calendar` | Summarize events (filter: `upcoming`, `past`, `YYYY`, city name). `--sync [luma-url] [--dry-run]`: match Luma events to spreadsheet rows, write URLs, offer to create missing events. `--update-stats`: fetch Luma registration/waitlist/attendance and write to sheet. |
+| `/devrel-skills:thought-leadership` | Manage thought leadership pitches — `pitches [focus]`: generate 5 vendor-neutral PR pitches, `list`: show all pitches with status, `write`: draft a full article from a pitch, `accepted`: mark a pitch as done |
 
 ## Output Directories
 
@@ -59,6 +60,7 @@ Each skill writes output to a dedicated directory:
 - `luma-output/` — Luma event stats reports (`luma-stats-{filter}.md`)
 - `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 - `meetup-output/` — Meetup calendar summaries (`meetup-calendar-YYMMDD.md`)
+- `pitch-output/` — Thought leadership pitches (`pitches-YYMMDD.md`)
 
 ## Hooks
 
