@@ -1,0 +1,105 @@
+{
+  "pitches": [
+    {
+      "id": 1,
+      "date": "2026-08-14",
+      "topic": "The Rerun Crisis: agentic workflows burn 5x more tokens than needed",
+      "angle": "Context re-sending in agent loops is the biggest invisible spend",
+      "outlets": ["The New Stack", "InfoQ", "DZone"],
+      "output_file": "pitch-output/pitches-260814.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 2,
+      "date": "2026-08-14",
+      "topic": "Token budgets belong at the API gateway",
+      "angle": "Request-based rate limiting fails for AI traffic; token-budget enforcement is the replacement",
+      "outlets": ["The New Stack", "Forbes Technology Council", "Nordic APIs"],
+      "output_file": "pitch-output/pitches-260814.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 3,
+      "date": "2026-08-14",
+      "topic": "The 73% Problem: enterprise AI budgets fail despite cheaper tokens",
+      "angle": "Token maxing is a governance problem, not an engineering problem",
+      "outlets": ["Forbes Technology Council", "VentureBeat", "TechCrunch"],
+      "output_file": "pitch-output/pitches-260814.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 4,
+      "date": "2026-08-14",
+      "topic": "Model routing is the new load balancing",
+      "angle": "100-300x cost differential between model tiers is the biggest optimization lever",
+      "outlets": ["InfoQ", "The New Stack", "SD Times"],
+      "output_file": "pitch-output/pitches-260814.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 5,
+      "date": "2026-08-14",
+      "topic": "API error messages are an agent's most expensive problem",
+      "angle": "Bad error design is an invisible token multiplier forcing agents into costly retry loops",
+      "outlets": ["The New Stack", "DZone", "Nordic APIs"],
+      "output_file": "pitch-output/pitches-260814.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 6,
+      "date": "2026-08-14",
+      "topic": "Agent Experience (AX) is the new Developer Experience",
+      "angle": "APIs designed for humans break for agents; AX is a new design discipline",
+      "outlets": ["The New Stack", "InfoQ", "Nordic APIs"],
+      "output_file": "pitch-output/pitches-260814-agent-design.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 7,
+      "date": "2026-08-14",
+      "topic": "The 56% success rate: production agents fail more than they succeed",
+      "angle": "Compounding unreliability across multi-step chains demands three-level evaluation",
+      "outlets": ["InfoQ", "The New Stack", "VentureBeat"],
+      "output_file": "pitch-output/pitches-260814-agent-design.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 8,
+      "date": "2026-08-14",
+      "topic": "Agent identities outnumber humans 45-to-1 and nobody manages them",
+      "angle": "Human-designed IAM doesn't map to continuous autonomous agents; identity governance vacuum",
+      "outlets": ["Dark Reading", "Forbes Technology Council", "The Register"],
+      "output_file": "pitch-output/pitches-260814-agent-design.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 9,
+      "date": "2026-08-14",
+      "topic": "The over-engineering trap: 40% of agent projects fail before shipping",
+      "angle": "Match pattern complexity to problem complexity; multi-agent is the last resort, not the first",
+      "outlets": ["InfoQ", "SD Times", "The New Stack"],
+      "output_file": "pitch-output/pitches-260814-agent-design.md",
+      "status": "open",
+      "draft_file": null
+    },
+    {
+      "id": 10,
+      "date": "2026-08-14",
+      "topic": "Context engineering is eating prompt engineering",
+      "angle": "69% of agent tokens go to tool-defining system prompts; context quality determines reliability",
+      "outlets": ["The New Stack", "DZone", "Towards Data Science"],
+      "output_file": "pitch-output/pitches-260814-agent-design.md",
+      "status": "open",
+      "draft_file": null
+    }
+  ],
+  "last_run": "2026-08-14T00:00:00Z"
+}
