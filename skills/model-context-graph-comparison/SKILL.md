@@ -133,43 +133,128 @@ The full run is a single deterministic pipeline. Every stage writes intermediate
 
 ### Stage 2 — Benchmark against the context graph (target: ≤ 25 min)
 
-Run the model on four task suites, first **without** the context graph (baseline) then **with** it. Reuse the same seeds and prompts so the delta is causal, not noise.
+The skill does not run the models directly. It delegates to the **ai-harness** at [`buildwithtalia/ai-harness`](https://github.com/buildwithtalia/ai-harness), which is the benchmark backend that owns the agent / model / context matrix and the deterministic + LLM-judge scoring.
 
-| Suite | What it measures | Task count | Metric |
+#### 2.1 — Invoke the harness
+
+Two supported invocations of `.github/workflows/on-model-release.yml` in the ai-harness repo. Both take the same payload; pick whichever fits the skill's execution context.
+
+**Preferred — `repository_dispatch` (fire-and-forget from anywhere with a PAT):**
+
+```bash
+gh api repos/buildwithtalia/ai-harness/dispatches \
+  -f event_type=new-model-release \
+  -F 'client_payload[model]=<vendor>/<model-id>' \
+  -F 'client_payload[adapter]=<claude|codex|devin|cursor|raw>' \
+  -F 'client_payload[releaseUrl]=<vendor release / model-card URL>' \
+  -F 'client_payload[dispatchedBy]=skill:model-context-graph-comparison'
+```
+
+Requires a PAT with `repo` scope on `buildwithtalia/ai-harness`, stored on the skill side as `AI_HARNESS_DISPATCH_TOKEN`.
+
+**Alternative — `workflow_dispatch` (equivalent, more visible in the Actions UI):**
+
+```bash
+gh workflow run on-model-release.yml \
+  --repo buildwithtalia/ai-harness \
+  -f model=<vendor>/<model-id> \
+  -f adapter=<claude|codex|devin|cursor|raw> \
+  -f releaseUrl=<vendor release / model-card URL> \
+  -f dispatchedBy=skill:model-context-graph-comparison
+```
+
+Payload fields:
+
+| Field | Meaning |
+|---|---|
+| `model` (required) | New model identifier in Vercel AI Gateway naming, e.g. `anthropic/claude-5-opus`, `openai/gpt-6`. |
+| `adapter` | Which slot to update. `claude` / `codex` / `devin` / `cursor` swap the `MODEL` constant in `src/core/agents/<adapter>.ts`. `raw` (default) appends the model to `agent-benchmark`'s `models` list as a new raw-model target that goes straight through `generateText` (no adapter). |
+| `releaseUrl` | Vendor release / model-card URL. Recorded on the run's `triggerContext`. |
+| `dispatchedBy` | Free-form caller label; use `skill:model-context-graph-comparison` for autopilot runs so the harness's audit log distinguishes skill-driven runs from manual ones. |
+
+`on-model-release.yml` then does the full pipeline server-side: applies the model update (`scripts/apply-model-update.mjs`), runs `pnpm build`, runs `pnpm eval agent-benchmark`, uploads artifacts, and commits the adapter bump back to `main` with `[skip ci]` on success — **that commit is what completes Stage 5 (regenerate the harness) for us**.
+
+#### 2.2 — What the harness runs today
+
+`agent-benchmark` ships one suite with **12 cases** across three categories, all framed APIFlow-Bench-style (broken call + error hint + ticket wrapper):
+
+| Category | Cases | Focus |
+|---|---|---|
+| `build` | 5 | Add API field, add service, v1→v2 migration, refactor to middleware, OAuth cutover |
+| `find` | 3 | API-down blast radius, trace a value through the system, DB-change blast radius |
+| `ask` | 4 | Three-way spec/collection/code drift, most-dependent endpoints, docs drift, OWASP API Top 10 review |
+
+Each case carries `difficulty` (easy / medium / hard) and `capabilityAxis[]` tags (`authentication`, `discovery`, `schema_repair`, `multistep`, `error_recovery`, `pagination`, `statefulness`, `impact_analysis`, `docs_alignment`, `security_review`). Grading is a **deterministic** scorer (must-mention, regex, structured-output against a Zod schema) on cases with ground truth, plus an **LLM judge** on category-specific 5-dimension rubrics. `passed = aggregateScore >= 0.5`.
+
+Every run automatically covers **agent × model × context** — every base agent (Claude Code, Devin, Cursor, Codex) composed against every registered context provider (baseline / `+cg` / `+orbit`) at the requested model. That's the matrix a single dispatch fills.
+
+#### 2.3 — What the harness returns
+
+The workflow uploads two artifacts (30-day retention):
+
+- `runs/<id>/` — raw per-case JSONL (`cases.jsonl`) + `manifest.json`.
+- `results/skill-input.json` — the normalised summary the skill consumes.
+
+`results/skill-input.json` is also POSTed to `SKILL_WEBHOOK_URL` on completion (with an optional `SKILL_WEBHOOK_TOKEN` bearer) so the skill can consume runs without polling the Actions API. Shape:
+
+```jsonc
+{
+  "runId": "2026-08-18T21-14-02-118Z__agent-benchmark",
+  "suite": "agent-benchmark",
+  "status": "completed",
+  "startedAt": "…", "finishedAt": "…",
+  "models": ["claude", "claude+cg", "claude+orbit", …],
+  "caseCount": 12,
+  "aggregate": {
+    "perModel": {
+      "<target>": { "meanScore", "passRate", "totalCostUsd", "totalInputTokens", "totalOutputTokens", "p50LatencyMs", "p95LatencyMs" }
+    }
+  },
+  "perCategoryByTarget": [
+    { "target": "claude", "category": "build", "passRate": 0.6, "meanScore": 0.71, "caseCount": 5 },
+    …
+  ],
+  "providerDeltas": [
+    { "agent": "claude", "model": "anthropic/claude-opus-4-7", "providerId": "cg",
+      "passRateDelta": 0.10, "meanScoreDelta": 0.09, "costDelta": 0.02, "p50LatencyDelta": 340 },
+    …
+  ],
+  "triggerContext": {
+    "modelId": "anthropic/claude-5-opus",
+    "adapterChanged": "claude",
+    "releaseUrl": "https://www.anthropic.com/news/claude-5-opus",
+    "workflowRunUrl": "https://github.com/buildwithtalia/ai-harness/actions/runs/1234",
+    "dispatchedBy": "skill:model-context-graph-comparison"
+  },
+  "emittedAt": "…"
+}
+```
+
+Every `providerDeltas` row is keyed on **`(agent, model, providerId)`**, so the skill can attribute the tagline per triple (e.g. *"the graph helps Claude Opus 4.7 more than Claude Sonnet 4.5"*).
+
+#### 2.4 — Compute the tagline deltas
+
+From the JSON above (and, when per-case detail is needed, `cases.jsonl` in the uploaded artifact):
+
+- `success_delta` / **"X% better at APIs"** — `providerDeltas[].meanScoreDelta` or `passRateDelta`, filtered against `perCategoryByTarget` where `category ∈ {build, ask}` for API-shaped work.
+- `token_delta_pct` — token deltas per case are in `cases.jsonl`; aggregates per target in `aggregate.perModel[target].totalOutputTokens`.
+- `cost_per_success_delta` / **"Y% cheaper per task"** — `totalCostUsd / passCount` for base vs `+provider` on the same (agent, model).
+- `autonomy_delta` / **"Z% more autonomous"** — `diagnostics.toolCallCount + stepCount` per case in `cases.jsonl`. `(baseline_tools − provider_tools) / baseline_tools` at equal-or-higher `aggregateScore`.
+
+Write the raw rows to `studies/YYYYMMDD-<slug>/data.csv` (denormalise the harness's per-case JSONL: one row per `(target, case)` with the aggregated + per-category + per-provider fields inlined).
+
+#### 2.5 — Planned expansion (v2 of this pipeline)
+
+The four-suite shape below — `api-tasks` / `coding-tasks` / `autonomy-tasks` / `downstream-update-tasks` — is the aspirational target. It requires deterministic-mock backends per task and validators per case, which the harness has scaffolding for (`groundTruth.checks[]`, Zod `structured-output` checks, deterministic scorer) but hasn't fully populated. Until it lands, the pipeline runs the 12-case `agent-benchmark` suite and reports the same axes (success, tokens, cost, autonomy) via the mapping above.
+
+| Suite (planned) | What it measures | Task count | Metric |
 |-------|------------------|------------|--------|
 | `api-tasks` | Call the right endpoint with the right params from a natural-language ask against a Postman workspace | 30 | Task success rate, tokens per successful task, wall-clock |
 | `coding-tasks` | Fix or extend code that calls the same APIs (SWE-bench-lite-style, scoped to API-integration bugs) | 20 | Pass@1, tokens per task, wall-clock |
 | `autonomy-tasks` | Multi-step goals that require chaining 3+ endpoints with no human turn (τ-bench-style) | 15 | Goal completion rate, tool-call efficiency (calls-per-goal), tokens per goal |
 | `downstream-update-tasks` | Given an upstream API change (new version, deprecated field, renamed param, tightened auth, changed response shape), identify every downstream consumer and generate correct patches for each | 20 | Consumer recall (%), consumer precision (%), patch correctness (pass@1), tokens per completed migration, wall-clock |
 
-**Why `downstream-update-tasks` is a first-class suite.** This is the task the context graph is uniquely built for. A vanilla model sees the upstream change and then has to grep-and-guess across the codebase — it doesn't know which collections, environments, integrations, or repos call the endpoint, and it doesn't know which fields are actually read downstream. The context graph carries that topology: `endpoint → consumers → the specific request/response fields each one touches`. In practice this collapses a "read every file that mentions `/v1/users`" search into "traverse three edges of the graph."
-
-Each `downstream-update-tasks` scenario ships with a seeded fixture repo + workspace + collection so the run is reproducible:
-- `upstream_change` — the exact diff to the OpenAPI spec / collection.
-- `ground_truth_consumers` — the full list of downstream artifacts that require edits.
-- `ground_truth_patches` — the reference patch for each consumer, plus a test suite that must pass after patching.
-
-For every scenario record:
-- `consumers_identified` (set) — used to compute recall vs `ground_truth_consumers`.
-- `consumers_touched_but_not_needed` (set) — used to compute precision.
-- `patch_test_pass_rate` — fraction of ground-truth tests that pass after the model's patches are applied.
-- `tokens_in`, `tokens_out`, `tool_calls`, `wall_ms`.
-
-For every task record:
-- `tokens_in`, `tokens_out`, `tool_calls`, `wall_ms`, `success (bool)`, `error_category`
-- Baseline (no context graph): the model gets only the natural-language ask.
-- Context graph: the model gets the same ask + the relevant slice of the graph as tool schemas + example calls.
-
-Compute:
-- `success_delta` = success_with_graph − success_baseline
-- `token_delta_pct` = (tokens_baseline − tokens_with_graph) / tokens_baseline
-- `cost_per_success_delta` using the vendor's published $/1M pricing
-- `autonomy_delta` = (goals completed with ≤ N tool calls with graph) − (baseline)
-- `dependency_recall_delta` = consumer recall with graph − baseline
-- `dependency_precision_delta` = consumer precision with graph − baseline
-- `migration_pass_delta` = patch_test_pass_rate with graph − baseline
-
-Write the raw rows to `studies/YYYYMMDD-<slug>/data.csv`.
+**Why `downstream-update-tasks` matters.** A vanilla model sees the upstream change and has to grep-and-guess across the codebase — it doesn't know which collections, environments, integrations, or repos call the endpoint, and it doesn't know which fields are actually read downstream. The context graph carries that topology: `endpoint → consumers → the specific request/response fields each one touches`. In practice this collapses a "read every file that mentions `/v1/users`" search into "traverse three edges of the graph." When this suite ships in the harness, its `dependency_recall_delta`, `dependency_precision_delta`, and `migration_pass_delta` will flow into `providerDeltas` alongside the existing metrics.
 
 ### Stage 3 — Generate visuals (target: ≤ 10 min)
 
