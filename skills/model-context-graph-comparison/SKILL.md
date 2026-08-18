@@ -258,20 +258,27 @@ The four-suite shape below — `api-tasks` / `coding-tasks` / `autonomy-tasks` /
 
 ### Stage 3 — Generate visuals (target: ≤ 10 min)
 
-Follow the `dataviz` skill's conventions for palette, mark specs, and legend rules. Produce PNGs at 2× density so they read well on LinkedIn and X.
+Follow the `dataviz` skill's conventions for palette, mark specs, and legend rules. Produce PNGs at 2× density so they read well on LinkedIn and X. Every chart is generated from the harness's return payloads — `results/skill-input.json` for aggregates and per-(agent, model, provider) deltas, and `runs/<id>/cases.jsonl` (in the workflow artifact) for per-case detail. The chart and the number cannot disagree because they share a source file.
 
-Required charts:
+Required charts (all derivable from the current 12-case `agent-benchmark` shape):
 
-1. **Bar chart** — Task success rate: baseline vs context graph, one bar pair per suite (4 pairs). Include the delta as an inline label.
-2. **Grouped bar** — Tokens per successful task, baseline vs context graph, one group per suite. Percentage saving labeled on top of the "with graph" bar.
-3. **Bar chart** — Cost per successful task, baseline vs context graph. Same layout as (2), but in USD.
-4. **Line chart** — Cumulative goal completion over tool-call budget (autonomy suite). One line per condition. The X axis is "tool calls allowed"; the Y is "goals completed."
-5. **Scatter or 2×2 quadrant** — Downstream-update suite: consumer recall (X) vs consumer precision (Y), one point per scenario. Two series (baseline / context graph). The context-graph cluster should sit in the top-right; the baseline cluster typically drifts down-and-left. A dashed diagonal marks the "F1 = 1" line for reference.
-6. **Stacked bar** — Migration cost per scenario in the downstream-update suite: tokens split into `discovery` (finding consumers) vs `patching` (writing edits). The delta on the discovery segment is usually the dramatic one — that's the context graph's job.
-7. **Radar (optional)** — model self-reported benchmarks vs measured-with-graph across the four suites.
-8. **Header image** — hand off to `/devrel-skills:blog-header-image` with a prompt like `Postman context graph amplifying <model-name>` (2560×1355 PNG, no text).
+1. **Bar chart — pass rate.** One bar pair per `(agent, model)` row that has both a baseline and a `+cg` variant in the run. X ticks show `<agent>@<short-model>`; two bars per group (`baseline`, `+cg`); delta inline. Source: `providerDeltas[]` for the paired rows, `aggregate.perModel[<target>].passRate` for the raw numbers.
+2. **Grouped bar — output tokens per passed case.** Same X axis as (1). Bars = `totalOutputTokens / passCount` for `baseline` vs `+cg`. `token_delta_pct` labeled on top of the `+cg` bar. Source: `aggregate.perModel[<target>].{totalOutputTokens, passRate}` × `caseCount`.
+3. **Bar chart — cost per passed case in USD.** Same layout as (2), Y = `totalCostUsd / passCount`. Source: `aggregate.perModel[<target>].{totalCostUsd, passRate}`.
+4. **Grouped bar — mean score by category.** Three groups (`build` / `find` / `ask`), one bar cluster per `(agent, model)` × `{baseline, +cg}` within each. Surfaces category-specific wins for the graph (usually `find` benefits most). Source: `perCategoryByTarget[]`.
+5. **Scatter — quality vs latency tradeoff.** One point per `(agent, model, condition)`. X = `meanScore`, Y = `p50LatencyMs`. `+cg` points should sit right of their base (higher quality) but usually a bit above (added lookup time); the caption calls out whether the delta is worth the latency. Source: `aggregate.perModel[<target>].{meanScore, p50LatencyMs}`.
+6. **Radar (optional) — judge dimensions.** Five axes = the LLM-judge dimensions for the dominant category (or a union — `problem_understanding / plan_quality / completeness / actionability / risk`), averaged across the run's cases per condition. One polygon per `(agent, model, condition)` triple. Source: `runs/<id>/cases.jsonl` → `scores.llmJudge.details.dimensions`.
+7. **Header image** — hand off to `/devrel-skills:blog-header-image` with a prompt like `Postman context graph amplifying <model-name>` (2560×1355 PNG, no text).
+
+Multi-provider runs (harness supports `+orbit` and additional providers alongside `+cg`) fan out charts 1–5 into one panel per provider so the delta view stays clean.
 
 Chart script location: `skills/model-context-graph-comparison/references/make_charts.py` (matplotlib, uses the dataviz palette).
+
+**Charts blocked on v2 of the pipeline** (see Stage 2.5 — need the four-suite / downstream-update shape to exist first):
+
+- **Line chart — cumulative goal completion over tool-call budget** (autonomy suite). Requires per-case tool-call traces from Claude/Codex too, not just Devin/Cursor. The harness's `diagnostics.toolCallCount` is populated but zero for Claude/Codex until they get a tool set.
+- **Scatter — consumer recall vs consumer precision** (downstream-update suite). Requires a `downstream-update-tasks` suite with ground-truth `consumers_identified` / `ground_truth_consumers` fields — planned, not shipped.
+- **Stacked bar — migration cost split into `discovery` vs `patching`** — same v2 dependency.
 
 ### Stage 4 — Write the study (target: ≤ 10 min)
 
@@ -287,49 +294,54 @@ keywords: [...]
 ---
 
 ## The one-line result
-<Model> ships today. On API + coding + autonomy + downstream-migration tasks,
-Postman's context graph lifts task success by X%, cuts tokens per successful
-task by Y%, reduces cost per completed goal by Z%, and finds W% more of the
-downstream consumers that need updating when an upstream API changes.
+<Model> ships today. Across build / find-issue / ask engineering tickets,
+Postman's context graph lifts judge score by X%, changes pass rate by Y
+percentage points, and shifts cost per passed task by Z% for
+<agent + model triple with the strongest delta>. Full per-triple table below.
 
 ## Why it matters (qualitative)
 - The model isn't the bottleneck; the *context* it's given is.
 - The context graph replaces "here are 800 API docs, figure it out" with
   "here is the exact slice you need."
-- For agentic autonomy, this is the difference between a demo and a shippable
-  agent.
-- For downstream migrations, the context graph is the API's dependency map —
-  the model no longer has to grep-and-guess which consumers use a field.
+- For find-issue and blast-radius tasks, the graph is the difference between
+  a plausible narrative and a correct one — those cases benefit most.
+- Attribution matters: the same graph can help Claude Opus more than
+  Claude Sonnet on the same task set. Every delta is per (agent, model, provider).
 
-## The four benchmarks
-### API tasks
-<chart 1 embed>
-<paragraph with 2–3 concrete task examples and what changed>
+## The three prompt categories
+### Build (5 cases)
+<chart 1 embed for pass rate + chart 4 embed for score-by-category>
+<paragraph with 1–2 concrete prompt examples and what changed>
 
-### Coding tasks
-<chart 2 embed>
-<paragraph>
+### Find (3 cases)
+<chart 4 embed for score-by-category>
+<paragraph — this category usually benefits the most from the graph>
 
-### Agentic autonomy
+### Ask (4 cases)
 <chart 4 embed>
-<paragraph>
-
-### Downstream dependency updates
-<chart 5 + 6 embed>
-Walk through one concrete migration end-to-end: the upstream diff, the list
-of consumers the graph surfaced (that a vanilla model missed or hallucinated),
-the patch it generated, and the test pass rate. Show the token split between
-discovery and patching — this is where the context graph earns its keep.
+<paragraph — OWASP review + endpoint drift tend to live here>
 
 ## Token economics
 <chart 2 + 3 embed>
-<table: raw numbers>
+<table: raw numbers per (agent, model), baseline vs +cg>
+
+## Latency cost
+<chart 5 embed>
+Every context-graph call adds a lookup step. Report the median added latency
+per prompt and whether it was worth the quality delta.
+
+## Judge dimensions (optional)
+<chart 6 embed if generated>
+Where does the graph help most: understanding, planning, completeness, risk,
+or actionability? Call out the top-two dimensions per (agent, model).
 
 ## Reproducing this
-<link to data.csv, harness config, and the exact prompts used>
+<link to data.csv, the harness run URL, and the exact prompt file
+`src/evals/agent-benchmark.ts` at the commit that ran>
 
 ## What we're shipping
-<harness config regenerated with the new model, link to the diff>
+<the on-model-release.yml commit that bumped the MODEL constant in the
+relevant adapter, link to the diff>
 ```
 
 ### Stage 5 — Regenerate the harness (target: ≤ 5 min)
@@ -364,8 +376,8 @@ Open a PR against the appropriate config file if the harness lives in the repo; 
 
 Reuse the posting patterns from `social-media-manager`. Post to every channel where credentials are configured, in parallel:
 
-1. **Twitter/X** — 6–8 tweet thread. Tweet 1 is the headline delta. Tweet 2 is chart 1 (success rate across all four suites). Tweet 3 is chart 2 (token savings). Tweet 4 is chart 5 (downstream-update recall/precision) with a one-line "the model finds the consumers it couldn't grep for" caption. Tweet 5 is the qualitative why. Tweet 6 links to the study. Tweet 7 links to the regenerated harness config.
-2. **LinkedIn** — long-form post version, chart 1 as the cover image, chart 2 inline. CTA: read the study, try the harness config.
+1. **Twitter/X** — 5–7 tweet thread. Tweet 1: headline delta for the strongest (agent, model, provider) triple. Tweet 2: chart 1 (pass-rate per pair, baseline vs +cg). Tweet 3: chart 2 (output tokens per passed case, with `token_delta_pct` label). Tweet 4: chart 4 (score by category — call out the category with the biggest lift; usually `find`). Tweet 5: chart 5 (quality-vs-latency tradeoff — be honest about the added lookup time). Tweet 6: links to the study. Tweet 7 (optional): the workflow-run URL from `triggerContext.workflowRunUrl` so anyone can see the raw artifacts.
+2. **LinkedIn** — long-form post, chart 1 as the cover image, chart 4 inline. CTA: read the study, try the harness config, click through to `buildwithtalia/ai-harness`.
 3. **YouTube Short** — 30–60s script + b-roll callouts (charts, terminal, Postman UI). Written to `posts/*-youtube-short.md`; production hand-off is manual for now.
 4. **Blog** — stage the study to WordPress via `/devrel-skills:blog-wordpress-stage` as a draft with the header image and SEO frontmatter.
 5. **Discord** — post a short announcement in `#announcements` with the headline delta and a link to the blog.
@@ -374,7 +386,7 @@ Every posted URL is recorded in `run-log-YYYYMMDD-<slug>.md`.
 
 ## Guardrails
 
-- **Never post an unfavorable result silently.** If any of the three suites shows the context graph making the model *worse*, halt at Stage 4 and require a human before Stage 6.
+- **Never post an unfavorable result silently.** If any category (`build` / `find` / `ask`) shows the context graph making the model *worse* — negative `meanScoreDelta` or `passRateDelta` for that `(agent, model, +cg)` triple — halt at Stage 4 and require a human before Stage 6. Include the negative delta in the study body regardless; do not hide it.
 - **No made-up numbers.** Every delta on a chart or in the study must come from a row in `data.csv`. Regenerate visuals from CSV so the chart and the number cannot disagree.
 - **Cite the model's own claims.** If a vendor advertises "20% better on SWE-bench," include their claim next to our measured delta on the same task. Contrast, don't hide.
 - **No marketing language.** Guardrail list: avoid "supercharge", "unlock", "revolutionize", "leverage", "game-changing", "revolutionary."
