@@ -36,7 +36,8 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-wordpress-stats` | Show the number of blog posts published between two dates on blog.postman.com, with breakdowns by month and author |
 | `/devrel-skills:blog-dashboard` | Start or stop the blog pipeline Kanban dashboard Flask app (`http://localhost:5001`) — `start` or `stop` |
 | `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
-| `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences |
+| `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes to `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
+| `/devrel-skills:cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page — add, update, delete, or archive submissions and track status (planned/submitted/accepted/rejected/waitlisted/withdrawn). Can import CFPs discovered by `cfp-hunter` as **Planned** rows. Confluence is the single source of truth |
 | `/devrel-skills:event-sponsorships` | Find events with sponsorship opportunities in the API/AI space — classifies PLG vs SLG, scores relevance to Postman. Filter by AI, API, or mixed |
 | `/devrel-skills:newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter from Luma calendar + AI/API news |
 | `/devrel-skills:influencer-autoagent` | Find and rank developer influencers for product launches — scores candidates on technical credibility, audience reach, and topic alignment |
@@ -44,6 +45,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-prod-updates` | Scan #product-updates Slack channel (past 7 days), summarize shipped features for blog-write input. Maintains memory of covered posts, auto-excludes internal-only content |
 | `/devrel-skills:social-media-manager` | Weekly social media agent team — researches blog, release notes, and trending news; creates 5 LinkedIn/Twitter posts; packages employee advocacy kit; auto-posts to Twitter Mon/Wed at 10am PST |
 | `/devrel-skills:meetup-calendar` | Summarize events (filter: `upcoming`, `past`, `YYYY`, city name). `--sync [luma-url] [--dry-run]`: match Luma events to spreadsheet rows, write URLs, offer to create missing events. `--update-stats`: fetch Luma registration/waitlist/attendance and write to sheet. |
+| `/devrel-skills:thought-leadership` | Manage thought leadership pitches — `pitches [focus]`: generate 5 vendor-neutral PR pitches, `list`: show all pitches with status, `write`: draft a full article from a pitch, `accepted`: mark a pitch as done |
 
 ## Output Directories
 
@@ -58,6 +60,7 @@ Each skill writes output to a dedicated directory:
 - `luma-output/` — Luma event stats reports (`luma-stats-{filter}.md`)
 - `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 - `meetup-output/` — Meetup calendar summaries (`meetup-calendar-YYMMDD.md`)
+- `pitch-output/` — Thought leadership pitches (`pitches-YYMMDD.md`)
 
 ## Hooks
 

@@ -59,3 +59,14 @@ Write results to `/cfp-output/current-cfps.md` immediately after searches comple
 | ... | ... | ... | ... | ... |
 
 Sort each category by CFP closing date (soonest first). Only include events with CFPs that are currently open or opening soon.
+
+## Next step — track the ones you want to pursue
+
+After writing the results, tell the user they can hand the discoveries off to the
+tracker:
+
+> Run `/devrel-skills:cfp-tracker` and say e.g. *"add the top 3 from the hunter
+> results"* to record them on the Team CFP Tracker as **Planned** submissions.
+
+The tracker reads this same `cfp-output/current-cfps.md` file, so no copy-paste is
+needed — the user just picks which discovered CFPs to plan for.
