@@ -128,6 +128,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+| `webinar-manager` | Run a developer webinar: create/update the Luma event, file the Social Promo Card request in Jira (`MKTG`), draft the promo email and Twitter/X + LinkedIn posts, and report Luma + Riverside metrics. Needs `LUMA_API_KEY` and the Atlassian MCP. Luma/Jira writes require approval; copy is draft only. See `skills/webinar-manager/SKILL.md` |
 | `content-metrics` | Pull blog + YouTube stats, join Postman product attribution (signups / first-run / D-7 / D-30) via Looker, and post a Content → Product digest to Slack. Defaults to a 30-day window; pass an integer or phrase (`7`, `last week`, `90`, `last quarter`) to change it. See `docs/content-funnel.md` for the funnel model and `skills/content-metrics/SKILL.md` for setup. |
 
 ## Meetup Calendar
@@ -260,6 +261,7 @@ Each skill writes to a dedicated directory:
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
 | `blog-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.prod-update-memory.json` |
+| `webinar-output/` | `webinar-manager` | `{slug}/brief.md`, `email.md`, `posts.md`, `metrics.md` + `.webinar-state.json` |
 
 ## Hooks
 
@@ -506,6 +508,14 @@ If you see an error that the `getConfluencePage` / `updateConfluencePage` tools
 aren't available, the connector isn't loaded — re-check `/mcp` and confirm the
 Atlassian server shows as **connected**. If a fetch fails with a permissions error,
 make sure your Atlassian account has access to the DE (Developer Evangelism) space.
+
+---
+
+### Luma and Jira Setup (for `webinar-manager`)
+
+- **Luma:** set `LUMA_API_KEY` in `.claude/settings.json` under `env`, using a key with write access to the Postman Dev Events calendar (Luma **Settings → Integrations → API**).
+- **Jira:** uses the same Atlassian MCP connection as `cfp-tracker` (above). Your Atlassian account needs permission to create issues in the `MKTG` project.
+- **Riverside:** no API access is assumed. After the stream, export the Riverside analytics (CSV or PDF) and pass the file path to `/devrel-skills:webinar-manager metrics <slug> <path>`.
 
 ---
 
