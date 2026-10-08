@@ -1,8 +1,8 @@
 ---
 name: webinar-manager
-description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma + Riverside metrics after the stream. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts only."
+description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma + Riverside metrics after the stream. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
 argument-hint: "new <title/brief> | luma [--dry-run] | jira | email | promo [--card <path>] | status | metrics <slug> [riverside-export-path]"
-allowed-tools: ["Bash", "Read", "Write", "Edit", "mcp__atlassian__searchJiraIssuesUsingJql", "mcp__atlassian__getJiraIssue", "mcp__atlassian__createJiraIssue", "mcp__atlassian__lookupJiraAccountId", "mcp__atlassian__getJiraIssueTypeMetaWithFields"]
+allowed-tools: ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch", "mcp__atlassian__searchJiraIssuesUsingJql", "mcp__atlassian__getJiraIssue", "mcp__atlassian__createJiraIssue", "mcp__atlassian__lookupJiraAccountId", "mcp__atlassian__getJiraIssueTypeMetaWithFields"]
 ---
 
 # Webinar Manager
@@ -14,12 +14,12 @@ One skill, one brief, every stage of a developer webinar. Webinars stream on Riv
 | `new` | Collects the brief, then runs `luma`, `jira`, `email`, `promo` in order | local files, Luma, Jira |
 | `luma` | Creates or updates the Luma event (diff shown first) | Luma |
 | `jira` | Files the parent webinar task and the "Social Promo Card" sub-task | Jira (`MKTG`) |
-| `email` | Drafts the promotional email | `email.md` |
-| `promo` | Drafts Twitter/X and LinkedIn posts that use the promo card | `posts.md` |
+| `email` | Fetches the promo card, writes a one-sentence promo and the email with related blog posts and YouTube videos, then asks for approval | `email.md` |
+| `promo` | Fetches the promo card, writes a one-sentence promo and the LinkedIn and Twitter/X drafts, then asks for approval | `posts.md` |
 | `status` | Shows stage progress and the promo card ticket status | nothing |
 | `metrics` | Merges Luma stats with a Riverside export | `metrics.md` |
 
-Nothing is ever posted or sent by this skill. Talia posts to Twitter/X and LinkedIn and sends the email herself.
+Nothing is ever posted or sent by this skill. The email and each social draft end with an approval question; an approval marks the draft final in the file and the user posts to Twitter/X and LinkedIn and sends the email themselves.
 
 ## Hard rules
 
@@ -35,6 +35,7 @@ Nothing is ever posted or sent by this skill. Talia posts to Twitter/X and Linke
 
 - `LUMA_API_KEY` in `.claude/settings.json` under `env` (key with write access to the Postman Dev Events calendar). Check with `[ -n "$LUMA_API_KEY" ] && echo set`. Do not echo the value.
 - Jira goes through the Atlassian MCP (`mcp__atlassian__*`), site `postmanlabs.atlassian.net`. If the tools are unavailable, tell the user to connect the Atlassian MCP and stop the Jira stage.
+- `JIRA_EMAIL` and `JIRA_API_TOKEN` in `.claude/settings.json` under `env`, used only to download the promo card attachment (`references/jira-card.py`, read-only). Create the token at https://id.atlassian.com/manage-profile/security/api-tokens. Check with `[ -n "$JIRA_API_TOKEN" ] && echo set`. If they are missing, tell the user how to add them and fall back to asking for a local card path (`promo --card <path>`).
 - Luma calendar: `cal-TGqTNpY4iyl7XYe`.
 
 ## Files and state
@@ -111,7 +112,7 @@ Helper: `references/luma-webinar.py`. Copy it to the scratchpad (not `/tmp` if a
 
 Description copy comes from the brief abstract and takeaways. Save the event `api_id` and URL to the state file and set `stages.luma` to true.
 
-**Host (every run):** `python3 luma-webinar.py add-host {evt} talia.kohan@postman.com "Talia Kohan"` shows what it would send. After approval, rerun with `--apply`, then `get {evt}` to confirm. If Luma rejects the call, say so and tell the user to add Talia as host in the Luma UI. Do not mark `stages.luma` complete until the host is confirmed or the user acknowledges the manual step.
+**Host (every run):** `python3 luma-webinar.py add-host {evt} talia.kohan@postman.com "Talia Kohan"` shows what it would send. After approval, rerun with `--apply`. A successful call returns `{}` with HTTP 200. `get` does not return a hosts field, so the API cannot confirm it: tell the user to check the host list on the event's Luma manage page. If Luma rejects the call, say so and tell the user to add Talia as host in the Luma UI. Do not mark `stages.luma` complete until the call succeeded or the user acknowledges the manual step.
 
 **Visibility (new events only):** after the host step, ask "The event is private. Make it public?" If yes, send `{"visibility": "public"}` through `update` (diff first, then `--apply`). If no, leave it private and note that in the final report.
 
@@ -120,23 +121,45 @@ Description copy comes from the brief abstract and takeaways. Save the event `ap
 Reuse what the team already does: a parent task `[Webinar] {title} {M/D}` under epic `MKTG-8442` (Technical Content), with a sub-task `Social Promo Card` labeled `creative`, assigned to the creative designer. Templates are in `references/templates.md`.
 
 1. **Look for existing tickets first.** Run `searchJiraIssuesUsingJql` with `project = MKTG AND summary ~ "{distinctive title words}" ORDER BY created DESC` and also `parent = {key}` for sub-tasks. Request only the fields you need (`summary`, `status`, `parent`, `assignee`, `duedate`, `labels`) to keep results small. If a matching `[Webinar]` task or `Social Promo Card` sub-task exists, link it in state and do not create a duplicate.
-2. **Create what is missing.** Fetch field metadata with `getJiraIssueTypeMetaWithFields` for `Task` and `Sub-task` in `MKTG` if you are unsure of required fields. Find the assignee with `lookupJiraAccountId` (default: Jonathan Holt; ask if the user wants someone else). Show the full ticket text, assignee, and due date, wait for approval, then `createJiraIssue`.
+2. **Create what is missing.** Fetch field metadata with `getJiraIssueTypeMetaWithFields` for `Task` and `Sub-task` in `MKTG` if you are unsure of required fields. The Social Promo Card sub-task is always assigned to Jonathan Holt on the Creative Team: `assignee_account_id` `712020:9cde7faf-7906-4356-9914-39bd911dac81` (jonathan.holt@postman.com) and label `creative`, which is how the Creative Team is marked on the reference ticket MKTG-11062 (it has no team field or component). Do not ask who to assign it to and do not look up another user. Only re-run `lookupJiraAccountId` if the create call rejects that id. Show the full ticket text, assignee, and due date, wait for approval, then `createJiraIssue`.
 3. Save the keys to state as `jira_parent` and `jira_card`, set `stages.jira` to true.
-4. **Re-check on every run.** For an existing `jira_card`, fetch its status. The Atlassian MCP cannot download attachments, so when the status is Done tell the user to download the finished card, then run `promo --card {path}` so the agent knows where it is.
+4. **Re-check on every run.** For an existing `jira_card`, fetch its status. When it is Done, the `email` and `promo` stages download the card themselves (see "Promo card" below). The Atlassian MCP cannot download attachments, so the download uses `jira-card.py`.
+
+## Promo card
+
+Used by `email` and `promo` before any copy is written.
+
+1. If `--card <path>` was given, verify it exists and store it as `card_path`.
+2. Otherwise, if state has `jira_card`, run `python3 jira-card.py list {jira_card}`, then `python3 jira-card.py download {jira_card} webinar-output/{slug}/` (copy the helper to the scratchpad first). It saves the newest image attachment and prints the path; store that as `card_path` in state.
+3. If the ticket has no image yet (exit code 2) or the Jira credentials are missing, set `Card: card pending`, say which of the two it is, and continue. Never invent or substitute an image.
+
+## Promo sentence
+
+Both `email` and `promo` start from the same one-sentence promo, written once and saved at the top of `posts.md` and `email.md`. It must summarize the abstract in plain words, name the date, and name the time with timezone, for example: "{what the webinar shows, from the abstract} on {Weekday, Month D} at {time} {tz}." One sentence, from the brief only, no claims that are not in the abstract.
+
+## Approval checkpoint
+
+After a draft file is written and passes the copy-rule check, show the full draft (and the card path) and ask: "Approve this {email|LinkedIn post|Twitter/X post}?" On approval, set `Status: approved` at the top of that section in the file and tell the user it is ready for them to post or send. On requested changes, edit the file and ask again. Never post, send, or schedule anything.
 
 ## Stage: `email`
 
-1. Read `brief.md`. Search `blog-output/` (and `blog-output/.prod-update-memory.json` if present) for posts related to the topic and add them to related content only when they actually exist.
-2. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, body, one CTA to the Luma link with `?utm_source=email`.
-3. Run the copy-rule check (below) and fix any hit before reporting.
+1. Read `brief.md`. Get the promo card ("Promo card") and write the promo sentence ("Promo sentence").
+2. **Find related content, newest first.** Always search these, in addition to the brief's related content:
+   - **Postman blog:** `WebSearch` for `site:blog.postman.com {topic keywords}` and check `blog-output/` (and `blog-output/.prod-update-memory.json` if present). Keep posts from the last 12 months that are clearly about the webinar topic.
+   - **Postman YouTube channel:** `WebSearch` for `site:youtube.com Postman {topic keywords}` and for the channel's latest uploads (`youtube.com/@Postman`, fetched with `WebFetch`). Keep videos that are clearly about the topic, newest first.
+   - Include at most 3 blog posts and 3 videos. Link only URLs that were returned by the search or fetch and that match the topic. If nothing relevant turns up for one source, say so in the draft's notes and leave that source out. Never guess a URL or a video title.
+3. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, the promo sentence, the card image reference, body, a "Related reading and videos" list from step 2, and one CTA to the Luma link with `?utm_source=email`.
+4. Run the copy-rule check (below) and fix any hit.
+5. Run the approval checkpoint for the email.
 
 ## Stage: `promo [--card <path>]`
 
-1. Read `brief.md` and state. If `--card` is given, verify the file exists and store it as `card_path`.
-2. Write `webinar-output/{slug}/posts.md` using the Twitter/X and LinkedIn skeletons: announce, reminder (one week out), and day-of for each channel, plus one Twitter/X thread option.
-3. Each post names the card file on a `Card:` line. If `card_path` is null, write `Card: card pending` and tell the user the card ticket must be Done first.
-4. Include a posting schedule suggestion based on the webinar date. Do not post anything.
+1. Read `brief.md` and state. Get the promo card ("Promo card") and write the promo sentence ("Promo sentence").
+2. Write `webinar-output/{slug}/posts.md` using the Twitter/X and LinkedIn skeletons: the promo sentence, one LinkedIn post, and one Twitter/X post, each built on the promo sentence and each naming the card file. Draft the reminder (one week out), day-of, and Twitter/X thread posts only if the user asks for them.
+3. Each post names the card file on a `Card:` line. If `card_path` is null, write `Card: card pending` and tell the user why (ticket not Done, no image attached, or Jira credentials missing).
+4. Include a posting schedule suggestion based on the webinar date.
 5. Run the copy-rule check and fix any hit.
+6. Run the approval checkpoint once for LinkedIn and once for Twitter/X.
 
 ## Stage: `status`
 

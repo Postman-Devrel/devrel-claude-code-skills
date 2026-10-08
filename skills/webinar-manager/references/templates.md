@@ -25,8 +25,8 @@ Speakers: {name (title)}, ...
 - Issue type: `Sub-task`, parent is the task above
 - Summary: `Social Promo Card`
 - Labels: `creative`
-- Assignee: Jonathan Holt (look up the account id with `lookupJiraAccountId`)
-- Due date: 10 days before the webinar, or tomorrow if the webinar is sooner
+- Assignee: always Jonathan Holt, Creative Team (account id `712020:9cde7faf-7906-4356-9914-39bd911dac81`)
+- Due date: 3 weeks (21 days) before the webinar, or tomorrow if the webinar is less than 3 weeks away
 
 Description:
 
@@ -56,11 +56,17 @@ File: `webinar-output/{slug}/email.md`
 
 **Preview text:** {under 90 characters}
 
+**Promo sentence:** {one sentence: abstract summary + date + time and timezone}
+
+**Card:** {card_path_or_"card pending"}
+
+**Status:** draft
+
 ---
 
 Hi {first_name},
 
-{One sentence on the problem the webinar addresses.}
+{The promo sentence, or a natural variation of it.}
 
 On {date} at {time} {timezone}, {speaker names} will {what they will do, concrete}.
 
@@ -69,7 +75,9 @@ You will see:
 - {takeaway 2}
 - {takeaway 3}
 
-{One sentence linking related content, for example "If you want background first, read {blog title}: {url}".}
+**Related reading and videos**
+- Blog: [{blog title}]({url})
+- Video: [{video title}]({youtube_url})
 
 [Save your spot]({luma_url}?utm_source=email)
 
@@ -78,28 +86,31 @@ Can't make it live? Register anyway and we will send the recording.
 {sign-off}
 ```
 
-Pull "related content" from the brief first, then from `blog-output/` posts that match the topic. Link only URLs that exist.
+Related content order: the brief first, then posts found on blog.postman.com and videos on the Postman YouTube channel, newest first (at most 3 of each), then matching `blog-output/` posts. Link only URLs that a search or fetch actually returned and that match the topic. Omit a list when nothing relevant exists and say so in a note under the draft.
 
 ## Social: Twitter/X skeleton
 
-Keep each post under 280 characters. One link per post, `?utm_source=twitter`. Name the card file on the line after each post.
+Keep each post under 280 characters. One link per post, `?utm_source=twitter`. Name the card file on the line after each post. The default is one announce post built on the promo sentence. Draft the reminder, day-of, and thread only when the user asks.
 
 ```markdown
-### Announce
-{Hook about the problem or what attendees will see.} {Date}, {time} {tz}.
+**Promo sentence:** {one sentence: abstract summary + date + time and timezone}
+
+### Twitter/X: Announce
+Status: draft
+{Promo sentence, trimmed to fit.}
 {luma_url}?utm_source=twitter
 Card: {card_path_or_"card pending"}
 
-### Reminder (1 week out)
+### Reminder (1 week out, only if asked)
 {New angle: a specific thing the speakers will demo or answer.}
 {luma_url}?utm_source=twitter
 Card: ...
 
-### Day of
+### Day of (only if asked)
 Starting at {time} {tz}: {what they are doing today}. {luma_url}?utm_source=twitter
 Card: ...
 
-### Thread option
+### Thread option (only if asked)
 1/ {hook}
 2/ {takeaway 1}
 3/ {takeaway 2}
@@ -111,17 +122,18 @@ Card: ...
 Three to six short lines, plain language, link at the end with `?utm_source=linkedin`. Tag speakers by name only if the brief gives their handles.
 
 ```markdown
-### Announce
-{Problem statement in one line.}
-{What the webinar covers in one or two lines.}
+### LinkedIn: Announce
+Status: draft
+{Promo sentence as the opening line.}
+{One or two lines on what attendees will see, from the takeaways.}
 {Date, time, tz}. Streaming live.
 Register: {luma_url}?utm_source=linkedin
 Card: {card_path_or_"card pending"}
 
-### Reminder (1 week out)
+### Reminder (1 week out, only if asked)
 ...
 
-### Day of
+### Day of (only if asked)
 ...
 ```
 
