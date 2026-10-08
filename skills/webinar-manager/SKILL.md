@@ -1,19 +1,20 @@
 ---
 name: webinar-manager
 description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma + Riverside metrics after the stream. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
-argument-hint: "new <title/brief> | luma [--dry-run] | jira | email | promo [--card <path>] | status | metrics <slug> [riverside-export-path]"
+argument-hint: "new <title/brief> | luma [--dry-run] | jira | stream | email | promo [--card <path>] | status | metrics <slug> [riverside-export-path]"
 allowed-tools: ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch", "mcp__atlassian__searchJiraIssuesUsingJql", "mcp__atlassian__getJiraIssue", "mcp__atlassian__createJiraIssue", "mcp__atlassian__lookupJiraAccountId", "mcp__atlassian__getJiraIssueTypeMetaWithFields"]
 ---
 
 # Webinar Manager
 
-One skill, one brief, every stage of a developer webinar. Webinars stream on Riverside and are registered through the Postman Dev Events Luma calendar.
+One skill, one brief, every stage of a developer webinar. Webinars are produced in Riverside and streamed live to a YouTube Live event and a LinkedIn Live event, which is where attendees watch. Registration goes through the Postman Dev Events Luma calendar.
 
 | Stage | What it does | Writes to |
 |-------|--------------|-----------|
-| `new` | Collects the brief, then runs `luma`, `jira`, `email`, `promo` in order | local files, Luma, Jira |
+| `new` | Collects the brief, then runs `luma`, `jira`, `stream`, `email`, `promo` in order | local files, Luma, Jira |
 | `luma` | Creates or updates the Luma event (diff shown first) | Luma |
 | `jira` | Files the parent webinar task and the "Social Promo Card" sub-task | Jira (`MKTG`) |
+| `stream` | Prepares the YouTube Live and LinkedIn Live event details and the Riverside setup steps, records both viewing links, then updates the Luma event location | `stream.md`, Luma (after approval) |
 | `email` | Fetches the promo card and writes a full promotional email (hook, problem, takeaways, speakers, logistics, related blog posts and YouTube videos, CTA), then asks for approval | `email.md` |
 | `promo` | Fetches the promo card, writes a one-sentence promo and the LinkedIn and Twitter/X drafts, then asks for approval | `posts.md` |
 | `status` | Shows stage progress and the promo card ticket status | nothing |
@@ -62,10 +63,12 @@ State file shape:
     "date": "2026-10-20",
     "luma_api_id": "evt-...",
     "luma_url": "https://luma.com/...",
+    "youtube_live_url": null,
+    "linkedin_live_url": null,
     "jira_parent": "MKTG-11048",
     "jira_card": "MKTG-11062",
     "card_path": null,
-    "stages": {"luma": false, "jira": false, "email": false, "promo": false, "metrics": false}
+    "stages": {"luma": false, "jira": false, "stream": false, "email": false, "promo": false, "metrics": false}
   }
 }
 ```
@@ -79,7 +82,8 @@ Required fields, saved to `webinar-output/{slug}/brief.md`:
 - Title, date, start time, timezone, duration
 - Speakers: name, title, headshot file path or link
 - Abstract (2 to 4 sentences) and 3 key takeaways
-- Riverside stream or join link (may be blank)
+- Riverside studio link for the speakers (may be blank)
+- YouTube Live and LinkedIn Live viewing links (usually blank at the start: the `stream` stage prepares both events and asks for the links afterward)
 - Related content: blog posts, docs, collections, earlier webinars (may be blank)
 - Existing Luma event id (`evt-...`) if the event already exists, or "none". The Luma manage URL `https://luma.com/event/manage/evt-XXXX` contains it.
 
@@ -89,7 +93,7 @@ Required fields, saved to `webinar-output/{slug}/brief.md`:
 
 1. Ask for the full brief (see "The brief") and wait. Nothing is created before every required field is answered.
 2. Save `brief.md`, the slug, and a state entry.
-3. Run `luma`, then `jira`, then `email`, then `promo`, pausing at each approval gate.
+3. Run `luma`, then `jira`, then `stream`, then `email`, then `promo`, pausing at each approval gate.
 4. Finish with the `status` view.
 
 ## Stage: `luma [--dry-run]`
@@ -99,7 +103,7 @@ Helper: `references/luma-webinar.py`. Copy it to the scratchpad (not `/tmp` if a
 **Existing event** (state has `luma_api_id` or the user gave `evt-...`):
 
 1. `python3 luma-webinar.py get {evt}` and read the current event.
-2. Build `luma-payload.json` containing only the fields that should change, from the brief: `name`, `description_md`, `start_at` and `end_at` (UTC ISO8601 from date, time, timezone), `timezone`, and the Riverside stream link in `meeting_url`. A fetched event with no location returns `location_type: "missing"` and `meeting_url: null`, so expect to set both. The event may already be public: report `visibility` in the diff summary and never change it as part of an update.
+2. Build `luma-payload.json` containing only the fields that should change, from the brief: `name`, `description_md`, `start_at` and `end_at` (UTC ISO8601 from date, time, timezone), `timezone`. Do not set `meeting_url` here unless `youtube_live_url` is already in state: the `stream` stage sets it. A fetched event with no location returns `location_type: "missing"` and `meeting_url: null`, so expect that until `stream` has run. The event may already be public: report `visibility` in the diff summary and never change it as part of an update.
 3. `python3 luma-webinar.py update {evt} luma-payload.json` prints the field-by-field diff and writes nothing.
 4. Show the diff. If the user approves and `--dry-run` was not requested, rerun with `--apply`.
 
@@ -125,6 +129,21 @@ Reuse what the team already does: a parent task `[Webinar] {title} {M/D}` under 
 3. Save the keys to state as `jira_parent` and `jira_card`, set `stages.jira` to true.
 4. **Re-check on every run.** For an existing `jira_card`, fetch its status. When it is Done, the `email` and `promo` stages download the card themselves (see "Promo card" below). The Atlassian MCP cannot download attachments, so the download uses `jira-card.py`.
 
+## Stage: `stream`
+
+Riverside is the production studio. Viewers watch on YouTube Live and LinkedIn Live, so both events must exist before the email and posts can link to them. Neither can be created from here: the YouTube Live API needs OAuth credentials this repo does not have, and the LinkedIn Live API is restricted to approved partners. So this stage prepares everything and the user creates the two events.
+
+1. Read `brief.md`, state, and the promo card ("Promo card") if it exists.
+2. Write `webinar-output/{slug}/stream.md` with a section for each destination, filled from the brief only:
+   - **YouTube Live (scheduled broadcast):** title (the webinar title), description (abstract, takeaways, and the Luma link with `?utm_source=youtube`), scheduled start (date, time, timezone), visibility (public), thumbnail (the card, or "card pending"), and live chat on.
+   - **LinkedIn Live (event):** event name, description (abstract and the Luma link with `?utm_source=linkedin`), start date and time with timezone, and the cover image (the card, or "card pending"). Host is Talia Kohan.
+   - **Riverside:** the steps to add YouTube and LinkedIn as live streaming destinations in the studio, run a test stream, and send both to air together at the start time.
+3. **Stream keys and RTMP URLs are secrets.** Never ask the user to paste them into the chat and never write them to a file. The user enters them directly in Riverside.
+4. Show the draft and tell the user to create both events, then paste back the two viewing links (the YouTube watch URL and the LinkedIn event URL).
+5. Validate each link: YouTube must be a `youtube.com` or `youtu.be` URL, LinkedIn must be a `linkedin.com` URL. Save them to the brief and to state as `youtube_live_url` and `linkedin_live_url`. A webinar may proceed with only one of the two if the user says so.
+6. **Update the Luma event** (Luma approval rules apply): set `meeting_url` to the YouTube Live URL, and add a "Watch live" line to `description_md` with both links. Show the diff with `update`, then `--apply` after approval. Never change `visibility`.
+7. Set `stages.stream` to true once the links are saved and the Luma update is applied or declined. Until then, `email` and `promo` say "viewing links pending" instead of a link.
+
 ## Promo card
 
 Used by `email` and `promo` before any copy is written.
@@ -149,7 +168,7 @@ After a draft file is written and passes the copy-rule check, show the full draf
    - **Postman YouTube channel:** `WebSearch` for `site:youtube.com Postman {topic keywords}` and for the channel's latest uploads (`youtube.com/@Postman`, fetched with `WebFetch`). Keep videos that are clearly about the topic, newest first.
    - Include at most 3 blog posts and 3 videos. Link only URLs that were returned by the search or fetch and that match the topic. If nothing relevant turns up for one source, say so in the draft's notes and leave that source out. Never guess a URL or a video title.
 3. **Think the email through before writing it.** This is a promotional email a developer reads in under a minute, not a one-line announcement. Work out, from the brief only: the specific problem or situation the audience recognizes; why this topic matters now; what attendees will be able to do after the session (one concrete outcome per takeaway); who it is for; what happens live (demo, walkthrough, Q&A) and why the speakers are the right people. Pull in the related posts and videos from step 2 where they genuinely add background. If the brief does not support a claim, leave the claim out.
-4. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, a hook, the problem, what the session covers with one short paragraph per takeaway, who it is for, the speakers with a line each, the logistics block, the related reading and videos list from step 2, one CTA to the Luma link with `?utm_source=email`, and a recording note. Target 250 to 400 words in the body, scannable, with short paragraphs.
+4. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, a hook, the problem, what the session covers with one short paragraph per takeaway, who it is for, the speakers with a line each, the logistics block (with the YouTube Live and LinkedIn Live viewing links from state, or "viewing links pending" if `stream` has not run), the related reading and videos list from step 2, one CTA to the Luma link with `?utm_source=email`, and a recording note. Target 250 to 400 words in the body, scannable, with short paragraphs.
 5. Run the copy-rule check (below) and fix any hit.
 6. Reread the draft as the recipient: every paragraph must say something specific to this webinar. Cut filler and any sentence that would fit any webinar. Then run the approval checkpoint for the email.
 
@@ -164,7 +183,7 @@ After a draft file is written and passes the copy-rule check, show the full draf
 
 ## Stage: `status`
 
-For each webinar in state (or the one named), print: stage checklist, Luma link, Jira keys, the live status of `jira_card`, card path, and the next action. Read-only.
+For each webinar in state (or the one named), print: stage checklist, Luma link, YouTube Live and LinkedIn Live links, Jira keys, the live status of `jira_card`, card path, and the next action. Read-only.
 
 ## Stage: `metrics <slug> [riverside-export-path]`
 

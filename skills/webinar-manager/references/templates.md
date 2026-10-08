@@ -12,7 +12,7 @@ Fill every `{placeholder}` from `brief.md`. Never invent speakers, dates, or cla
 Description:
 
 ```text
-Webinar will be {M/D} and we will stream on Riverside.
+Webinar will be {M/D}. We produce it in Riverside and stream live to YouTube Live and LinkedIn Live.
 
 {abstract, 2 to 4 sentences}
 
@@ -37,7 +37,7 @@ Title: {title}
 Description: {one-sentence description}
 Date and time: {date} {time} {timezone}
 Speakers: {name (title)} (headshots attached or at {headshot_path_or_link})
-Stream: Riverside
+Stream: YouTube Live and LinkedIn Live (produced in Riverside)
 Sizes needed: 1080x1080 (LinkedIn) and 1600x900 (Twitter/X)
 Registration link: {luma_url}
 ```
@@ -89,7 +89,9 @@ On {weekday, date} at {time} {timezone}, {speaker names} will {what they will do
 
 **The details**
 - When: {weekday, date}, {time} {timezone} ({duration})
-- Where: online, streamed live on Riverside
+- Where: online, streamed live on YouTube and LinkedIn
+  - YouTube Live: {youtube_live_url or "link pending"}
+  - LinkedIn Live: {linkedin_live_url or "link pending"}
 - Cost: free
 
 [Save your spot]({luma_url}?utm_source=email)
@@ -147,7 +149,7 @@ Three to six short lines, plain language, link at the end with `?utm_source=link
 Status: draft
 {Promo sentence as the opening line.}
 {One or two lines on what attendees will see, from the takeaways.}
-{Date, time, tz}. Streaming live.
+{Date, time, tz}. Streaming live on LinkedIn and YouTube.
 Register: {luma_url}?utm_source=linkedin
 Card: {card_path_or_"card pending"}
 
