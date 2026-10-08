@@ -24,11 +24,12 @@ Nothing is ever posted or sent by this skill. Talia posts to Twitter/X and Linke
 ## Hard rules
 
 1. **Approval before every external write.** Before any Luma create/update or Jira create, show exactly what will change and wait for an explicit "yes". `luma-webinar.py` also refuses to write unless `--apply` is passed.
-2. **New Luma events are created private.** Making one public is a separate request.
+2. **New Luma events are always created private.** After the event and host are confirmed, always ask the user whether to make it public. Only change `visibility` after an explicit "yes", and show the change first like any other Luma write. Never change visibility on an existing event during an `update`.
 3. **No invented facts.** Speakers, dates, titles, and claims come from the brief. If a field is missing, ask once and save the answer to `brief.md`.
 4. **Copy rules** (email, posts, Jira text): no "supercharge", "unlock", "revolutionize", or "leverage"; no em dashes anywhere; code blocks carry language identifiers; developer advocate voice, conversational and specific.
 5. **UTM tags on Luma links in copy:** `?utm_source=twitter`, `?utm_source=linkedin`, or `?utm_source=email` by channel.
 6. **Credentials come from the environment only.** Never write keys into files or print them.
+7. **The host is always Talia Kohan** (`talia.kohan@postman.com`), on every webinar, regardless of who the speakers are. The Luma API key belongs to another user (Quinton Wall), so events it creates are owned by that user and Talia must be added as a host explicitly. Do this on every `luma` run, new or existing, using the `add-host` helper command (dry run first, `--apply` after approval, like any other Luma write). The Jira description and Luma description list Talia as host.
 
 ## Configuration
 
@@ -72,20 +73,23 @@ Read the state file at the start of every stage. If it does not exist, create it
 
 ## The brief
 
-Required fields. Ask once for anything missing, then save to `webinar-output/{slug}/brief.md`:
+Required fields, saved to `webinar-output/{slug}/brief.md`:
 
 - Title, date, start time, timezone, duration
 - Speakers: name, title, headshot file path or link
 - Abstract (2 to 4 sentences) and 3 key takeaways
-- Riverside stream or join link
-- Related content: blog posts, docs, collections, earlier webinars
-- Existing Luma event id (`evt-...`) if the event already exists. The Luma manage URL `https://luma.com/event/manage/evt-XXXX` contains it.
+- Riverside stream or join link (may be blank)
+- Related content: blog posts, docs, collections, earlier webinars (may be blank)
+- Existing Luma event id (`evt-...`) if the event already exists, or "none". The Luma manage URL `https://luma.com/event/manage/evt-XXXX` contains it.
+
+**Ask for the whole brief up front.** When `new` starts, send one message that lists every field above, numbered, and wait for the reply. Do not read state, build a slug, write files, or call Luma/Jira until the reply arrives. Use any fields the user already gave in the command arguments (for example the title) and list only the rest. After the reply, if a required field is still missing, ask for those fields in one follow-up. Only the join link and related content may be blank, and only if the user says so explicitly. Never fill a missing field with a guess or placeholder unless the user asks for placeholder or test values.
 
 ## Stage: `new`
 
-1. Collect the brief and slug. Save `brief.md` and a state entry.
-2. Run `luma`, then `jira`, then `email`, then `promo`, pausing at each approval gate.
-3. Finish with the `status` view.
+1. Ask for the full brief (see "The brief") and wait. Nothing is created before every required field is answered.
+2. Save `brief.md`, the slug, and a state entry.
+3. Run `luma`, then `jira`, then `email`, then `promo`, pausing at each approval gate.
+4. Finish with the `status` view.
 
 ## Stage: `luma [--dry-run]`
 
@@ -106,6 +110,10 @@ Helper: `references/luma-webinar.py`. Copy it to the scratchpad (not `/tmp` if a
 4. Fetch the new event with `get` and `update` (diff, then `--apply`) for any field that was dropped on create.
 
 Description copy comes from the brief abstract and takeaways. Save the event `api_id` and URL to the state file and set `stages.luma` to true.
+
+**Host (every run):** `python3 luma-webinar.py add-host {evt} talia.kohan@postman.com "Talia Kohan"` shows what it would send. After approval, rerun with `--apply`, then `get {evt}` to confirm. If Luma rejects the call, say so and tell the user to add Talia as host in the Luma UI. Do not mark `stages.luma` complete until the host is confirmed or the user acknowledges the manual step.
+
+**Visibility (new events only):** after the host step, ask "The event is private. Make it public?" If yes, send `{"visibility": "public"}` through `update` (diff first, then `--apply`). If no, leave it private and note that in the final report.
 
 ## Stage: `jira`
 

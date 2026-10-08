@@ -5,6 +5,7 @@ Usage:
   luma-webinar.py get <event_api_id>
   luma-webinar.py update <event_api_id> <payload.json> [--apply]   # diff only unless --apply
   luma-webinar.py create <payload.json> [--apply]                  # prints payload only unless --apply
+  luma-webinar.py add-host <event_api_id> <email> <name> [--apply]  # prints body only unless --apply
   luma-webinar.py stats <event_api_id>
 """
 
@@ -97,6 +98,16 @@ def cmd_create(payload_path, apply):
     print(json.dumps(resp, indent=2))
 
 
+def cmd_add_host(api_id, email, name, apply):
+    body = {"event_api_id": api_id, "email": email, "name": name}
+    if not apply:
+        print("Dry run. Would add host:")
+        print(json.dumps(body, indent=2))
+        print("\nRe-run with --apply to add the host.")
+        return
+    print(json.dumps(call("POST", "/event/add-host", body=body), indent=2))
+
+
 def cmd_stats(api_id):
     registered = waitlisted = checked_in = 0
     cursor = None
@@ -143,6 +154,8 @@ def main():
             cmd_update(args[1], args[2], apply)
         elif cmd == "create":
             cmd_create(args[1], apply)
+        elif cmd == "add-host":
+            cmd_add_host(args[1], args[2], args[3], apply)
         elif cmd == "stats":
             cmd_stats(args[1])
         else:
