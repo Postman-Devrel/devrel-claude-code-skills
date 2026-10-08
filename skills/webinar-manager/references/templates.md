@@ -56,7 +56,7 @@ File: `webinar-output/{slug}/email.md`
 
 **Preview text:** {under 90 characters}
 
-**Promo sentence:** {one sentence: abstract summary + date + time and timezone}
+**Summary line:** {one sentence: abstract summary + date + time and timezone}
 
 **Card:** {card_path_or_"card pending"}
 
@@ -66,25 +66,46 @@ File: `webinar-output/{slug}/email.md`
 
 Hi {first_name},
 
-{The promo sentence, or a natural variation of it.}
+{Hook: one or two sentences that name a specific situation the reader has been in. No greeting filler.}
 
-On {date} at {time} {timezone}, {speaker names} will {what they will do, concrete}.
+{The problem: a short paragraph on why this is hard today and why it matters now. Concrete, from the brief.}
 
-You will see:
-- {takeaway 1}
-- {takeaway 2}
-- {takeaway 3}
+On {weekday, date} at {time} {timezone}, {speaker names} will {what they will do, concrete}. Here is what you will walk away with:
 
-**Related reading and videos**
-- Blog: [{blog title}]({url})
-- Video: [{video title}]({youtube_url})
+**{Takeaway 1 as an outcome}**
+{One or two sentences: what they will show or explain, and what you can do with it afterward.}
+
+**{Takeaway 2 as an outcome}**
+{One or two sentences.}
+
+**{Takeaway 3 as an outcome}**
+{One or two sentences.}
+
+**Who this is for**
+{One sentence naming the roles and the situation, for example "API developers who ...".}
+
+**Who is presenting**
+- {Speaker name}, {title}: {one line on why they are the right person for this topic, from the brief}
+
+**The details**
+- When: {weekday, date}, {time} {timezone} ({duration})
+- Where: online, streamed live on Riverside
+- Cost: free
 
 [Save your spot]({luma_url}?utm_source=email)
+
+**If you want background first**
+- Blog: [{blog title}]({url}): {one line on what it covers}
+- Video: [{video title}]({youtube_url}): {one line on what it covers}
 
 Can't make it live? Register anyway and we will send the recording.
 
 {sign-off}
+
+P.S. {One line: a question to bring, or a reason to register today.}
 ```
+
+Body target is 250 to 400 words. Every paragraph must be specific to this webinar. Drop the "Cost: free" line if the brief does not say the event is free. Drop the P.S. if it would only repeat the CTA.
 
 Related content order: the brief first, then posts found on blog.postman.com and videos on the Postman YouTube channel, newest first (at most 3 of each), then matching `blog-output/` posts. Link only URLs that a search or fetch actually returned and that match the topic. Omit a list when nothing relevant exists and say so in a note under the draft.
 

@@ -14,7 +14,7 @@ One skill, one brief, every stage of a developer webinar. Webinars stream on Riv
 | `new` | Collects the brief, then runs `luma`, `jira`, `email`, `promo` in order | local files, Luma, Jira |
 | `luma` | Creates or updates the Luma event (diff shown first) | Luma |
 | `jira` | Files the parent webinar task and the "Social Promo Card" sub-task | Jira (`MKTG`) |
-| `email` | Fetches the promo card, writes a one-sentence promo and the email with related blog posts and YouTube videos, then asks for approval | `email.md` |
+| `email` | Fetches the promo card and writes a full promotional email (hook, problem, takeaways, speakers, logistics, related blog posts and YouTube videos, CTA), then asks for approval | `email.md` |
 | `promo` | Fetches the promo card, writes a one-sentence promo and the LinkedIn and Twitter/X drafts, then asks for approval | `posts.md` |
 | `status` | Shows stage progress and the promo card ticket status | nothing |
 | `metrics` | Merges Luma stats with a Riverside export | `metrics.md` |
@@ -135,7 +135,7 @@ Used by `email` and `promo` before any copy is written.
 
 ## Promo sentence
 
-Both `email` and `promo` start from the same one-sentence promo, written once and saved at the top of `posts.md` and `email.md`. It must summarize the abstract in plain words, name the date, and name the time with timezone, for example: "{what the webinar shows, from the abstract} on {Weekday, Month D} at {time} {tz}." One sentence, from the brief only, no claims that are not in the abstract.
+The `promo` stage builds its posts on a one-sentence promo, and the `email` stage uses it only as a short summary line under the subject options. The email itself is a full promotional email, not this sentence (see "Stage: `email`"). The sentence is saved at the top of `posts.md` and `email.md`. It must summarize the abstract in plain words, name the date, and name the time with timezone, for example: "{what the webinar shows, from the abstract} on {Weekday, Month D} at {time} {tz}." One sentence, from the brief only, no claims that are not in the abstract.
 
 ## Approval checkpoint
 
@@ -148,9 +148,10 @@ After a draft file is written and passes the copy-rule check, show the full draf
    - **Postman blog:** `WebSearch` for `site:blog.postman.com {topic keywords}` and check `blog-output/` (and `blog-output/.prod-update-memory.json` if present). Keep posts from the last 12 months that are clearly about the webinar topic.
    - **Postman YouTube channel:** `WebSearch` for `site:youtube.com Postman {topic keywords}` and for the channel's latest uploads (`youtube.com/@Postman`, fetched with `WebFetch`). Keep videos that are clearly about the topic, newest first.
    - Include at most 3 blog posts and 3 videos. Link only URLs that were returned by the search or fetch and that match the topic. If nothing relevant turns up for one source, say so in the draft's notes and leave that source out. Never guess a URL or a video title.
-3. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, the promo sentence, the card image reference, body, a "Related reading and videos" list from step 2, and one CTA to the Luma link with `?utm_source=email`.
-4. Run the copy-rule check (below) and fix any hit.
-5. Run the approval checkpoint for the email.
+3. **Think the email through before writing it.** This is a promotional email a developer reads in under a minute, not a one-line announcement. Work out, from the brief only: the specific problem or situation the audience recognizes; why this topic matters now; what attendees will be able to do after the session (one concrete outcome per takeaway); who it is for; what happens live (demo, walkthrough, Q&A) and why the speakers are the right people. Pull in the related posts and videos from step 2 where they genuinely add background. If the brief does not support a claim, leave the claim out.
+4. Write `webinar-output/{slug}/email.md` using the email skeleton in `references/templates.md`: 3 subject lines, preview text, a hook, the problem, what the session covers with one short paragraph per takeaway, who it is for, the speakers with a line each, the logistics block, the related reading and videos list from step 2, one CTA to the Luma link with `?utm_source=email`, and a recording note. Target 250 to 400 words in the body, scannable, with short paragraphs.
+5. Run the copy-rule check (below) and fix any hit.
+6. Reread the draft as the recipient: every paragraph must say something specific to this webinar. Cut filler and any sentence that would fit any webinar. Then run the approval checkpoint for the email.
 
 ## Stage: `promo [--card <path>]`
 
