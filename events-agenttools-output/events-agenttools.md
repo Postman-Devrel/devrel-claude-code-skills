@@ -1,0 +1,50 @@
+# Agentic Dev Tools Events — Postman Agent Stack PLG Targeting
+Generated: 2026-10-13 (rescanned with Agent Ops search block)
+Target: Postman Agent Stack (postman-plugin, Orbit, Context Graph, Fabric Gateway, Astropods, Passport) adoption among agentic coding tool developers and the engineers who build, maintain, and operate what they produce
+
+## Results Table
+
+| Event Name | Date | Location | Est. Attendees | Agentic Tool Overlap | Format | Score | Target Persona | Recommended Presence | Link |
+|------------|------|----------|-----------------|----------------------|--------|-------|-----------------|-----------------------|------|
+| Code with Claude 2026 | May 6 (SF), May 19 (London), Jun 10 (Tokyo) | San Francisco / London / Tokyo | Large (flagship + "Extended" day) | Claude Code | Conference | 91 | Agentic App Builders, API/Platform Engineers | Talk / demo table at Extended day | [claude.com](https://claude.com/code-with-claude) |
+| GitLab AI Hackathon 2026 | Feb–Mar 2026 | Global / virtual | ~7,000 devs, 600+ agents built | Mixed (Anthropic co-sponsor) | Hackathon | 86 | Agentic App Builders | Hackathon sponsor | [about.gitlab.com](https://about.gitlab.com/blog/gitlab-ai-hackathon-2026-meet-the-winners/) |
+| MCP Dev Summit North America | Apr 2–3, 2026 | New York, NY | Mid-large (Linux Foundation) | Mixed (MCP ecosystem) | Conference | 84 | Headless Agents, Agentic App Builders | Talk | [events.linuxfoundation.org](https://events.linuxfoundation.org/mcp-dev-summit) |
+| AgentCon World Tour | Mar 9 (NY), May 4 (SF), May 19 (Berlin), Jun 26 (Dallas/Perth) | Multiple global cities | Mid-size per stop | Mixed (agent frameworks) | Conference | 84 | Agentic App Builders, Headless Agents | Talk | [globalai.community](https://globalai.community/agentcon/) |
+| Arize:Observe 2026 (The AI Agent Evals Conference) | Jun 4, 2026 | San Francisco (Ferry Building) | Mid-size, sponsor-backed (AWS, Microsoft, CrewAI) | Mixed (agent evals/observability tooling) | Conference | 84 | Agent Ops Engineers | Talk | [arize.com](https://arize.com/observe-2026/) |
+| AI Coding Hackathon (STARTPLATZ Cologne) | Sep 4–6 and Nov 20–22, 2026 | Cologne, Germany | Mid-size, regional | Mixed | Hackathon | 83 | Agentic App Builders, API/Platform Engineers | Hackathon sponsor (track sponsor) | [startplatz.de](https://www.startplatz.de/event/ai-coding-hackathon-september-2026-09-04?lang=en) |
+| AI Engineer World's Fair 2026 | Jun 29–Jul 2, 2026 | San Francisco (Moscone Center) | 6,000+ attendees, 250 speakers, 100+ expo partners | Mixed (20+ tracks incl. coding agents) | Conference | 81 | Agentic App Builders, API/Platform Engineers | Booth (expo) / Talk (CFP) | [ai.engineer](https://www.ai.engineer/worldsfair) |
+| MCP Connect — San Francisco | Sep 14, 2026 | San Francisco (GitHub HQ) | Community-scale | Mixed (MCP ecosystem) | Conference | 80 | Headless Agents | Talk | [sessionize.com](https://sessionize.com/mcp-connect-san-francisco/) |
+| OpenAI Codex Community Hackathon / Build Week | Recurring (SF #5), Jul 14 (Gurugram), Jul 18 (London), Jul 7 (SF/Bright Data) | San Francisco / Gurugram / London | Community-scale, cash prizes | Codex | Hackathon | 79 | Agentic App Builders, API/Platform Engineers | Hackathon sponsor | [luma.com](https://luma.com/7025i1j5) |
+| MCPconference London | Feb 11–12, 2026 | London | Community-scale | Mixed (MCP ecosystem) | Conference | 78 | Headless Agents | Talk | [lu.ma](https://lu.ma/vony0e90) |
+| AI Engineer Code 2026 | Nov 2026 | San Francisco | Mid-size, technical | Mixed (coding agents, dev tools, eval harnesses) | Conference | 76 | API/Platform Engineers | Talk (CFP) | [ai.engineer](https://www.ai.engineer/code/2026) |
+| Cursor Compile 2026 | Jun 16, 2026 | San Francisco (Fort Mason) | Invite-only, high prestige | Cursor | Conference | 72 | API/Platform Engineers | Talk (access-constrained — invite-only) | [cursor.com](https://cursor.com/compile) |
+| FinOps X 2026 | Jun 8–11, 2026 | San Diego, CA | 1,600+ cloud-cost professionals | Mixed (FinOps/cloud-cost practitioners) | Conference | 69 | Agent Ops Engineers | Talk | [finops.org](https://www.finops.org/?p=27267) |
+| GDG AI HACK 2026 (Antigravity) | May 8–10, 2026 | Milan, Italy | 160 selected participants | Antigravity | Hackathon | 68 | Agentic App Builders | Demo table (small scale) | [gdg.community.dev](https://gdg.community.dev/events/details/google-gdg-polimi-presents/) |
+| DeveloperWeek / AI Dev World Conference | Feb 18–20, 2026 | San Jose, CA | Large, broad developer audience | Mixed (general AI/agent track) | Conference | 66 | Agent Ops Engineers (secondary) | Booth | [developerweek.com](https://www.developerweek.com/?p=11433) |
+| Identiverse 2026 | Jun 15–18, 2026 | Las Vegas, NV (Mandalay Bay) | 3,500+ identity professionals | Mixed (non-human/agentic identity security) | Conference | 66 | Agent Ops Engineers | Booth (Passport demo) / Talk (CFP) | [identiverse.com](https://identiverse.com/) |
+| Kiro meetups (AWS) | May 21 (Hong Kong), May 27 (Toronto VIP dinner), Jul 23 (Heilbronn) | Hong Kong / Toronto / Heilbronn | Small (meetup/VIP-dinner scale) | Kiro | Meetup | 65 | API/Platform Engineers | Demo table (only if local presence available) | [meetup.com](https://www.meetup.com/aws-user-group-heilbronn/events/315691056/) |
+| Ai4 2026 | Aug 4–6, 2026 | Las Vegas (The Venetian) | 12,000+ attendees, 400+ exhibitors | Mixed (dedicated agent + governance/oversight tracks) | Conference | 63 | Agent Ops Engineers (secondary) | Booth | [ai4.io](https://ai4.io/) |
+| AI Engineer NYC 2026 | Oct 12–14, 2026 | New York, NY | Large, buyer-heavy (CTOs, VPs, founders) | Mixed | Conference | 51 | Agent Ops Engineers (secondary) | Booth — sponsorships largely sold out | [ai.engineer](https://ai.engineer/nyc) |
+
+## What's new in this rescan
+
+The first run (14 search queries) only covered the Building and Maintaining concerns — nothing targeted **Agent Ops Engineers** (evals, observability, token/cost, credential security, scheduled/autonomous cloud agents), the persona that maps to Fabric Gateway, Astropods, and Passport. Four new search queries closed that gap and surfaced four events: **Arize:Observe 2026** (84, agent evals/observability), **FinOps X 2026** (69, LLM token-cost governance), **Identiverse 2026** (66, non-human/agentic identity security — a direct Passport angle), and **Ai4 2026** (63, broad AI conference with dedicated agent-governance tracks). None of the previously listed events changed score; these are additions, not corrections.
+
+Other Agent Ops-adjacent events turned up but scored too low or too buyer-heavy to include: Oktane 2026 (Okta's own customer conference, vendor-specific IAM admin audience), Google Cloud Next 2026 (massive enterprise trade show, sponsorship cost/competition too high for the audience overlap), Agentic AI 2026 in Reston (regulated-industry/government contracting audience), and AI Agents Conference 2026 Singapore (senior APAC leadership, not practitioners).
+
+**Link audit:** every link in the table above was re-checked against the event's own domain (the organizer's site, or the Linux Foundation/Devpost/Luma page they actually run registration through) rather than a blog recap, translated mirror, or news aggregator that happened to rank in search. One row — "Global AI Agent Hackathon" (claimed 50,000 devs, $5M prize pool, score 72) — was dropped entirely rather than relinked: every result for it traced back to the same unverified news aggregator with no organizer site behind it, so there was no legitimate source left to cite.
+
+## Top Picks
+
+**Code with Claude 2026** (SF/London/Tokyo, May–June 2026) is Anthropic's own flagship developer conference, which makes it the single highest-leverage venue for postman-plugin: the entire audience already runs Claude Code day-to-day. The "Extended" day explicitly targets independent developers and early-stage founders — exactly the PLG persona for postman-plugin. A mainstage talk slot is unlikely without an existing exec relationship, so the realistic path is a sponsor/demo-track presence on Extended day, showing filesystem-first API mocking and Context Graph dependency checks running live inside Claude Code. Expect developer sign-ups and GitHub stars, not enterprise pipeline.
+
+**GitLab AI Hackathon 2026** (Feb–Mar, global/virtual) already ran with Anthropic as a co-sponsor and pulled in ~7,000 developers building 600+ agents — a strong precedent for a Postman follow-on sponsorship in a future edition. The hands-on, individual-developer hackathon format is the purest PLG signal in this list. A mentor/API-credits sponsorship with a live postman-plugin mocking demo would land well with a judged-submission audience already building agents end-to-end.
+
+**Arize:Observe 2026** (SF Ferry Building, Jun 4) is the top-scoring event for the Operating concern and the clearest fit for the newly added Agent Ops Engineers persona: its entire premise is agent evals and observability, exactly what Fabric Gateway and Astropods are built for. A talk on "what breaks when an agent fleet scales" (routing, token budgets, audit trails) would land directly with a practitioner audience already building eval harnesses, and the existing sponsor list (AWS, Microsoft, CrewAI) shows this isn't a buyer-only room.
+
+## Pass
+
+- **Agentic & Applied AI for the Enterprise / ACM CAIS / Agent Conf Warsaw** — explicitly enterprise-buyer and research-leadership audiences (senior execs, data leaders, investors), not aligned with the stack's individual-developer PLG motion.
+- **AI Agent Conference New York** (Hilton Midtown, May 4–5) — targets senior executives, data leaders, and investors; no meaningful agentic-coding-tool developer overlap.
+
+Note: **AI Engineer NYC 2026** (score 51, in the table above) is a borderline Moderate-fit case, not a Pass — platinum sponsorships are largely sold out and the audience skews CTO/VP/founder, but it's listed at Booth-tier rather than excluded outright. Revisit for 2027 with an earlier sponsorship commitment if the buyer-heavy mix is acceptable alongside the developer track.
