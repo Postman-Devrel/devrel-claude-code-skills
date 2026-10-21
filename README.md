@@ -130,6 +130,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-linkedininsights` | Generate the monthly Postman Developer Digest for LinkedIn's Newsletter feature (events, product updates, Liftoff, YouTube, cover graphic). Saves to `newsletter-output/linkedin-insights/YYYY-MM/` for human review — never auto-posts |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
+| `webinar-manager` | Run a developer webinar: create/update the Luma event, file the Social Promo Card request in Jira (`MKTG`), prepare the YouTube Live and LinkedIn Live events, draft the promo email and Twitter/X + LinkedIn posts, and post a metrics summary (Luma and LinkedIn registrations, YouTube and LinkedIn views, engagement, average view time) to Slack `#developer-relations` 5 hours after the event ends. Needs `LUMA_API_KEY`, `SLACK_BOT_TOKEN`, and the Atlassian MCP. Luma/Jira writes require approval; email and posts are drafts only. See `skills/webinar-manager/SKILL.md` |
 | `content-metrics` | Pull blog + YouTube stats, join Postman product attribution (signups / first-run / D-7 / D-30) via Looker, and post a Content → Product digest to Slack. Defaults to a 30-day window; pass an integer or phrase (`7`, `last week`, `90`, `last quarter`) to change it. See `docs/content-funnel.md` for the funnel model and `skills/content-metrics/SKILL.md` for setup. |
 
 ## Meetup Calendar
@@ -262,8 +263,7 @@ Each skill writes to a dedicated directory:
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
 | `blog-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.prod-update-memory.json` |
-| `newsletter-output/linkedin-insights/` | `newsletter-linkedininsights` | `YYYY-MM/` subfolder with `newsletter-body.html`, `cover-graphic.png`, badge/thumbnail images; `liftoff-state.json` lives at the `linkedin-insights/` root, not inside a month subfolder |
-| `events-agenttools-output/` | `events-agenttools` | `events-agenttools.md` |
+| `webinar-output/` | `webinar-manager` | `{slug}/brief.md`, `stream.md`, `email.md`, `posts.md`, `metrics.md`, `slack-metrics.txt`, `exports/` + `.webinar-state.json` |
 
 ## Hooks
 
@@ -517,6 +517,17 @@ If you see an error that the `getConfluencePage` / `updateConfluencePage` tools
 aren't available, the connector isn't loaded — re-check `/mcp` and confirm the
 Atlassian server shows as **connected**. If a fetch fails with a permissions error,
 make sure your Atlassian account has access to the DE (Developer Evangelism) space.
+
+---
+
+### Webinar Setup (for `webinar-manager`)
+
+- **Luma:** set `LUMA_API_KEY` in `.claude/settings.json` under `env`, using a key with write access to the Postman Dev Events calendar (Luma **Settings → Integrations → API**).
+- **Jira:** uses the same Atlassian MCP connection as `cfp-tracker` (above). Your Atlassian account needs permission to create issues in the `MKTG` project. To download the finished promo card, also set `JIRA_EMAIL` and `JIRA_API_TOKEN` (create the token at https://id.atlassian.com/manage-profile/security/api-tokens). Without them the skill asks for a local card path.
+- **Slack:** set `SLACK_BOT_TOKEN` (the `webinaragent` bot token) under `env`. The bot needs the `chat:write` scope, plus `users:read` and `users:read.email` so it can tag speakers, and it must be invited to `#developer-relations`.
+- **YouTube:** no key is required. The skill reads public views and likes from the watch page. An optional `YOUTUBE_API_KEY` (YouTube Data API v3) also returns the comment count.
+- **YouTube Studio and LinkedIn analytics:** neither has an API the skill can call, and LinkedIn pages need a login. After the event, screenshot the YouTube Studio Overview and Engagement tabs and the LinkedIn event Analytics page, and give them to the skill (or save them in `webinar-output/{slug}/exports/`). It reads the numbers and shows them to you before anything is posted.
+- **Scheduled post:** `schedule <slug>` creates a one-time cloud routine for event end + 5 hours. The routine environment needs `LUMA_API_KEY` and `SLACK_BOT_TOKEN`, and the plugin must be installed from a pushed branch or release. A scheduled run has no access to your local exports, so the LinkedIn and Studio-only values show as "pending" and are filled in afterward with a thread reply from `metrics <slug> --post-slack`. The `--force` flag skips the 5-hour wait and is for testing only.
 
 ---
 
