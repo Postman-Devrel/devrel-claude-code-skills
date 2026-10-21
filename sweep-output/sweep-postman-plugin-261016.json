@@ -1,0 +1,618 @@
+{
+  "meta": {
+    "generated": "2026-10-16T14:11:43",
+    "keywords": [
+      "Postman MCP",
+      "Postman MCP Server",
+      "Claude Code plugin",
+      "Postman plugin",
+      "postman-plugin",
+      "Postman Claude Code",
+      "postman-mcp-server",
+      "mcp.postman.com"
+    ],
+    "context_keywords": [
+      "Codex",
+      "Antigravity",
+      "Gemini"
+    ],
+    "near": [
+      "install",
+      "installs",
+      "installing",
+      "installation",
+      "plugin",
+      "plugins",
+      "marketplace",
+      "set up",
+      "setup"
+    ],
+    "markers": [
+      "postmanlabs/postman-plugin",
+      "@postman/postman-plugin",
+      "postman@claude-plugins-official",
+      "claude.com/plugins/postman"
+    ],
+    "excludes": [
+      "Astropods"
+    ],
+    "note_id": "postman-plugin-update",
+    "note_file": "skills/blog-history-sweep/notes/postman-plugin-update.html",
+    "since": null
+  },
+  "posts": [
+    {
+      "id": 20554,
+      "title": "Agentic SDLC with the Claude Code Plugin",
+      "link": "https://blog.postman.com/agentic-sdlc-with-the-claude-code-plugin/",
+      "date": "2026-10-08",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [
+        "postman@claude-plugins-official"
+      ],
+      "excludes_found": [],
+      "status": "current",
+      "snippets": [
+        "\u2026 skills read before writing or editing a collection file by hand, or before debugging a lint failure. postman:**postman-mcp**-server: Also not something you call directly. Background knowledge about Postman concepts and MCP tool select\u2026",
+        " Agentic SDLC with the **Claude Code Plugin** Updating code is usually the straightforward part of updating an API. It\u2019s everything after that where things\u2026",
+        "\u2026 out why nothing matches. I wanted to see if an agent could handle that entire workflow using the Claude Code **Postman plugin** and the Context Graph . So I ran through it with Claude from start to finish: API changes \u2192 Context Graph fin\u2026"
+      ]
+    },
+    {
+      "id": 20596,
+      "title": "Build, Deploy & Monitor AI Agents with Astropods",
+      "link": "https://blog.postman.com/build-ai-agents-with-astropods/",
+      "date": "2026-10-07",
+      "matched": [
+        "Claude Code plugin"
+      ],
+      "markers_found": [],
+      "excludes_found": [
+        "Astropods"
+      ],
+      "status": "excluded",
+      "snippets": [
+        "\u2026ble with coding agent like Claude Code. You can point your coding agent to docs.astropods.com (or install the **Claude Code plugin** ) and ask your agent to build the applicaiton for you. The starter project that\u2019s seeded for you is ready to \u2026",
+        "\u2026gents and Monitor your agents . Bring an existing agent to Astropods Already have an agent? Use the Astropods **Claude Code plugin** to help migrate it to run on Astropods. The plugin also includes skills for creating a new project from scrat\u2026"
+      ]
+    },
+    {
+      "id": 20558,
+      "title": "Postman Plugin for OpenAI Codex",
+      "link": "https://blog.postman.com/postman-plugin-for-openai-codex/",
+      "date": "2026-09-29",
+      "matched": [
+        "Postman plugin",
+        "postman-plugin",
+        "mcp.postman.com",
+        "Codex"
+      ],
+      "markers_found": [
+        "postmanlabs/postman-plugin"
+      ],
+      "excludes_found": [],
+      "status": "current",
+      "snippets": [
+        "**Postman Plugin** for OpenAI Codex OpenAI Codex has quickly become one of the most widely used coding agents out there, and it\u2019\u2026",
+        "\u2026ex has quickly become one of the most widely used coding agents out there, and it\u2019s easy to see why: it write **Postman Plugin** for OpenAI Codex OpenAI Codex has quickly become one of the most widely used coding agents out there, and it\u2019\u2026",
+        "\u2026l code,   solved this exact problem somewhere in a Postman workspace. That\u2019s why we\u2019re thrilled to launch the **Postman plugin** for Codex today. It brings Postman\u2019s agent skills straight into your Codex sessions. Ask it something like @P\u2026"
+      ]
+    },
+    {
+      "id": 20446,
+      "title": "SDK vs CLI vs MCP, a dev story",
+      "link": "https://blog.postman.com/sdk-vs-cli-vs-mcp-a-dev-story/",
+      "date": "2026-09-17",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026eful when an agent is trying to work out how your endpoints fit together, but it isn\u2019t the third surface. The **Postman MCP** Generator for the MCP server For that, Postman\u2019s MCP Generator does the work. You pick the requests you want \u2026",
+        "\u2026ags Octokit for JavaScript Fern for generating SDKs and a CLI from one specification, plus the SDK quickstart **Postman MCP** Generator documentation and the MCP Generator itself Postman MCP server documentation",
+        "\u2026uilding a pipeline on it. Worth knowing that Postman also runs an MCP server for its own platform and ships a **Claude Code plugin** , so the agent side of this is well travelled. Wiring the two together The join between them isn\u2019t an export \u2026"
+      ]
+    },
+    {
+      "id": 20387,
+      "title": "Loop engineering: stop prompting, start looping",
+      "link": "https://blog.postman.com/loop-engineering-stop-prompting-start-looping/",
+      "date": "2026-09-08",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026e it. It only ever learns what a run reported. This is also why the loop uses the Postman CLI rather than the **Postman MCP** server or the Postman plugin for Claude Code. Those put collections inside the agent\u2019s tool surface, which is\u2026"
+      ]
+    },
+    {
+      "id": 20414,
+      "title": "Why AI coding agents need context graphs",
+      "link": "https://blog.postman.com/why-ai-coding-agents-need-context-graphs/",
+      "date": "2026-08-25",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026s for. MCP is the open protocol for exposing tools and data sources to AI agents in a way they can query. The **Postman MCP** Server publishes the Postman graph as MCP tools: search APIs, inspect collections, look up environments, chec\u2026",
+        "\u2026tomer does. Connect an agent (Claude Code, an internal Copilot-style assistant, whatever you\u2019re using) to the **Postman MCP** Server so it can query the graph instead of guessing. None of these is a research project. They\u2019re the plumbi\u2026",
+        "\u2026el Context Protocol Google Agentic Resource Discovery spec Postman Private API Network Postman API Governance **Postman MCP** Server Postman API documentation Postman AI Agent Builder"
+      ]
+    },
+    {
+      "id": 20158,
+      "title": "Develop and test MCP in Postman: jhipster-mcp in action",
+      "link": "https://blog.postman.com/develop-and-test-mcp-in-postman-jhipster-mcp-in-action/",
+      "date": "2026-08-19",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026ster-mcp , an official MCP server that exposes the JHipster generator to any MCP client, and shows how I used **Postman\u2019s MCP** client to test each tool while building it. If you write Java and already know JDL, you can follow the walkth\u2026",
+        "\u2026ire it into CI. That second point is where Postman earns its place in the workflow. Driving jhipster-mcp from **Postman\u2019s MCP** client Here is the problem I ran into while building the server. To confirm a tool actually behaves the way I\u2026",
+        "\u2026erent arguments. When a tool misbehaves, I want to see the raw JSON-RPC, not a summary an agent wrote for me. **Postman\u2019s MCP** client solves this. It connects directly to an MCP server over STDIO or Streamable HTTP, lists every tool, pr\u2026"
+      ]
+    },
+    {
+      "id": 20230,
+      "title": "4 Infrastructure Layers Every Production AI Agent Needs",
+      "link": "https://blog.postman.com/4-infrastructure-layers-every-production-ai-agent-needs/",
+      "date": "2026-08-17",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026 really about whether your APIs are ready for AI. It\u2019s whether your AI is ready for production. Resources The **Postman MCP** Server documentation Postman MCP Server on GitHub Model Context Protocol specification Introducing the AI Eng\u2026"
+      ]
+    },
+    {
+      "id": 20358,
+      "title": "Loops and beads: orchestrating AI agents with Postman",
+      "link": "https://blog.postman.com/loops-and-beads-orchestrating-ai-agents-with-postman/",
+      "date": "2026-08-14",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026de Code turned out to be a good place to see the difference firsthand. It ships eight commands, backed by the **Postman MCP** server , for syncing collections, generating client code, running tests, creating mocks, publishing docs, aud\u2026",
+        "\u2026lacing loops in agents Postman plugin for Claude Code on GitHub Announcing the Postman plugin for Claude Code **Postman MCP** server setup docs Model Context Protocol specification Postman API reference: collections Monitoring your API\u2026",
+        "\u2026s. Beads are better once you know the shape of the work in advance and some of it can happen in parallel. The **Postman plugin** for Claude Code turned out to be a good place to see the difference firsthand. It ships eight commands, backe\u2026"
+      ]
+    },
+    {
+      "id": 20349,
+      "title": "Securing the Autonomous Engineer: Postman\u2019s Approach to API Security in the Agentic AI Era",
+      "link": "https://blog.postman.com/securing-the-autonomous-engineer-postmans-approach-to-api-security-in-the-agentic-ai-era/",
+      "date": "2026-08-06",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026ineer Postman API Catalog OWASP Top 10 for LLM Applications (Prompt Injection) Gartner: AI Agents Predictions **Postman MCP** Server Network"
+      ]
+    },
+    {
+      "id": 20208,
+      "title": "Announcing the Postman Accredited Seller: our first global partner sales accreditation",
+      "link": "https://blog.postman.com/announcing-the-postman-accredited-seller-our-first-global-partner-sales-accreditation/",
+      "date": "2026-07-29",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026ern the APIs behind production AI systems on AWS. That work shows up in the tools developers already use. The **Postman MCP** server is available in Kiro , AWS\u2019s spec-driven agentic IDE, so a developer can reach Postman workspaces, col\u2026",
+        "\u2026n April 2026 it announced a collaboration with Microsoft that adds AI model choice in Agent Mode, extends the **Postman MCP** server across the Microsoft developer ecosystem, and connects the API Catalog with Azure API Management. Its \u2026"
+      ]
+    },
+    {
+      "id": 20363,
+      "title": "MCP goes stateless \u2014 and Postman\u2019s ready",
+      "link": "https://blog.postman.com/mcp-goes-stateless-and-postmans-ready/",
+      "date": "2026-07-29",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026 stateless \u2014 and Postman\u2019s ready The next Model Context Protocol specification (2026-07-28) lands on July 28. **Postman\u2019s MCP** Inspector already supports it, including the new stateless transport, so you can test and debug your servers \u2026",
+        "\u2026nts that have upgraded. That way nothing breaks while the ecosystem catches up. How Postman helps you migrate **Postman\u2019s MCP** Inspector is built for exactly this moment: Automatic transport detection. Connect to a server and Postman de\u2026",
+        "\u2026elease. Resources Model Context Protocol specification MCP official site and release notes MCP SDKs on GitHub **Postman MCP** Inspector documentation Postman AI Agent Builder"
+      ]
+    },
+    {
+      "id": 20076,
+      "title": "How DevRel saves thousands of tokens per Claude Code run",
+      "link": "https://blog.postman.com/how-devrel-saves-thousands-of-tokens-per-claude-code-run/",
+      "date": "2026-07-21",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026 a workflow. There is also a 4th cost that sits outside the plugin itself: the MCP server\u2019s tool schemas. The **Postman MCP** Server\u2019s full mode exposes over 100 tools. On clients that eagerly load schemas, that\u2019s 40,000 to 70,000 toke\u2026",
+        "\u2026step that needs it. This is the same principle documented in our internal token optimization findings for the **Postman MCP** plugin. Applied there to just 2 skills ( postman-context from 19 KB to 7.7 KB, saving ~2,800 tokens per trigg\u2026",
+        "\u2026 Claude Code skills reference Postman DevRel Claude Code skills plugin Anthropic token counting documentation **Postman MCP** Server"
+      ]
+    },
+    {
+      "id": 20048,
+      "title": "AI is ready. Your APIs probably aren\u2019t.",
+      "link": "https://blog.postman.com/ai-ready-apis-agentic-ai-aws-competency/",
+      "date": "2026-07-09",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026 is helping teams build, test, and govern AI-powered applications directly within the tools they already use. **Postman MCP** server in Kiro Kiro is AWS\u2019s spec-driven agentic IDE, built on the Code OSS platform and designed around stru\u2026",
+        "\u2026 reliably. Kiro includes native MCP support, so it can connect to any MCP-compatible tool server. Through the **Postman MCP** server, developers can reach Postman workspaces, collections, environments, and tests from inside Kiro withou\u2026",
+        "\u2026n Enterprise customers as part of large-scale API governance programs. Moving AI from pilot to production The **Postman MCP** server is available in Kiro today. Agent Mode on Amazon Bedrock is live. The API Catalog integration with Ama\u2026"
+      ]
+    },
+    {
+      "id": 20052,
+      "title": "We Gave Two AI Agents the Same API Spec Drift Problem. The Difference Was Context.",
+      "link": "https://blog.postman.com/api-specification-drift-why-context-beats-code-alone/",
+      "date": "2026-07-07",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026ouncing the Postman plugin for Claude Code Introducing the Postman AI Engineer Postman Spec Hub documentation **Postman MCP** server overview Contract testing in Postman Postman API Governance OpenAPI specification Model Context Protoc\u2026",
+        "\u2026ents, one prompt: Identify all API spec drift. Ensure the API contract is valid. One was Claude Code with the **Postman plugin** installed, bringing Postman capabilities directly into the developer workflow. The other was the Postman AI E\u2026",
+        "\u2026fication drift. Ensure the API contract is valid. Here\u2019s what happened. Postman AI Engineer Claude Code (with **Postman plugin**) PR Rewrote the specification to match the implementation Rewrote the implementation to match the specificati\u2026"
+      ]
+    },
+    {
+      "id": 20050,
+      "title": "What SpaceX buying Cursor means for AI coding workflows",
+      "link": "https://blog.postman.com/what-spacex-buying-cursor-means-for-ai-coding-workflows/",
+      "date": "2026-06-30",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026s by giving agents a structured way to discover and call tools, and APIs are the natural unit of tooling. The **Postman MCP** server exposes your Postman workspace to any MCP-aware client. The agent can list collections, see request sc\u2026",
+        "\u2026eated_user_id}} next without having to remember anything between turns. Step 3: Expose the collection via the **Postman MCP** server The Postman MCP server makes your collections, environments, and runs available to any MCP-aware clien\u2026",
+        "\u2026I key as an environment variable: export POSTMAN_API_KEY=\"PMAK-...\" Configure your MCP client to point at the **Postman MCP** server. For Claude Code, that\u2019s a small addition to the MCP config file: { \"mcpServers\": { \"postman\": { \"comm\u2026"
+      ]
+    },
+    {
+      "id": 19985,
+      "title": "Token optimization in the Postman plugin for Claude Code",
+      "link": "https://blog.postman.com/token-optimization-in-the-postman-plugin-for-claude-code/",
+      "date": "2026-06-29",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "Postman plugin",
+        "postman-plugin",
+        "postman-mcp-server"
+      ],
+      "markers_found": [
+        "claude.com/plugins/postman"
+      ],
+      "excludes_found": [],
+      "status": "current",
+      "snippets": [
+        "\u2026he plugin\u2019s readiness-analyzer agent previously declared a wildcard, granting access to all 100+ tools on the **Postman MCP** Server . Each now lists exactly what it uses. The readiness analyzer went from 111 tools to 11 \u2014 90% fewer \u2014 \u2026",
+        "\u2026ards hide that class of bug; explicit lists make it visible in review. Less chatter from async workflows Some **Postman MCP** Server tools return HTTP 202 and require polling for completion. Left to its own devices, the model will happ\u2026",
+        "\u2026and after. Resources Postman plugin on the Claude Plugin Marketplace Postman plugin for Claude Code on GitHub **Postman MCP** Server on GitHub Announcing the Postman plugin for Claude Code Effective context engineering for AI agents (A\u2026"
+      ]
+    },
+    {
+      "id": 20000,
+      "title": "Postman at APIdays Amsterdam: Building Better APIs for the AI Era",
+      "link": "https://blog.postman.com/postman-at-apidays-amsterdam/",
+      "date": "2026-06-17",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026nd another designed with AI readiness in mind. After generating collections from both specifications, he used **Postman\u2019s MCP** Server Generator to create MCP servers for each API and explored the resulting implementations. Attendees wer\u2026",
+        "\u2026to create MCP servers for each API and explored the resulting implementations. Attendees were able to see how **Postman\u2019s MCP** Client makes it easier to navigate and understand API schemas through a visual interface rather than manually\u2026",
+        "\u2026throughout the event, including: Postman\u2019s new Native Git capabilities AI-powered workflows and Agent Mode in **Postman MCP**-related workflows and agent development experiences Interactive walkthroughs of Astro AI One thing that made \u2026"
+      ]
+    },
+    {
+      "id": 19787,
+      "title": "From API Calls to Agent Calls: What I Learned Running a Live MCP Workshop at API Days Singapore",
+      "link": "https://blog.postman.com/from-api-calls-to-agent-calls-what-i-learned-running-a-live-mcp-workshop-at-api-days-singapore/",
+      "date": "2026-05-05",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026executes them from natural language instructions \u2013 no human in the loop. The live demo: Claude, connected via **Postman\u2019s MCP** server, checking the Artemis leaderboard and summarising every participant\u2019s mission progress \u2013 from a single\u2026",
+        "\u2026et Agent Mode academy.postman.com/meet-agent-mode Agent Mode Prompt Library postman.com/templates/agent-mode/ **Postman MCP** Server github.com/postmanlabs/postman-mcp-server Import the spec, run the collection, and try the Agent Mode \u2026"
+      ]
+    },
+    {
+      "id": 19771,
+      "title": "Headless Postman: Automating the API Lifecycle with the MCP Server",
+      "link": "https://blog.postman.com/headless-postman-automating-the-api-lifecycle-with-the-mcp-server/",
+      "date": "2026-05-05",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server",
+        "mcp.postman.com"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026l \u2014 UI-driven, click-heavy, and hard to automate without exporting everything and shelling out to Newman. The **Postman MCP** server changes this completely. Instead of clicking through Postman\u2019s interface, you describe what you want t\u2026",
+        "\u2026hing the Postman app. In this post, I\u2019ll walk through the complete API producer and tester workflow using the **Postman MCP** server with Claude Code. We\u2019ll take a raw OpenAPI spec and move it all the way through to a running Monitor, \u2026",
+        "\u2026\u2019ll take a raw OpenAPI spec and move it all the way through to a running Monitor, entirely headless. What the **Postman MCP** Server Actually Does Before we get into the workflow, it\u2019s worth being precise about what the Postman MCP ser\u2026"
+      ]
+    },
+    {
+      "id": 19632,
+      "title": "Build and DynamicallyTest a Banking API with Agent Mode and Postman MCP Server",
+      "link": "https://blog.postman.com/build-and-dynamicallytest-a-banking-api-with-agent-mode-and-postman-mcp-server/",
+      "date": "2026-04-30",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "Postman Claude Code",
+        "postman-mcp-server",
+        "mcp.postman.com"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        " Build and DynamicallyTest a Banking API with Agent Mode and **Postman MCP** Server What if you could build an API, generate tests with AI, and connect the whole thing to Claude\u2014all in o\u2026",
+        "\u2026its between accounts), use Postman Agent Mode to automate test creation, and wire it up to Claude through the **Postman MCP** server. By the end, you\u2019ll have a complete workflow for building AI-ready APIs that you can apply to your own\u2026",
+        "\u2026. Connect to Claude via MCP The Model Context Protocol (MCP) lets AI assistants interact with external tools. **Postman\u2019s MCP** server gives Claude direct access to your workspaces, collections, and APIs. Generate your Postman API key In\u2026"
+      ]
+    },
+    {
+      "id": 19669,
+      "title": "Eliminate context switching with Postman Native Git and MCP",
+      "link": "https://blog.postman.com/avoid-context-switching-with-postman/",
+      "date": "2026-04-21",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026sual check. Resources Native Git documentation Postman Agent Mode practical guide GitHub MCP server on GitHub **Postman MCP** support announcement Local Mocks and mock servers throughout the API lifecycle Postman Collection v3 format r\u2026"
+      ]
+    },
+    {
+      "id": 19713,
+      "title": "Postman\u2019s MCP Server Now Works With Google Antigravity IDE",
+      "link": "https://blog.postman.com/postmans-mcp-server-now-works-with-google-antigravity-ide/",
+      "date": "2026-04-13",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server",
+        "Antigravity"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026 will automatically discover the Collections and environments in your workspace. Your APIs show up as callabl **Postman\u2019s MCP** Server Now Works With Google Antigravity IDE We are excited to announce that Postman\u2019s MCP server now integra\u2026",
+        "\u2026gents direct access to your Collections, environments, and test workflows with a few lines of config. What Is **Postman\u2019s MCP** Server? The Postman MCP server uses the Model Context Protocol (MCP) to give AI agents structured, executable\u2026",
+        "\u2026p as callable tools in the agent\u2019s context, and you\u2019re off and building. How It Works Under the Hood When the **Postman MCP** server starts up, it reads your connected Postman workspace and exposes your Collections as tools the AI agen\u2026"
+      ]
+    },
+    {
+      "id": 19587,
+      "title": "Announcing the Postman Plugin for Claude Code",
+      "link": "https://blog.postman.com/announcing-the-postman-plugin-for-claude-code/",
+      "date": "2026-03-31",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "Claude Code plugin",
+        "Postman plugin",
+        "postman-plugin",
+        "Postman Claude Code",
+        "postman-mcp-server"
+      ],
+      "markers_found": [
+        "postmanlabs/postman-plugin"
+      ],
+      "excludes_found": [],
+      "status": "current",
+      "snippets": [
+        "\u2026 Works Under the Hood When you load it with \u2013plugin-dir, it bundles a .mcp.json file that auto-configures the **Postman MCP** Server. All 8 commands communicate through 111 MCP tools. No scripts, no runtimes, no package managers. Three\u2026",
+        "\u2026t started, run the following commands: # Clone the plugin git clone https://github.com/Postman-Devrel/postman-**claude-code-plugin**.git # Set your API key (add to ~/.zshrc to persist) export POSTMAN_API_KEY=PMAK-your-key-here # Start Claude \u2026",
+        "\u2026key-here # Start Claude Code with the plugin loaded cd your-api-project/ claude --plugin-dir /path/to/postman-**claude-code-plugin** Then run /postman:setup to verify your connection and select a workspace. That\u2019s it. If you need to obtain yo\u2026"
+      ]
+    },
+    {
+      "id": 19631,
+      "title": "Testing APIs with Postman Agent Mode: A Practical Guide",
+      "link": "https://blog.postman.com/testing-apis-with-postman-agent-mode-a-practical-guide/",
+      "date": "2026-03-23",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026arning resource Writing Test Scripts \u2014 Test script reference Postman CLI Docs \u2014 CI/CD integration postmanlabs/**postman-mcp**-server \u2014 MCP server for AI tool integration"
+      ]
+    },
+    {
+      "id": 19463,
+      "title": "Postman Product Update: January 2026",
+      "link": "https://blog.postman.com/january-2026-product-updates/",
+      "date": "2026-01-27",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026s evolve while keeping AI work grounded. Learn more about AI requests and BYOM \u2192 Connect AI coding tools with **Postman\u2019s MCP** server AI coding agents are most effective when they understand the APIs they\u2019re working with. Without contex\u2026",
+        "\u2026out context, they generate code that\u2019s incomplete, incorrect, or disconnected from how your API really works. **Postman\u2019s MCP** server now gives AI agents structured, executable context about your APIs, enabling you to: Run collections t\u2026",
+        "\u2026 how your APIs actually work You can connect MCP-compatible tools like Claude Desktop, Cursor, and VS Code to **Postman\u2019s MCP** server. Use natural-language prompts such as \u201cGenerate TypeScript code from this collection,\u201d \u201cCreate a new c\u2026"
+      ]
+    },
+    {
+      "id": 19370,
+      "title": "What is an MCP Server?",
+      "link": "https://blog.postman.com/what-is-mcp-server/",
+      "date": "2025-11-24",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026minal and navigate to the server folder, open in Cursor Run npm install Copy path from Cursor Step 5: Test in **Postman\u2019s MCP** Client Before connecting to your AI application, test your server in Postman: Create a new MCP connection: Go\u2026",
+        "\u2026\u2019re creating reusable infrastructure that eliminates vendor lock-in and reduces maintenance overhead. Explore **Postman\u2019s MCP** catalog to get started."
+      ]
+    },
+    {
+      "id": 19255,
+      "title": "September 2025 Product Update: Redesigned Variables, AI Requests in Collections, and Workflow Improvements",
+      "link": "https://blog.postman.com/september-2025-product-updates/",
+      "date": "2025-09-23",
+      "matched": [
+        "Postman MCP",
+        "Postman MCP Server",
+        "postman-mcp-server"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026hed a leaderboard with your favorite notebooks from the Notebook Creator Challenge . VS Code MCP integration: **Postman\u2019s MCP** server is available in the VS Code extension, letting you connect AI assistants directly to your Postman work\u2026",
+        "\u2026ess collections, environments, and Postman API tools without leaving your coding environment. Read the docs \u2192 **Postman MCP** server on GitHub: Postman\u2019s MCP server is now available on GitHub, making it easier to integrate Postman capa\u2026"
+      ]
+    },
+    {
+      "id": 19162,
+      "title": "Postman Product Updates: May 2025",
+      "link": "https://blog.postman.com/postman-product-updates-may-2025/",
+      "date": "2025-05-20",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026y how they behave before integrating them into your workflows\u2014all through the familiar Postman interface With **Postman\u2019s MCP** support, you can create model-agnostic connections that work across Claude, Cursor, and other MCP-compatible \u2026"
+      ]
+    },
+    {
+      "id": 19019,
+      "title": "Postman launches full support for Model Context Protocol (MCP) \u2014 Build better AI Agents, faster",
+      "link": "https://blog.postman.com/postman-launches-full-support-for-model-context-protocol-mcp-build-better-ai-agents-faster/",
+      "date": "2025-05-01",
+      "matched": [
+        "Postman MCP"
+      ],
+      "markers_found": [],
+      "excludes_found": [],
+      "status": "flagged",
+      "snippets": [
+        "\u2026gents. Just select the APIs you want, click Build, and download your custom server. Test it right away in the **Postman MCP** Client and use it in products like Claude, Cursor, and others. Available today \u2014 and built for what\u2019s next Al\u2026"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "postman-plugin": {
+    "description": "Posts mentioning the Postman MCP server or any previous Agentic IDE Code plugin that don't point to the current postman-plugin install instructions. Readers should install the plugin rather than configure the MCP server directly.",
+    "keywords": [
+      "Postman MCP",
+      "Postman MCP Server",
+      "Claude Code plugin",
+      "Postman plugin",
+      "postman-plugin",
+      "Postman Claude Code",
+      "postman-mcp-server",
+      "mcp.postman.com"
+    ],
+    "context_keywords": [
+      "Codex",
+      "Antigravity",
+      "Gemini"
+    ],
+    "near": [
+      "install",
+      "installs",
+      "installing",
+      "installation",
+      "plugin",
+      "plugins",
+      "marketplace",
+      "set up",
+      "setup"
+    ],
+    "exclude": [
+      "Astropods"
+    ],
+    "current_markers": [
+      "postmanlabs/postman-plugin",
+      "@postman/postman-plugin",
+      "postman@claude-plugins-official",
+      "claude.com/plugins/postman"
+    ],
+    "note": "postman-plugin-update"
+  }
+}

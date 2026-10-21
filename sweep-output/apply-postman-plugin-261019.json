@@ -1,0 +1,152 @@
+[
+  {
+    "id": 20446,
+    "title": "SDK vs CLI vs MCP, a dev story",
+    "link": "https://blog.postman.com/sdk-vs-cli-vs-mcp-a-dev-story/",
+    "result": "updated"
+  },
+  {
+    "id": 20387,
+    "title": "Loop engineering: stop prompting, start looping",
+    "link": "https://blog.postman.com/loop-engineering-stop-prompting-start-looping/",
+    "result": "updated"
+  },
+  {
+    "id": 20414,
+    "title": "Why AI coding agents need context graphs",
+    "link": "https://blog.postman.com/why-ai-coding-agents-need-context-graphs/",
+    "result": "updated"
+  },
+  {
+    "id": 20158,
+    "title": "Develop and test MCP in Postman: jhipster-mcp in action",
+    "link": "https://blog.postman.com/develop-and-test-mcp-in-postman-jhipster-mcp-in-action/",
+    "result": "updated"
+  },
+  {
+    "id": 20230,
+    "title": "4 Infrastructure Layers Every Production AI Agent Needs",
+    "link": "https://blog.postman.com/4-infrastructure-layers-every-production-ai-agent-needs/",
+    "result": "updated"
+  },
+  {
+    "id": 20358,
+    "title": "Loops and beads: orchestrating AI agents with Postman",
+    "link": "https://blog.postman.com/loops-and-beads-orchestrating-ai-agents-with-postman/",
+    "result": "updated"
+  },
+  {
+    "id": 20349,
+    "title": "Securing the Autonomous Engineer: Postman's Approach to API Security in the Agentic AI Era",
+    "link": "https://blog.postman.com/securing-the-autonomous-engineer-postmans-approach-to-api-security-in-the-agentic-ai-era/",
+    "result": "updated"
+  },
+  {
+    "id": 20208,
+    "title": "Announcing the Postman Accredited Seller: our first global partner sales accreditation",
+    "link": "https://blog.postman.com/announcing-the-postman-accredited-seller-our-first-global-partner-sales-accreditation/",
+    "result": "updated"
+  },
+  {
+    "id": 20363,
+    "title": "MCP goes stateless \u2014 and Postman's ready",
+    "link": "https://blog.postman.com/mcp-goes-stateless-and-postmans-ready/",
+    "result": "updated"
+  },
+  {
+    "id": 20076,
+    "title": "How DevRel saves thousands of tokens per Claude Code run",
+    "link": "https://blog.postman.com/how-devrel-saves-thousands-of-tokens-per-claude-code-run/",
+    "result": "updated"
+  },
+  {
+    "id": 20048,
+    "title": "AI is ready. Your APIs probably aren't.",
+    "link": "https://blog.postman.com/ai-ready-apis-agentic-ai-aws-competency/",
+    "result": "updated"
+  },
+  {
+    "id": 20052,
+    "title": "We Gave Two AI Agents the Same API Spec Drift Problem. The Difference Was Context.",
+    "link": "https://blog.postman.com/api-specification-drift-why-context-beats-code-alone/",
+    "result": "updated"
+  },
+  {
+    "id": 20050,
+    "title": "What SpaceX buying Cursor means for AI coding workflows",
+    "link": "https://blog.postman.com/what-spacex-buying-cursor-means-for-ai-coding-workflows/",
+    "result": "updated"
+  },
+  {
+    "id": 20000,
+    "title": "Postman at APIdays Amsterdam: Building Better APIs for the AI Era",
+    "link": "https://blog.postman.com/postman-at-apidays-amsterdam/",
+    "result": "updated"
+  },
+  {
+    "id": 19787,
+    "title": "From API Calls to Agent Calls: What I Learned Running a Live MCP Workshop at API Days Singapore",
+    "link": "https://blog.postman.com/from-api-calls-to-agent-calls-what-i-learned-running-a-live-mcp-workshop-at-api-days-singapore/",
+    "result": "updated"
+  },
+  {
+    "id": 19771,
+    "title": "Headless Postman: Automating the API Lifecycle with the MCP Server",
+    "link": "https://blog.postman.com/headless-postman-automating-the-api-lifecycle-with-the-mcp-server/",
+    "result": "updated"
+  },
+  {
+    "id": 19632,
+    "title": "Build and DynamicallyTest a Banking API with Agent Mode and Postman MCP Server",
+    "link": "https://blog.postman.com/build-and-dynamicallytest-a-banking-api-with-agent-mode-and-postman-mcp-server/",
+    "result": "updated"
+  },
+  {
+    "id": 19669,
+    "title": "Eliminate context switching with Postman Native Git and MCP",
+    "link": "https://blog.postman.com/avoid-context-switching-with-postman/",
+    "result": "updated"
+  },
+  {
+    "id": 19713,
+    "title": "Postman's MCP Server Now Works With Google Antigravity IDE",
+    "link": "https://blog.postman.com/postmans-mcp-server-now-works-with-google-antigravity-ide/",
+    "result": "updated"
+  },
+  {
+    "id": 19631,
+    "title": "Testing APIs with Postman Agent Mode: A Practical Guide",
+    "link": "https://blog.postman.com/testing-apis-with-postman-agent-mode-a-practical-guide/",
+    "result": "updated"
+  },
+  {
+    "id": 19463,
+    "title": "Postman Product Update: January 2026",
+    "link": "https://blog.postman.com/january-2026-product-updates/",
+    "result": "updated"
+  },
+  {
+    "id": 19370,
+    "title": "What is an MCP Server?",
+    "link": "https://blog.postman.com/what-is-mcp-server/",
+    "result": "updated"
+  },
+  {
+    "id": 19255,
+    "title": "September 2025 Product Update: Redesigned Variables, AI Requests in Collections, and Workflow Improvements",
+    "link": "https://blog.postman.com/september-2025-product-updates/",
+    "result": "updated"
+  },
+  {
+    "id": 19162,
+    "title": "Postman Product Updates: May 2025",
+    "link": "https://blog.postman.com/postman-product-updates-may-2025/",
+    "result": "updated"
+  },
+  {
+    "id": 19019,
+    "title": "Postman launches full support for Model Context Protocol (MCP) \u2014 Build better AI Agents, faster",
+    "link": "https://blog.postman.com/postman-launches-full-support-for-model-context-protocol-mcp-build-better-ai-agents-faster/",
+    "result": "updated"
+  }
+]

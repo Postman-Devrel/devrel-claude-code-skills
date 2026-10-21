@@ -125,7 +125,9 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 |-------|-------------|
 | `cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
 | `cfp-tracker` | Manage the team's CFP submissions on the Confluence "Team CFP Tracker" page (add/update/delete/archive, status tracking incl. **Planned**). Imports CFPs discovered by `cfp-hunter`. Confluence is the single source of truth |
+| `events-agenttools` | Find events where a DevRel presence would drive PLG adoption of the postman-plugin among developers using agentic coding tools (Claude Code, Cursor, Kiro, Antigravity, Codex, etc.) and headless agent builders. Scored rubric with presence recommendations. See [`docs/events-agenttools.md`](docs/events-agenttools.md) for the Postman Agent Stack's building/maintaining/operating concerns and the full scoring rubric |
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
+| `newsletter-linkedininsights` | Generate the monthly Postman Developer Digest for LinkedIn's Newsletter feature (events, product updates, Liftoff, YouTube, cover graphic). Saves to `newsletter-output/linkedin-insights/YYYY-MM/` for human review — never auto-posts |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
 | `webinar-manager` | Run a developer webinar: create/update the Luma event, file the Social Promo Card request in Jira (`MKTG`), prepare the YouTube Live and LinkedIn Live events, draft the promo email and Twitter/X + LinkedIn posts, and post a metrics summary (Luma and LinkedIn registrations, YouTube and LinkedIn views, engagement, average view time) to Slack `#developer-relations` 5 hours after the event ends. Needs `LUMA_API_KEY`, `SLACK_BOT_TOKEN`, and the Atlassian MCP. Luma/Jira writes require approval; email and posts are drafts only. See `skills/webinar-manager/SKILL.md` |
@@ -283,7 +285,9 @@ skills/
   blog-ideas/                  # Blog idea generation
   cfp-hunter/                  # CFP search
   cfp-tracker/                 # CFP submission tracking (Confluence)
+  events-agenttools/           # Agentic dev tools event finder (postman-plugin PLG)
   newsletter-agentsandapis/    # Newsletter generation
+  newsletter-linkedininsights/ # LinkedIn Newsletter digest (saves to newsletter-output/linkedin-insights/)
   influencer-autoagent/        # Influencer finder
 hooks/
   hooks.json                   # Hook configuration
@@ -299,6 +303,7 @@ blog-output/                   # Blog post output
 cfp-output/                    # CFP search results
 newsletter-output/             # Newsletter output
 influencer-output/             # Influencer candidate output
+events-agenttools-output/      # Agentic dev tools event scorecard
 ```
 
 ## Usage Examples
@@ -331,6 +336,10 @@ influencer-output/             # Influencer candidate output
 
 # Generate this month's newsletter
 /newsletter-agentsandapis March
+
+# Generate this month's LinkedIn Newsletter digest (asks for hero highlight + Liftoff callout)
+/newsletter-linkedininsights
+/newsletter-linkedininsights lead with the Context Graph API post
 
 # Find influencers for a product launch
 /influencer-autoagent Autonomous Agent

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Postman Developer Digest — {{MONTH_LABEL}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14171A;
+    --card-border: #2A2F34;
+    --orange: #FF6C37;
+    --text: #F4F1EA;
+    --text-dim: #9A9FA6;
+    --text-dim2: #8B9096;
+    --get: #4FA37A;
+    --season-glow: transparent;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  /* Seasonal accent — a second, quieter glow only. Postman orange (--orange) and the
+     primary top-left glow never change; the dot-grid tint also never changes per season. */
+  .canvas.season-winter { --season-glow: rgba(91,150,255,0.26); }
+  .canvas.season-spring { --season-glow: rgba(103,209,135,0.24); }
+  .canvas.season-summer { --season-glow: rgba(255,200,87,0.26); }
+  .canvas.season-autumn { --season-glow: rgba(224,128,64,0.26); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+  }
+  .canvas {
+    width: 1200px;
+    height: 627px;
+    background-color: var(--bg);
+    background-image: radial-gradient(rgba(255,108,55,0.16) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    background-position: -1px -1px;
+    position: relative;
+    overflow: hidden;
+    padding: 56px 72px;
+    display: flex;
+    flex-direction: column;
+  }
+  .canvas::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 12% 0%, rgba(255,108,55,0.22), transparent 48%);
+    pointer-events: none;
+  }
+  .canvas::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 90% 100%, var(--season-glow), transparent 55%);
+    pointer-events: none;
+  }
+  .hero-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--orange);
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .eyebrow .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--orange);
+  }
+  .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--text-dim2);
+    margin-top: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .season-label { text-transform: capitalize; }
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.15;
+    margin-top: 20px;
+    max-width: 920px;
+    position: relative;
+    z-index: 1;
+  }
+  h1 span {
+    color: var(--orange);
+  }
+  .hero-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px;
+    font-weight: 700;
+    color: #14171A;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 22px;
+    padding: 11px 22px;
+    background: var(--orange);
+    border-radius: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand .mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #14171A;
+    font-size: 15px;
+  }
+  .brand .name {
+    font-size: 17px;
+    color: var(--text-dim2);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--get);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--get);
+  }
+</style>
+</head>
+<body>
+  <div class="canvas season-{{SEASON}}">
+    <div class="hero-content">
+      <div class="eyebrow"><span class="dot"></span>DEVELOPER DIGEST · MONTHLY</div>
+      <h1>{{HEADLINE}}</h1>
+      <div class="sub">// <span class="season-label">{{SEASON}}</span>.{{MONTH_LABEL}} edition</div>
+      {{HERO_BADGE}}
+    </div>
+
+    <div class="footer">
+      <div class="brand">
+        <div class="mark">P</div>
+        <div class="name">postman developer digest</div>
+      </div>
+      <div class="status"><span class="dot"></span>200 OK</div>
+    </div>
+  </div>
+</body>
+</html>
