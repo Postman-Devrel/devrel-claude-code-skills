@@ -34,6 +34,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:blog-wordpress-stage` | Stage a blog post to blog.postman.com WordPress as a draft — accepts a local markdown file or a Google Docs URL (converts the doc first), with SEO metadata |
 | `/devrel-skills:blog-wordpress-scheduler` | Manage the editorial calendar — list scheduled/published posts, reschedule dates, monthly post counts, YTD summary with drafts. Enforces Mon-Thu only, no holidays, no same-day conflicts |
 | `/devrel-skills:blog-wordpress-stats` | Show the number of blog posts published between two dates on blog.postman.com, with breakdowns by month and author |
+| `/devrel-skills:blog-history-sweep` | Sweep published blog posts for a topic/keywords, flag ones missing current references (e.g. new postman-plugin install steps) in a reviewable checklist, and optionally prepend an HTML editor's note (with backups/restore). Notes live in `skills/blog-history-sweep/notes/`, reusable sweeps in `references/presets.json` |
 | `/devrel-skills:blog-dashboard` | Start or stop the blog pipeline Kanban dashboard Flask app (`http://localhost:5001`) — `start` or `stop` |
 | `/devrel-skills:blog-dashboard-cleanup` | Remove stuck/stale Kanban cards that haven't reached staging yet. Pass `--all` to clear the entire board. Never touches WordPress or blog-output files. |
 | `/devrel-skills:cfp-hunter` | Search for open Call-for-Papers at API and AI developer conferences. Writes to `cfp-output/current-cfps.md`, which `cfp-tracker` can import |
@@ -61,6 +62,7 @@ Each skill writes output to a dedicated directory:
 - `newsletter-output/` — Newsletters (prefixed with `YYYY-MM`)
 - `influencer-output/` — Influencer candidate reports (`influencer-candidates-YYMMDD.md`)
 - `luma-output/` — Luma event stats reports (`luma-stats-{filter}.md`)
+- `sweep-output/` — Blog history sweep review lists (`sweep-{label}-YYMMDD.md` + `.json`) and pre-edit post backups (`backups/`)
 - `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 - `meetup-output/` — Meetup calendar summaries (`meetup-calendar-YYMMDD.md`)
 - `pitch-output/` — Thought leadership pitches (`pitches-YYMMDD.md`)
