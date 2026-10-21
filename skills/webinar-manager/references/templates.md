@@ -180,20 +180,20 @@ Luma and LinkedIn lists overlap and are not deduplicated, so they are not summed
 ## YouTube Live
 | Metric | Value |
 |--------|-------|
-| Views | {n} |
-| Average view time | {m:ss or "pending"} |
+| Views (Studio) | {n} |
+| Average view duration | {m:ss or "pending"} |
+| Watch time (hours) | {n or "pending"} |
+| Engaged views | {n or "pending"} |
 | Likes | {n} |
-| Comments | {n} |
-| Other engagement (watch time, average percentage viewed) | {value or "pending"} |
+| Live chat messages / reactions | {n} / {n} |
 
 ## LinkedIn Live
 | Metric | Value |
 |--------|-------|
-| Views (unique viewers) | {n or "pending"} |
-| Average view time | {m:ss or "pending"} |
-| Reactions | {n or "pending"} |
+| Total viewers | {n or "pending"} |
+| Average watch time | {m:ss or "pending"} |
+| Engagement rate | {pct or "pending"} |
 | Comments | {n or "pending"} |
-| Shares | {n or "pending"} |
 
 ## Notes
 {Observations that follow from the numbers, for example the gap between Luma check-ins and platform viewers. Say so when the sources measure different things. List every value marked pending and where it comes from.}
@@ -204,19 +204,24 @@ Luma and LinkedIn lists overlap and are not deduplicated, so they are not summed
 File: `webinar-output/{slug}/slack-metrics.txt`. Plain text, no em dashes.
 
 ```text
-Webinar metrics: {title} ({date}), {hours}h after the event
+Webinar metrics: {title} ({date})
+
+Speakers: <@{slack_id}>, <@{slack_id}>
 
 Registrations
-Luma: {n} registered ({checked_in} checked in, {waitlisted} waitlisted)
+Luma: {n} registered ({waitlisted} waitlisted)
 LinkedIn: {n or "pending"} registered
 
 YouTube Live
-{views} views | avg view time {m:ss or "pending"} | {likes} likes, {comments} comments
+{views} views | avg view time {m:ss or "pending"} | {engaged} engaged views, {likes} likes, {chat} live chat messages
 
 LinkedIn Live
-{views or "pending"} views | avg view time {m:ss or "pending"} | {reactions} reactions, {comments} comments, {shares} shares
+{viewers or "pending"} viewers | avg watch time {m:ss or "pending"} | {pct} engagement rate, {comments} comments
 
 Recording: {youtube_live_url}
 ```
 
-Add a final line `Pending: {list}. Reply in thread with the figures or rerun metrics.` only when something is pending.
+Rules for this message:
+- Speakers are Slack tags (`<@U...>`), never plain `@name` text, which notifies nobody. Omit the line if no speaker could be resolved, and say so.
+- Add `, {checked_in} checked in` to the Luma line only when check-ins is above 0. A zero means check-in was not used, so do not report an attendance rate.
+- Drop any metric the sources did not provide instead of writing a placeholder, except values that are expected later: those say `pending`, and a final line `Pending: {list}. Reply in thread with the figures or rerun metrics.` is added.
