@@ -1,7 +1,7 @@
 ---
 name: webinar-manager
-description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma + Riverside metrics after the stream. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
-argument-hint: "new <title/brief> | luma [--dry-run] | jira | stream | email | promo [--card <path>] | status | metrics <slug> [riverside-export-path]"
+description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma, YouTube Live, and LinkedIn Live metrics to Slack 5 hours after the event ends. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
+argument-hint: "new <title/brief> | luma [--dry-run] | jira | stream | email | promo [--card <path>] | status | schedule <slug> | metrics <slug> [--post-slack] [--scheduled] [--force]"
 allowed-tools: ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch", "mcp__atlassian__searchJiraIssuesUsingJql", "mcp__atlassian__getJiraIssue", "mcp__atlassian__createJiraIssue", "mcp__atlassian__lookupJiraAccountId", "mcp__atlassian__getJiraIssueTypeMetaWithFields"]
 ---
 
@@ -11,20 +11,21 @@ One skill, one brief, every stage of a developer webinar. Webinars are produced 
 
 | Stage | What it does | Writes to |
 |-------|--------------|-----------|
-| `new` | Collects the brief, then runs `luma`, `jira`, `stream`, `email`, `promo` in order | local files, Luma, Jira |
+| `new` | Collects the brief, then runs `luma`, `jira`, `stream`, `email`, `promo`, `schedule` in order | local files, Luma, Jira |
 | `luma` | Creates or updates the Luma event (diff shown first) | Luma |
 | `jira` | Files the parent webinar task and the "Social Promo Card" sub-task | Jira (`MKTG`) |
 | `stream` | Prepares the YouTube Live and LinkedIn Live event details and the Riverside setup steps, records both viewing links, then updates the Luma event location | `stream.md`, Luma (after approval) |
 | `email` | Fetches the promo card and writes a full promotional email (hook, problem, takeaways, speakers, logistics, related blog posts and YouTube videos, CTA), then asks for approval | `email.md` |
 | `promo` | Fetches the promo card, writes a one-sentence promo and the LinkedIn and Twitter/X drafts, then asks for approval | `posts.md` |
 | `status` | Shows stage progress and the promo card ticket status | nothing |
-| `metrics` | Merges Luma stats with a Riverside export | `metrics.md` |
+| `schedule` | Creates a one-time cloud routine that runs `metrics --post-slack --scheduled` at event end + 5 hours | cloud routine (after approval) |
+| `metrics` | Merges Luma registrations, YouTube Live and LinkedIn Live numbers, and posts the summary to Slack | `metrics.md`, Slack `#developer-relations` |
 
-Nothing is ever posted or sent by this skill. The email and each social draft end with an approval question; an approval marks the draft final in the file and the user posts to Twitter/X and LinkedIn and sends the email themselves.
+Email and social copy are never posted or sent by this skill. The email and each social draft end with an approval question; an approval marks the draft final in the file and the user posts to Twitter/X and LinkedIn and sends the email themselves. The one exception is the metrics summary, which goes to Slack `#developer-relations` (see "Stage: `metrics`").
 
 ## Hard rules
 
-1. **Approval before every external write.** Before any Luma create/update or Jira create, show exactly what will change and wait for an explicit "yes". `luma-webinar.py` also refuses to write unless `--apply` is passed.
+1. **Approval before every external write.** Before any Luma create/update, Jira create, or manual Slack post, show exactly what will change and wait for an explicit "yes". `luma-webinar.py` also refuses to write unless `--apply` is passed.
 2. **New Luma events are always created private.** After the event and host are confirmed, always ask the user whether to make it public. Only change `visibility` after an explicit "yes", and show the change first like any other Luma write. Never change visibility on an existing event during an `update`.
 3. **No invented facts.** Speakers, dates, titles, and claims come from the brief. If a field is missing, ask once and save the answer to `brief.md`.
 4. **Copy rules** (email, posts, Jira text): no "supercharge", "unlock", "revolutionize", or "leverage"; no em dashes anywhere; code blocks carry language identifiers; developer advocate voice, conversational and specific.
@@ -37,6 +38,7 @@ Nothing is ever posted or sent by this skill. The email and each social draft en
 - `LUMA_API_KEY` in `.claude/settings.json` under `env` (key with write access to the Postman Dev Events calendar). Check with `[ -n "$LUMA_API_KEY" ] && echo set`. Do not echo the value.
 - Jira goes through the Atlassian MCP (`mcp__atlassian__*`), site `postmanlabs.atlassian.net`. If the tools are unavailable, tell the user to connect the Atlassian MCP and stop the Jira stage.
 - `JIRA_EMAIL` and `JIRA_API_TOKEN` in `.claude/settings.json` under `env`, used only to download the promo card attachment (`references/jira-card.py`, read-only). Create the token at https://id.atlassian.com/manage-profile/security/api-tokens. Check with `[ -n "$JIRA_API_TOKEN" ] && echo set`. If they are missing, tell the user how to add them and fall back to asking for a local card path (`promo --card <path>`).
+- `SLACK_BOT_TOKEN` (`chat:write`, the `webinaragent` bot, which must be invited to `#developer-relations`) in `.claude/settings.json` under `env`, and also in the cloud routine environment for scheduled runs. `YOUTUBE_API_KEY` (YouTube Data API v3) is optional: without it the helper reads the public watch page, which returns views and likes but not comments. Helper: `references/webinar-metrics.py`.
 - Luma calendar: `cal-TGqTNpY4iyl7XYe`.
 
 ## Files and state
@@ -50,6 +52,8 @@ webinar-output/
     email.md
     posts.md
     metrics.md
+    slack-metrics.txt         # the Slack message that was or will be posted
+    exports/                  # YouTube Studio and LinkedIn analytics exports or screenshots
 ```
 
 `{slug}` is the title lowercased with hyphens plus the date, for example `fabric-gateway-webinar-261020` (`YYMMDD`).
@@ -65,10 +69,12 @@ State file shape:
     "luma_url": "https://luma.com/...",
     "youtube_live_url": null,
     "linkedin_live_url": null,
+    "end_at": "2026-10-20T18:00:00Z",
+    "slack_metrics_ts": null,
     "jira_parent": "MKTG-11048",
     "jira_card": "MKTG-11062",
     "card_path": null,
-    "stages": {"luma": false, "jira": false, "stream": false, "email": false, "promo": false, "metrics": false}
+    "stages": {"luma": false, "jira": false, "stream": false, "email": false, "promo": false, "schedule": false, "metrics": false}
   }
 }
 ```
@@ -93,7 +99,7 @@ Required fields, saved to `webinar-output/{slug}/brief.md`:
 
 1. Ask for the full brief (see "The brief") and wait. Nothing is created before every required field is answered.
 2. Save `brief.md`, the slug, and a state entry.
-3. Run `luma`, then `jira`, then `stream`, then `email`, then `promo`, pausing at each approval gate.
+3. Run `luma`, then `jira`, then `stream`, then `email`, then `promo`, then `schedule`, pausing at each approval gate.
 4. Finish with the `status` view.
 
 ## Stage: `luma [--dry-run]`
@@ -185,23 +191,37 @@ After a draft file is written and passes the copy-rule check, show the full draf
 
 For each webinar in state (or the one named), print: stage checklist, Luma link, YouTube Live and LinkedIn Live links, Jira keys, the live status of `jira_card`, card path, and the next action. Read-only.
 
-## Stage: `metrics <slug> [riverside-export-path]`
+## Stage: `schedule <slug>`
+
+Creates the cloud routine that posts the metrics. Run it after `stream` (the YouTube and LinkedIn links must exist). `new` runs it last.
+
+1. Compute `end_at` (UTC) from the brief date, start time, timezone, and duration, save it to state, and set the run time to **`end_at` + 5 hours**. Show the run time in the brief's timezone. The post is timed from the end of the event, not the start.
+2. Build a self-contained routine prompt. The routine runs in a fresh cloud checkout with no `.webinar-state.json`, so embed everything it needs: title, slug, date, `end_at`, Luma `evt-...` id, YouTube live URL, LinkedIn live URL, and the instruction to run `/devrel-skills:webinar-manager metrics {slug} --post-slack --scheduled`.
+3. Use the `schedule` skill to create a one-time routine at that time. Show the run time, the prompt, and the channel (`#developer-relations`), then wait for an explicit "yes". Approving the routine pre-approves the Slack post it makes. The routine's environment needs `LUMA_API_KEY` and `SLACK_BOT_TOKEN` (and `YOUTUBE_API_KEY` if you have one); tell the user to add them there, and that this plugin must be installed from a pushed branch or release.
+4. Save `metrics_scheduled_for` to state and set `stages.schedule` to true. If the event time changes later, re-run `schedule` and tell the user to delete the old routine.
+
+## Stage: `metrics <slug> [--post-slack] [--scheduled] [--force]`
+
+**Timing.** Numbers are pulled at run time, never cached from earlier. With `--post-slack`, the post goes out only at or after `end_at` + 5 hours. If the current time is earlier, do not post: report the earliest post time and stop. **`--force` is for testing only:** it skips this wait, so use it only when the user asks for a test run. Prefix the Slack message with `[TEST RUN]` and never pass `--force` in a routine prompt. A `--scheduled` run (from the cloud routine) posts without asking; a manual `--post-slack` run shows the message first (`slack-post` without `--apply`) and posts after approval.
 
 1. **Luma:** `python3 luma-webinar.py stats {evt}` returns registered, waitlisted, checked in, and attendance rate. If the event has not happened yet, say so and stop.
-2. **Riverside:** read the export the user provides (CSV, PDF, or pasted numbers). Riverside metrics to extract: peak concurrent viewers, unique viewers, average watch time, replay views, and Q&A or chat message count. If no export was provided, ask for one; if the user has none, fill the Luma section and mark every Riverside value `not provided`. Never estimate a Riverside number.
-3. Write `webinar-output/{slug}/metrics.md` from the metrics skeleton in `references/templates.md`. Note when Luma check-ins and Riverside viewers differ and why the two measure different things.
-4. Set `stages.metrics` to true and print the report summary.
+2. **YouTube Live:** `python3 webinar-metrics.py youtube {youtube_live_url}` returns public views and likes, plus comments when `YOUTUBE_API_KEY` is set (otherwise `comments` is `null`: take it from the Studio export or mark it `pending`). Average view time is not in the public API: read it from the YouTube Studio analytics export or screenshot in `webinar-output/{slug}/exports/` (the page is `https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default`). Engagement is likes plus comments, plus any Studio engagement figures the export has (for example "Watch time" and "Average percentage viewed").
+3. **LinkedIn Live:** LinkedIn has no analytics API. Read registrations, views (unique viewers), reactions, comments, shares, and average view time from the export, screenshot (use `Read`, which reads images), or numbers the user pasted, in `webinar-output/{slug}/exports/`. The page is `https://www.linkedin.com/event/manage/{event_id}/?tab=analytics`, where `{event_id}` is the number at the end of the `linkedin_live_url`.
+4. **Missing numbers.** In a manual run, ask the user to drop the exports into `exports/` or paste the figures. In a `--scheduled` run there are no local exports, so post what the APIs returned and list every other value as `pending`. Never estimate a number. When the user later supplies the rest, rerun manually with `--post-slack`; it replies in the original thread (`--thread-ts {slack_metrics_ts}`) with the completed figures.
+5. Write `webinar-output/{slug}/metrics.md` from the metrics skeleton in `references/templates.md`, and the Slack message from the Slack skeleton to `slack-metrics.txt`. Do not add Luma and LinkedIn registrations together: the two lists overlap and are not deduplicated. Note when Luma check-ins and platform viewers differ, since they measure different things.
+6. Run the copy-rule check on `metrics.md` and `slack-metrics.txt`.
+7. `python3 webinar-metrics.py slack-post slack-metrics.txt` prints the message and posts nothing. Post with `--apply` (and `--channel`, default `#developer-relations`). Save the returned `ts` as `slack_metrics_ts` in state, and set `stages.metrics` to true once every metric is filled or the user accepts the pending ones.
 
 ## Copy-rule check
 
-Run before reporting `email` or `promo` complete:
+Run before reporting `email`, `promo`, or `metrics` complete:
 
 ```bash
-grep -nEi "supercharge|unlock|revolutionize|leverage|—" webinar-output/{slug}/email.md webinar-output/{slug}/posts.md
+grep -nEi "supercharge|unlock|revolutionize|leverage|—" webinar-output/{slug}/email.md webinar-output/{slug}/posts.md webinar-output/{slug}/metrics.md webinar-output/{slug}/slack-metrics.txt
 ```
 
 Any output is a failure. Rewrite those lines and rerun until the command prints nothing.
 
 ## Final report
 
-After any stage, print a short summary: what changed, where the files are, what needs the user's action next (approve a diff, post the drafts, supply the card or the Riverside export).
+After any stage, print a short summary: what changed, where the files are, what needs the user's action next (approve a diff, post the drafts, supply the card or the LinkedIn and YouTube exports).

@@ -167,25 +167,56 @@ File: `webinar-output/{slug}/metrics.md`
 ```markdown
 # Webinar metrics: {title}
 
-Date: {date}  |  Luma: {luma_url}
+Date: {date}  |  Luma: {luma_url}  |  Pulled: {timestamp}
 
-## Luma
+## Registrations
+| Source | Registered | Notes |
+|--------|-----------|-------|
+| Luma | {n} | {waitlisted} waitlisted, {checked_in} checked in ({pct}%) |
+| LinkedIn | {n or "pending"} | |
+
+Luma and LinkedIn lists overlap and are not deduplicated, so they are not summed.
+
+## YouTube Live
 | Metric | Value |
 |--------|-------|
-| Registered | {n} |
-| Waitlisted | {n} |
-| Checked in | {n} |
-| Attendance rate | {pct}% |
+| Views | {n} |
+| Average view time | {m:ss or "pending"} |
+| Likes | {n} |
+| Comments | {n} |
+| Other engagement (watch time, average percentage viewed) | {value or "pending"} |
 
-## Riverside
+## LinkedIn Live
 | Metric | Value |
 |--------|-------|
-| Peak concurrent viewers | {n or "not provided"} |
-| Unique viewers | {n or "not provided"} |
-| Average watch time | {value or "not provided"} |
-| Replay views | {n or "not provided"} |
-| Q&A / chat messages | {n or "not provided"} |
+| Views (unique viewers) | {n or "pending"} |
+| Average view time | {m:ss or "pending"} |
+| Reactions | {n or "pending"} |
+| Comments | {n or "pending"} |
+| Shares | {n or "pending"} |
 
 ## Notes
-{Observations that follow from the numbers, for example the gap between Luma check-ins and Riverside viewers. Say so when the two sources measure different things.}
+{Observations that follow from the numbers, for example the gap between Luma check-ins and platform viewers. Say so when the sources measure different things. List every value marked pending and where it comes from.}
 ```
+
+## Slack metrics message skeleton
+
+File: `webinar-output/{slug}/slack-metrics.txt`. Plain text, no em dashes.
+
+```text
+Webinar metrics: {title} ({date}), {hours}h after the event
+
+Registrations
+Luma: {n} registered ({checked_in} checked in, {waitlisted} waitlisted)
+LinkedIn: {n or "pending"} registered
+
+YouTube Live
+{views} views | avg view time {m:ss or "pending"} | {likes} likes, {comments} comments
+
+LinkedIn Live
+{views or "pending"} views | avg view time {m:ss or "pending"} | {reactions} reactions, {comments} comments, {shares} shares
+
+Recording: {youtube_live_url}
+```
+
+Add a final line `Pending: {list}. Reply in thread with the figures or rerun metrics.` only when something is pending.
