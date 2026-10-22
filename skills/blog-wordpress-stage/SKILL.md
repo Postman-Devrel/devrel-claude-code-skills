@@ -120,6 +120,15 @@ python3 /tmp/wp-md-to-html.py
 
 The HTML is now at `/tmp/wp-post-content.html` for use in Step 5.
 
+**Prompt / agent boxes.** The script also post-processes every `<blockquote>`: the Postman blog theme styles a plain blockquote as a 24px pull quote with no border or background, so prompts and agent replies in posts that show agent conversations would read like body text. Each blockquote becomes a `<div class="pm-chat pm-chat-prompt">` (orange left border, "Prompt" label) or `<div class="pm-chat pm-chat-agent">` (grey box, "Agent" label). A blockquote whose content starts with `<p><strong>` is an agent reply; anything else is a prompt. The script prints how many of each it styled; check the counts against the post, and expect 0 remaining blockquotes.
+
+When writing or converting markdown for this:
+
+- Consecutive blockquotes separated only by a blank line merge into one blockquote in Python-Markdown. A prompt followed directly by an agent reply therefore needs a short lead-in sentence (plain paragraph) between them so they stay separate boxes.
+- If a single blockquote starts with a plain paragraph but also contains a bold-led paragraph, the script prints a `WARNING` — that's a merged prompt + agent reply. Add the lead-in sentence in the markdown and re-run.
+- The styles are inline (`style="..."`), which WordPress strips if the account lacks `unfiltered_html`. After staging a post that has boxes, open the draft in wp-admin and confirm the boxes still render with their borders/backgrounds.
+- Posts with real pull quotes (not prompts/agent replies) would also be converted; use a different construct for those.
+
 ### Step 3: Upload All Images
 
 Upload **all** images referenced in the blog post to WordPress — both the featured header image and any inline images in the markdown body.
