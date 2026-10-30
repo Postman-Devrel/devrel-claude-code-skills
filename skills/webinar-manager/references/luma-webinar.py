@@ -7,8 +7,10 @@ Usage:
   luma-webinar.py create <payload.json> [--apply]                  # prints payload only unless --apply
   luma-webinar.py add-host <event_api_id> <email> <name> [--apply]  # prints body only unless --apply
   luma-webinar.py stats <event_api_id>
+  luma-webinar.py guests <event_api_id> <out.csv>                  # approved guests: email, first_name, name, attended
 """
 
+import csv
 import json
 import os
 import sys
@@ -108,25 +110,29 @@ def cmd_add_host(api_id, email, name, apply):
     print(json.dumps(call("POST", "/event/add-host", body=body), indent=2))
 
 
-def cmd_stats(api_id):
-    registered = waitlisted = checked_in = 0
+def iter_guests(api_id):
     cursor = None
     while True:
         params = {"event_api_id": api_id, "pagination_limit": 500}
         if cursor:
             params["pagination_cursor"] = cursor
         data = call("GET", "/event/get-guests", params)
-        for g in data.get("entries", []):
-            status = g.get("approval_status", "")
-            if status == "approved":
-                registered += 1
-            elif status in ("waitlisted", "pending"):
-                waitlisted += 1
-            if g.get("checked_in_at"):
-                checked_in += 1
+        yield from data.get("entries", [])
         cursor = data.get("next_cursor")
         if not data.get("has_more") or not cursor:
             break
+
+
+def cmd_stats(api_id):
+    registered = waitlisted = checked_in = 0
+    for g in iter_guests(api_id):
+        status = g.get("approval_status", "")
+        if status == "approved":
+            registered += 1
+        elif status in ("waitlisted", "pending"):
+            waitlisted += 1
+        if g.get("checked_in_at"):
+            checked_in += 1
     rate = round(checked_in / registered * 100, 1) if registered else None
     print(json.dumps({
         "event_api_id": api_id,
@@ -134,6 +140,34 @@ def cmd_stats(api_id):
         "waitlisted": waitlisted,
         "checked_in": checked_in,
         "attendance_rate_pct": rate,
+    }, indent=2))
+
+
+def cmd_guests(api_id, out_path):
+    rows, seen = [], set()
+    for g in iter_guests(api_id):
+        email = (g.get("email") or g.get("user_email") or "").strip().lower()
+        if g.get("approval_status") != "approved" or not email or email in seen:
+            continue
+        seen.add(email)
+        rows.append({
+            "email": email,
+            "first_name": g.get("user_first_name") or "",
+            "name": g.get("name") or "",
+            "attended": "yes" if g.get("checked_in_at") else "no",
+        })
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    with open(out_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["email", "first_name", "name", "attended"])
+        w.writeheader()
+        w.writerows(rows)
+    attended = sum(r["attended"] == "yes" for r in rows)
+    print(json.dumps({
+        "file": out_path,
+        "approved_guests": len(rows),
+        "checked_in": attended,
+        "not_checked_in": len(rows) - attended,
+        "attendance_known": attended > 0,
     }, indent=2))
 
 
@@ -158,6 +192,8 @@ def main():
             cmd_add_host(args[1], args[2], args[3], apply)
         elif cmd == "stats":
             cmd_stats(args[1])
+        elif cmd == "guests":
+            cmd_guests(args[1], args[2])
         else:
             print(__doc__)
             sys.exit(1)

@@ -128,7 +128,7 @@ The blog pipeline takes a post from idea to scheduled WordPress draft. You can r
 | `newsletter-agentsandapis` | Generate the monthly Agents & APIs meetup newsletter |
 | `influencer-autoagent` | Find and rank developer influencers for product launches |
 | `meetup-calendar` | Read, sync, and update the internal Postman meetup calendar spreadsheet — see commands below |
-| `webinar-manager` | Run a developer webinar: create/update the Luma event, file the Social Promo Card request in Jira (`MKTG`), prepare the YouTube Live and LinkedIn Live events, draft the promo email and Twitter/X + LinkedIn posts, and post a metrics summary (Luma and LinkedIn registrations, YouTube and LinkedIn views, engagement, average view time) to Slack `#developer-relations` 5 hours after the event ends. Needs `LUMA_API_KEY`, `SLACK_BOT_TOKEN`, and the Atlassian MCP. Luma/Jira writes require approval; email and posts are drafts only. See `skills/webinar-manager/SKILL.md` |
+| `webinar-manager` | Run a developer webinar: create/update the Luma event, file the Social Promo Card request in Jira (`MKTG`), prepare the YouTube Live and LinkedIn Live events, draft the promo email and Twitter/X + LinkedIn posts, write the post-event follow-up email (recording, Postman Liftoff, next webinar) for registrants, and post a metrics summary (Luma and LinkedIn registrations, YouTube and LinkedIn views, engagement, average view time) to Slack `#developer-relations` 5 hours after the event ends. Needs `LUMA_API_KEY`, `SLACK_BOT_TOKEN`, and the Atlassian MCP. Luma/Jira writes require approval; email and posts are drafts only. See `skills/webinar-manager/SKILL.md` |
 | `content-metrics` | Pull blog + YouTube stats, join Postman product attribution (signups / first-run / D-7 / D-30) via Looker, and post a Content → Product digest to Slack. Defaults to a 30-day window; pass an integer or phrase (`7`, `last week`, `90`, `last quarter`) to change it. See `docs/content-funnel.md` for the funnel model and `skills/content-metrics/SKILL.md` for setup. |
 
 ## Meetup Calendar
@@ -261,7 +261,7 @@ Each skill writes to a dedicated directory:
 | `newsletter-output/` | `newsletter-agentsandapis` | `YYYY-MM` prefix (e.g., `2026-03-agents-and-apis.md`) |
 | `influencer-output/` | `influencer-autoagent` | `influencer-candidates-YYMMDD.md` |
 | `blog-output/` | `blog-prod-updates` | `prod-updates-YYMMDD.md` + `.prod-update-memory.json` |
-| `webinar-output/` | `webinar-manager` | `{slug}/brief.md`, `stream.md`, `email.md`, `posts.md`, `metrics.md`, `slack-metrics.txt`, `exports/` + `.webinar-state.json` |
+| `webinar-output/` | `webinar-manager` | `{slug}/brief.md`, `stream.md`, `email.md`, `followup.md`, `recipients.csv`, `posts.md`, `metrics.md`, `slack-metrics.txt`, `exports/` + `.webinar-state.json` and `metrics-history.csv` (one row per webinar) |
 
 ## Hooks
 
@@ -519,6 +519,8 @@ make sure your Atlassian account has access to the DE (Developer Evangelism) spa
 - **YouTube:** no key is required. The skill reads public views and likes from the watch page. An optional `YOUTUBE_API_KEY` (YouTube Data API v3) also returns the comment count.
 - **YouTube Studio and LinkedIn analytics:** neither has an API the skill can call, and LinkedIn pages need a login. After the event, screenshot the YouTube Studio Overview and Engagement tabs and the LinkedIn event Analytics page, and give them to the skill (or save them in `webinar-output/{slug}/exports/`). It reads the numbers and shows them to you before anything is posted.
 - **Scheduled post:** `schedule <slug>` creates a one-time cloud routine for event end + 5 hours. The routine environment needs `LUMA_API_KEY` and `SLACK_BOT_TOKEN`, and the plugin must be installed from a pushed branch or release. A scheduled run has no access to your local exports, so the LinkedIn and Studio-only values show as "pending" and are filled in afterward with a thread reply from `metrics <slug> --post-slack`. The `--force` flag skips the 5-hour wait and is for testing only.
+- **Follow-up email:** `followup <slug>` runs after the event. It exports approved Luma registrants to `webinar-output/{slug}/recipients.csv` (gitignored, personal data) and drafts one email with the YouTube recording, a Postman Liftoff CTA, and the next webinar. You give it the Liftoff link and the next webinar's details when it asks. If Luma check-in was not used, the skill cannot tell who attended, so the email reads correctly for everyone who registered. The skill does not send anything: you send the approved draft from Luma or your email tool.
+- **Tracking improvement:** every `metrics` run saves a row in `webinar-output/metrics-history.csv`, and `/devrel-skills:webinar-manager trend` shows all webinars side by side with the change versus the previous webinar and the average. The file is local (`webinar-output/` is gitignored), and scheduled cloud runs do not write to it, so rerun `metrics <slug>` manually once to record the full row.
 
 ---
 

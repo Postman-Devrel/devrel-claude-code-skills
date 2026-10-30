@@ -111,6 +111,54 @@ Body target is 250 to 400 words. Every paragraph must be specific to this webina
 
 Related content order: the brief first, then posts found on blog.postman.com and videos on the Postman YouTube channel, newest first (at most 3 of each), then matching `blog-output/` posts. Link only URLs that a search or fetch actually returned and that match the topic. Omit a list when nothing relevant exists and say so in a note under the draft.
 
+## Follow-up email: skeleton
+
+File: `webinar-output/{slug}/followup.md`. Sent after the event to every approved Luma registrant.
+
+```markdown
+# Follow-up email: {title}
+
+**Subject options**
+1. {plain subject that names the recording, under 60 characters}
+2. {outcome-led option}
+3. {speaker-led option}
+
+**Preview text:** {under 90 characters}
+
+**Audience:** {n} approved registrants (`recipients.csv`). Attendance known: {yes|no}
+
+**Status:** draft
+
+---
+
+Hi {first_name},
+
+{One or two sentences. Thank them for registering and say the recording is ready. Do not assume they attended or missed it.}
+
+{Only when attendance is known. Attended: "Thanks for joining us live. Here is the recording to revisit the demo." Did not attend: "We missed you on {weekday}. The recording is below."}
+
+**Watch the recording**
+[Watch the recording on YouTube]({youtube_url})
+{One line: what the session covers and who presented. Timestamps only if the brief or the video page gives them.}
+
+**What you will get from it**
+- {Takeaway 1 as an outcome}
+- {Takeaway 2 as an outcome}
+- {Takeaway 3 as an outcome}
+
+**Keep going with Postman Liftoff**
+{Two or three sentences from the brief: what Liftoff is, the date, and why it follows from this topic.}
+[Join Postman Liftoff]({liftoff_url})
+
+**Next up: {next webinar title}**
+{Weekday, date}, {time} {timezone}. {One line on what it covers.}
+[Save your spot]({next_luma_url}?utm_source=email)
+
+{sign-off}
+```
+
+The recording is the main CTA, Liftoff second, the next webinar third. Drop the next-webinar section if none is scheduled. Never write a Liftoff or next-webinar detail that the user or a fetched page did not give.
+
 ## Social: Twitter/X skeleton
 
 Keep each post under 280 characters. One link per post, `?utm_source=twitter`. Name the card file on the line after each post. The default is one announce post built on the promo sentence. Draft the reminder, day-of, and thread only when the user asks.

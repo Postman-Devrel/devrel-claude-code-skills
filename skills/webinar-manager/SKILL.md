@@ -1,7 +1,7 @@
 ---
 name: webinar-manager
-description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma, YouTube Live, and LinkedIn Live metrics to Slack 5 hours after the event ends. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
-argument-hint: "new <title/brief> | luma [--dry-run] | jira | stream | email | promo [--card <path>] | status | schedule <slug> | metrics <slug> [--post-slack] [--scheduled] [--force]"
+description: "Run a developer webinar end to end: create or update the Luma event, file the Jira social-promo-card request for the creative team, write the promotional email and Twitter/X + LinkedIn posts from the webinar brief, track status, and report Luma, YouTube Live, and LinkedIn Live metrics to Slack 5 hours after the event ends, and write the post-event follow-up email (recording, Postman Liftoff, next webinar) for everyone who registered. Every Luma or Jira write is shown and approved first. Email and social copy are local drafts that the user approves and then posts or sends."
+argument-hint: "new <title/brief> | luma [--dry-run] | jira | stream | email | promo [--card <path>] | followup <slug> | status | schedule <slug> | metrics <slug> [--post-slack] [--scheduled] [--force] | trend"
 allowed-tools: ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch", "mcp__atlassian__searchJiraIssuesUsingJql", "mcp__atlassian__getJiraIssue", "mcp__atlassian__createJiraIssue", "mcp__atlassian__lookupJiraAccountId", "mcp__atlassian__getJiraIssueTypeMetaWithFields"]
 ---
 
@@ -17,8 +17,10 @@ One skill, one brief, every stage of a developer webinar. Webinars are produced 
 | `stream` | Prepares the YouTube Live and LinkedIn Live event details and the Riverside setup steps, records both viewing links, then updates the Luma event location | `stream.md`, Luma (after approval) |
 | `email` | Fetches the promo card and writes a full promotional email (hook, problem, takeaways, speakers, logistics, related blog posts and YouTube videos, CTA), then asks for approval | `email.md` |
 | `promo` | Fetches the promo card, writes a one-sentence promo and the LinkedIn and Twitter/X drafts, then asks for approval | `posts.md` |
+| `followup` | After the event: exports the approved Luma registrants and writes one follow-up email with the YouTube recording, a Postman Liftoff CTA, and the next webinar, then asks for approval | `followup.md`, `recipients.csv` |
 | `status` | Shows stage progress and the promo card ticket status | nothing |
 | `schedule` | Creates a one-time cloud routine that runs `metrics --post-slack --scheduled` at event end + 5 hours | cloud routine (after approval) |
+| `trend` | Shows every webinar's metrics side by side, with change versus the previous webinar and the average | nothing |
 | `metrics` | Merges Luma registrations, YouTube Live and LinkedIn Live numbers, and posts the summary to Slack | `metrics.md`, Slack `#developer-relations` |
 
 Email and social copy are never posted or sent by this skill. The email and each social draft end with an approval question; an approval marks the draft final in the file and the user posts to Twitter/X and LinkedIn and sends the email themselves. The one exception is the metrics summary, which goes to Slack `#developer-relations` (see "Stage: `metrics`").
@@ -29,7 +31,7 @@ Email and social copy are never posted or sent by this skill. The email and each
 2. **New Luma events are always created private.** After the event and host are confirmed, always ask the user whether to make it public. Only change `visibility` after an explicit "yes", and show the change first like any other Luma write. Never change visibility on an existing event during an `update`.
 3. **No invented facts.** Speakers, dates, titles, and claims come from the brief. If a field is missing, ask once and save the answer to `brief.md`.
 4. **Copy rules** (email, posts, Jira text): no "supercharge", "unlock", "revolutionize", or "leverage"; no em dashes anywhere; code blocks carry language identifiers; developer advocate voice, conversational and specific.
-5. **UTM tags on Luma links in copy:** `?utm_source=twitter`, `?utm_source=linkedin`, or `?utm_source=email` by channel.
+5. **UTM tags on Luma links in copy:** `?utm_source=twitter`, `?utm_source=linkedin`, or `?utm_source=email` by channel. Other links (YouTube recording, Postman Liftoff) are used exactly as given, with no tags added.
 6. **Credentials come from the environment only.** Never write keys into files or print them.
 7. **The host is always Talia Kohan** (`talia.kohan@postman.com`), on every webinar, regardless of who the speakers are. The Luma API key belongs to another user (Quinton Wall), so events it creates are owned by that user and Talia must be added as a host explicitly. Do this on every `luma` run, new or existing, using the `add-host` helper command (dry run first, `--apply` after approval, like any other Luma write). The Jira description and Luma description list Talia as host.
 
@@ -46,10 +48,13 @@ Email and social copy are never posted or sent by this skill. The email and each
 ```text
 webinar-output/
   .webinar-state.json         # per-webinar state, see below
+  metrics-history.csv         # one row per webinar, updated by every metrics run (see "Metrics history")
   {slug}/
     brief.md                  # the saved brief
     luma-payload.json         # last payload sent or proposed to Luma
     email.md
+    followup.md               # post-event follow-up email draft
+    recipients.csv            # approved Luma registrants (email, first_name, name, attended). Personal data: never print, paste, or commit
     posts.md
     metrics.md
     slack-metrics.txt         # the Slack message that was or will be posted
@@ -70,11 +75,13 @@ State file shape:
     "youtube_live_url": null,
     "linkedin_live_url": null,
     "end_at": "2026-10-20T18:00:00Z",
+    "liftoff_url": null,
+    "next_webinar": {"title": null, "date": null, "luma_url": null},
     "slack_metrics_ts": null,
     "jira_parent": "MKTG-11048",
     "jira_card": "MKTG-11062",
     "card_path": null,
-    "stages": {"luma": false, "jira": false, "stream": false, "email": false, "promo": false, "schedule": false, "metrics": false}
+    "stages": {"luma": false, "jira": false, "stream": false, "email": false, "promo": false, "followup": false, "schedule": false, "metrics": false}
   }
 }
 ```
@@ -91,6 +98,7 @@ Required fields, saved to `webinar-output/{slug}/brief.md`:
 - Riverside studio link for the speakers (may be blank)
 - YouTube Live and LinkedIn Live viewing links (usually blank at the start: the `stream` stage prepares both events and asks for the links afterward)
 - Related content: blog posts, docs, collections, earlier webinars (may be blank)
+- Follow-up inputs (asked for by `followup`, not at the start): Postman Liftoff link and what to say about it, and the next webinar's title, date, and Luma link
 - Existing Luma event id (`evt-...`) if the event already exists, or "none". The Luma manage URL `https://luma.com/event/manage/evt-XXXX` contains it.
 
 **Ask for the whole brief up front.** When `new` starts, send one message that lists every field above, numbered, and wait for the reply. Do not read state, build a slug, write files, or call Luma/Jira until the reply arrives. Use any fields the user already gave in the command arguments (for example the title) and list only the rest. After the reply, if a required field is still missing, ask for those fields in one follow-up. Only the join link and related content may be blank, and only if the user says so explicitly. Never fill a missing field with a guess or placeholder unless the user asks for placeholder or test values.
@@ -187,6 +195,19 @@ After a draft file is written and passes the copy-rule check, show the full draf
 5. Run the copy-rule check and fix any hit.
 6. Run the approval checkpoint once for LinkedIn and once for Twitter/X.
 
+## Stage: `followup <slug>`
+
+Run after the event ends and the recording is public. It writes one email to everyone who registered. The skill never sends it.
+
+1. **Check timing.** Read state. If now is before `end_at`, say the event has not finished and stop. Read `brief.md`.
+2. **Recording link.** The recording is the same watch URL as the live event: `youtube_live_url` from state. If it is empty, ask for it. Run `python3 webinar-metrics.py youtube {youtube_live_url}` to confirm the page loads, and tell the user to check in YouTube Studio that the video is public and finished processing, since a live URL can still show "upcoming" or "processing". Do not link LinkedIn as the recording unless the user supplies a separate recording link.
+3. **Postman Liftoff.** Use `liftoff_url` from state. If it is empty, ask the user for the Liftoff link and one or two facts to state (date, what it is, why it fits this topic). A `WebSearch` can help the user find the page, but never write a Liftoff date, location, or claim that the user did not give you or a fetched page did not show. Save the answers to state and `brief.md`.
+4. **Next webinar.** Use `next_webinar` from state. If it is empty, look in `.webinar-state.json` for another webinar dated after this one and read its brief. Otherwise ask for the title, date and time, and Luma link; if the user gives only a link, `WebFetch` it for the title and date and confirm them. If there is no next webinar yet, drop that section and say so. Never guess a date.
+5. **Recipients.** `python3 luma-webinar.py guests {luma_api_id} webinar-output/{slug}/recipients.csv` writes the approved registrants (waitlisted and declined are left out) and prints counts only. Report the counts, never the addresses. If `attendance_known` is false, Luma check-in was not used, so the skill cannot tell who watched: write one email that reads correctly for someone who attended and someone who did not, and say that in the final report. If it is true, add the attended and did-not-attend opening lines from the template, and tell the user which rows in the CSV get which.
+6. Write `webinar-output/{slug}/followup.md` from the follow-up skeleton in `references/templates.md`. Recording first, then Liftoff, then the next webinar. Target 150 to 250 words in the body. Takeaways come from the brief only, and timestamps only if the brief or the video page gives them.
+7. Run the copy-rule check and fix any hit, then the approval checkpoint ("Approve this follow-up email?").
+8. Set `stages.followup` to true after approval. Tell the user how many people the email goes to and that they send it themselves, from Luma's guest email tool or the team's email tool, using `recipients.csv` if the tool needs a list. Remind them to check that the send includes an unsubscribe option.
+
 ## Stage: `status`
 
 For each webinar in state (or the one named), print: stage checklist, Luma link, YouTube Live and LinkedIn Live links, Jira keys, the live status of `jira_card`, card path, and the next action. Read-only.
@@ -211,14 +232,27 @@ Creates the cloud routine that posts the metrics. Run it after `stream` (the You
 5. **Tag speakers.** Resolve each speaker to a Slack user ID with `users.lookupByEmail` (needs the `users:read.email` scope) and use `<@U...>` in the message. If the bot lacks the scope or the lookup fails, ask the user for the member IDs (profile, three-dot menu, Copy member ID). Never guess an ID, and never use plain `@name` text. Tagged speakers are notified when the message posts, so show the tags in the approval step.
 6. Write `webinar-output/{slug}/metrics.md` from the metrics skeleton in `references/templates.md`, and the Slack message from the Slack skeleton to `slack-metrics.txt`. Do not add Luma and LinkedIn registrations together: the two lists overlap and are not deduplicated. Note when Luma check-ins and platform viewers differ, since they measure different things.
 7. Run the copy-rule check on `metrics.md` and `slack-metrics.txt`.
-8. `python3 webinar-metrics.py slack-post slack-metrics.txt` prints the message and posts nothing. Post with `--apply` (and `--channel`, default `#developer-relations`). Save the returned `ts` as `slack_metrics_ts` in state, and set `stages.metrics` to true once every metric is filled or the user accepts the pending ones.
+8. **Record the history row** (see "Metrics history") before posting, so the numbers are saved even if the Slack post fails.
+9. `python3 webinar-metrics.py slack-post slack-metrics.txt` prints the message and posts nothing. Post with `--apply` (and `--channel`, default `#developer-relations`). Save the returned `ts` as `slack_metrics_ts` in state, and set `stages.metrics` to true once every metric is filled or the user accepts the pending ones.
+
+## Metrics history
+
+`webinar-output/metrics-history.csv` holds one row per webinar so improvement can be tracked over time. Columns: `slug, title, date, luma_registered, luma_waitlisted, luma_checked_in, linkedin_registrations, yt_views, yt_avg_view_seconds, yt_watch_hours, yt_engaged_views, yt_likes, yt_chat_messages, li_viewers, li_avg_watch_seconds, li_engagement_pct, li_comments, updated`. Durations are stored in seconds. A blank cell means the value was not captured, never zero.
+
+- **Every `metrics` run updates the row** with `python3 webinar-metrics.py history-add webinar-output/metrics-history.csv {row.json}` after the numbers are final (build `row.json` from the figures that went into `metrics.md`). It upserts by `slug` and only overwrites a stored value with a real one, so a rerun that fills in pending LinkedIn or Studio numbers adds to the row and never blanks it. Do this for scheduled runs too, and for manual runs with or without `--post-slack`.
+- **Scheduled runs cannot persist it.** The cloud routine works in a fresh checkout and `webinar-output/` is gitignored, so its numbers do not reach the local file. The manual rerun that completes the pending values writes the full row. Tell the user this when a scheduled run posts.
+- **A webinar is only comparable if it has the same metrics.** Never copy a number from another source into a blank cell, and never write 0 for a value that was not measured (for example Luma check-ins when check-in was not used).
+
+## Stage: `trend`
+
+Read-only. `python3 webinar-metrics.py history-show webinar-output/metrics-history.csv` prints one line per webinar and, from the second webinar on, the change of the latest one versus the previous webinar and versus the average of all earlier ones, for each metric. After it prints, add two or three plain observations that follow from the numbers (what rose, what fell, and any metric with no earlier value to compare). Do not explain causes the data cannot show. With fewer than three webinars, say the trend is too short to read much into.
 
 ## Copy-rule check
 
-Run before reporting `email`, `promo`, or `metrics` complete:
+Run before reporting `email`, `promo`, `followup`, or `metrics` complete:
 
 ```bash
-grep -nEi "supercharge|unlock|revolutionize|leverage|—" webinar-output/{slug}/email.md webinar-output/{slug}/posts.md webinar-output/{slug}/metrics.md webinar-output/{slug}/slack-metrics.txt
+grep -nEi "supercharge|unlock|revolutionize|leverage|—" webinar-output/{slug}/email.md webinar-output/{slug}/followup.md webinar-output/{slug}/posts.md webinar-output/{slug}/metrics.md webinar-output/{slug}/slack-metrics.txt
 ```
 
 Any output is a failure. Rewrite those lines and rerun until the command prints nothing.
