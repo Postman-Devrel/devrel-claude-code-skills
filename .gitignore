@@ -18,3 +18,4 @@ dashboard/ideas.json
 skills/meetup-calendar/*.json
 __pycache__/
 .claude/settings.json
+webinar-output/

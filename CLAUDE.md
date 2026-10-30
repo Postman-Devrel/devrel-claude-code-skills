@@ -49,6 +49,7 @@ Skills are namespaced under `devrel-skills:` when installed as a plugin.
 | `/devrel-skills:social-media-manager` | Weekly social media agent team — researches blog, release notes, and trending news; creates 5 LinkedIn/Twitter posts; packages employee advocacy kit; auto-posts to Twitter Mon/Wed at 10am PST |
 | `/devrel-skills:meetup-calendar` | Summarize events (filter: `upcoming`, `past`, `YYYY`, city name). `--sync [luma-url] [--dry-run]`: match Luma events to spreadsheet rows, write URLs, offer to create missing events. `--update-stats`: fetch Luma registration/waitlist/attendance and write to sheet. |
 | `/devrel-skills:thought-leadership` | Manage thought leadership pitches — `pitches [focus]`: generate 5 vendor-neutral PR pitches, `list`: show all pitches with status, `write`: draft a full article from a pitch, `accepted`: mark a pitch as done |
+| `/devrel-skills:webinar-manager` | Run a developer webinar end to end — `new`: collect the brief and run all stages, `luma [--dry-run]`: create/update the Luma event, `jira`: file the Social Promo Card request in MKTG, `email`: draft the promo email, `promo [--card <path>]`: draft Twitter/X + LinkedIn posts, `followup <slug>`: post-event email to registrants with the YouTube recording, a Postman Liftoff CTA, and the next webinar, `status`, `schedule <slug>`: cloud routine that fires at event end + 5h, `metrics <slug> [--post-slack]`: Luma registrations + YouTube Live and LinkedIn Live views, engagement, avg view time, posted to Slack #developer-relations and saved to `metrics-history.csv`, `trend`: compare webinars over time. All Luma/Jira writes need approval; email and posts are local drafts |
 
 ## Output Directories
 
@@ -66,6 +67,7 @@ Each skill writes output to a dedicated directory:
 - `social-media-output/` — Social media posts, research briefs, advocacy kits, and Twitter posting logs
 - `meetup-output/` — Meetup calendar summaries (`meetup-calendar-YYMMDD.md`)
 - `pitch-output/` — Thought leadership pitches (`pitches-YYMMDD.md`)
+- `webinar-output/` — Per-webinar folders (`{slug}/brief.md`, `email.md`, `followup.md`, `posts.md`, `metrics.md`) and `.webinar-state.json`
 
 ## Hooks
 
