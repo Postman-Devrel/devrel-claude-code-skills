@@ -475,7 +475,7 @@ Extract YAML frontmatter: `suggested_title`, `meta_description`, `primary_keywor
 
 ```python
 import subprocess, sys
-subprocess.check_call([sys.executable, "-m", "pip", "install", "markdown", "-q"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "markdown", "pymdown-extensions", "-q"])
 import markdown
 
 with open("INPUT_FILE", "r") as f:
@@ -484,7 +484,13 @@ with open("INPUT_FILE", "r") as f:
 parts = content.split("---", 2)
 body = parts[2].strip() if len(parts) >= 3 else content.strip()
 
-html = markdown.markdown(body, extensions=["fenced_code", "codehilite", "tables", "toc"])
+# superfences (not fenced_code) so ``` blocks nested in list items convert too.
+# The highlight config keeps the <pre class="codehilite"><code class="language-x"> markup.
+html = markdown.markdown(
+    body,
+    extensions=["pymdownx.superfences", "pymdownx.highlight", "tables", "toc"],
+    extension_configs={"pymdownx.highlight": {"css_class": "codehilite", "use_pygments": False}},
+)
 
 with open("/tmp/wp-post-content.html", "w") as f:
     f.write(html)
