@@ -28,7 +28,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
 import qbrlib as q  # noqa: E402
 
-DEFAULT_FOLDER = "1rJ7ysQLIGkT06uCaHsgJxkLv041VlWI3"  # DeveloperRelations shared drive, folder "QBR"
+DEFAULT_FOLDER = "1zJp-zA3Z8ABa3v3t90zuxqQ2ivd4ABRe"  # DeveloperRelations shared drive, folder "QBR"
 API = "https://www.googleapis.com"
 
 
