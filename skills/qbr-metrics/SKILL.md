@@ -75,7 +75,7 @@ From the repo root:
 python3 skills/qbr-metrics/references/run-qbr.py FY27-Q3
 ```
 
-This pulls all seven sources in parallel, tags topics, builds the report and a chapter-by-chapter `report.pdf` (needs Chrome), and writes `qbr-output/START_to_END/` with `raw-*.json`, `topics.json`, `metrics.json`, `report.html` and `report.md`. Expect several minutes: Luma pages through every calendar contact, and Common Room pages through every segment member. A source that fails is recorded in `errors.json` and shown as "not connected"; the rest still builds. Progress prints to stderr.
+This pulls all seven sources in parallel, tags topics, builds the report and a chapter-by-chapter `report.pdf` (needs Chrome), copies the PDF to the shared Google Drive folder QBR (through Google Drive for Desktop) as `devrel-qbr-{start}_to_{end}.pdf`, and writes `qbr-output/START_to_END/` with `raw-*.json`, `topics.json`, `metrics.json`, `report.html` and `report.md`. Expect several minutes: Luma pages through every calendar contact, and Common Room pages through every segment member. A source that fails is recorded in `errors.json` and shown as "not connected"; the rest still builds. Progress prints to stderr.
 
 The footer of every report states the tokens and estimated API-list-price cost of the Claude session that produced it (`references/session-cost.py`, written to `cost.json` on each build). By default it counts the whole session. To count only this run, set the start time first: `export QBR_RUN_SINCE=$(date -u +%Y-%m-%dT%H:%M:%SZ)` before Step 1's pulls, in the same shell. The figure is an estimate (main session only, no sub-agents, not an invoice) and is refreshed again on `--rebuild`, so it includes the insights step.
 
@@ -120,7 +120,7 @@ Rules:
 
 ## Step 5: Report back, and ask about the direction
 
-Show, in under 12 lines: the range and previous period, the path to `report.pdf` and `report.html`, which sources connected and which did not, and the three biggest findings. Do not publish the report anywhere unless asked.
+Show, in under 12 lines: the range and previous period, the path to `report.pdf` and `report.html`, which sources connected and which did not, and the three biggest findings. Say whether the Drive copy worked (the runner prints `[drive] uploaded` with the link, or `[drive] not copied` with the reason). If it was not copied, give the reason and what is needed; do not try another upload route without asking. Do not publish the report anywhere else unless asked.
 
 Then check `direction.md` in the output folder. If the user already gave it in Step 1b, say which headings have text and move on. Otherwise ask, every run:
 - **No text yet:** say where the file is and offer the three ways again: they can point to a file they have written (rerun with `--direction=PATH`), answer the five questions now (the interview in Step 1b), or write it in the file and tell you when it is saved. Never offer to draft it.

@@ -205,3 +205,33 @@ def industry_group(label):
         if any(k in low for k in keys):
             return group
     return "Other"
+
+
+def google_access_token(scope):
+    """Access token for the Google service account named by GOOGLE_APPLICATION_CREDENTIALS (JWT signed with openssl).
+    Returns (token, service_account_email). The key is read, never printed."""
+    import base64
+    import subprocess
+    import tempfile
+    path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+    try:
+        with open(os.path.expanduser(path)) as f:
+            sa = json.load(f)
+    except (OSError, ValueError):
+        sys.exit("GOOGLE_APPLICATION_CREDENTIALS is not set or does not point to a service account key file")
+    now = int(time.time())
+    b64 = lambda x: base64.urlsafe_b64encode(x if isinstance(x, bytes) else x.encode()).rstrip(b"=").decode()  # noqa: E731
+    msg = b64(json.dumps({"alg": "RS256", "typ": "JWT"})) + "." + b64(json.dumps(
+        {"iss": sa["client_email"], "scope": scope, "aud": "https://oauth2.googleapis.com/token", "iat": now, "exp": now + 3600}))
+    with tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False) as kf:
+        kf.write(sa["private_key"])
+        key_path = kf.name
+    try:
+        sig = subprocess.run(["openssl", "dgst", "-sha256", "-sign", key_path], input=msg.encode(), capture_output=True).stdout
+    finally:
+        os.unlink(key_path)
+    status, body = http_json("https://oauth2.googleapis.com/token", data={"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                                                                         "assertion": msg + "." + b64(sig)}, retries=1)
+    if status != 200 or "access_token" not in body:
+        sys.exit(f"Google token request failed: HTTP {status} {str(body)[:160]}")
+    return body["access_token"], sa["client_email"]

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Run every qbr-metrics pull in parallel, then build the report.
 
-Usage: run-qbr.py (START END | FY27-Q3 | 2026-09 | 2026-W41) [--only=wp,youtube,luma,sheet,linkedin,mailchimp,commonroom] [--rebuild] [--direction=PATH]
+Usage: run-qbr.py (START END | FY27-Q3 | 2026-09 | 2026-W41) [--only=wp,youtube,luma,sheet,linkedin,mailchimp,commonroom] [--rebuild] [--direction=PATH] [--no-drive]
   --find-previous-direction  print the path of the latest earlier period's direction.md that has text, and stop
+  --no-drive  do not copy report.pdf to the shared Google Drive folder (also: DRIVE_QBR_FOLDER_ID=off)
   --direction=PATH  install a direction.md the team already wrote (an existing one with text is kept as direction.previous.md)
   --rebuild  skip the pulls and rebuild the report from existing raw-*.json files
 
@@ -90,6 +91,21 @@ def previous_direction(start, base="qbr-output"):
     return os.path.abspath(best[1]) if best else None
 
 
+def upload_drive(out_dir, start, end):
+    """Copy report.pdf to the shared Drive folder as devrel-qbr-{start}_to_{end}.pdf. Never fails the run."""
+    if "--no-drive" in sys.argv or os.environ.get("DRIVE_QBR_FOLDER_ID", "").lower() == "off":
+        return
+    if not os.path.exists(os.path.join(out_dir, "report.pdf")):
+        print("[drive] skipped: there is no report.pdf to copy", file=sys.stderr)
+        return
+    r = subprocess.run([sys.executable, os.path.join(HERE, "upload-drive.py"), out_dir, start, end], capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        info = json.loads(r.stdout.strip().splitlines()[-1])
+        print(f"[drive] {'updated' if info.get('updated_existing') else 'copied'} {info['name']} via {info.get('method', 'the Drive API')}: {info.get('link')}", file=sys.stderr)
+    else:
+        print("[drive] not copied: " + (r.stderr.strip().splitlines() or ["unknown error"])[-1][:400], file=sys.stderr)
+
+
 def find_chrome():
     for c in (os.environ.get("CHROME_PATH"), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
               "/Applications/Chromium.app/Contents/MacOS/Chromium", "google-chrome", "chromium", "chromium-browser"):
@@ -175,6 +191,7 @@ def main():
         sys.exit("report build failed")
     print(result.stdout.strip())
     export_pdf(out_dir)
+    upload_drive(out_dir, start, end)
 
 
 if __name__ == "__main__":
