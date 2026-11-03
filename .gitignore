@@ -19,3 +19,8 @@ skills/meetup-calendar/*.json
 __pycache__/
 .claude/settings.json
 webinar-output/
+
+# qbr-metrics output and local snapshot state
+qbr-output/
+skills/qbr-metrics/references/snapshots.json
+skills/qbr-metrics/references/__pycache__/
