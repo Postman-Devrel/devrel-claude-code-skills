@@ -403,9 +403,15 @@ def stoplight_rows(d, tp=None):
                 f"(average {n(c['active_members_avg'])} active members, {pc_text(ch['active_members_avg'])} vs {n(p['active_members_avg'])}). "
                 f"{n(c['joins'])} joins ({pc_text(ch['joins'])}), net {n(c['net_members'])} members. "
                 f"{n(c['help_topics'])} help topics, {n(c['answer_rate_pct'], 0)}% answered, with {n(c['staff_bot_replies'])} staff and bot replies. "
-                f"Scored on active members and joins. "
+                f"Scored on active members and joins"+(", plus Liftoff signups and badges" if d.get("liftoff") else "")+". "
                 + (f"Red because the active rate is below {COMMUNITY_MIN_ACTIVE_RATE:g}% of members, whatever the trend. " if c["active_rate_pct"] < COMMUNITY_MIN_ACTIVE_RATE else ""))
-        res = blend(band(ch["active_members_avg"], "result"), band(ch["joins"], "result"))
+        lo = d.get("liftoff")
+        sig = [band(ch["active_members_avg"], "result"), band(ch["joins"], "result")]
+        if lo:
+            sig += [band(lo["change"]["newUsers"], "result"), band(lo["change"]["modulesCompleted"], "result")]
+            note += (f" Liftoff: {n(lo['current']['newUsers'])} new signups ({pc_text(lo['change']['newUsers'])}) and {n(lo['current']['modulesCompleted'])} badges earned "
+                     f"({pc_text(lo['change']['modulesCompleted'])}) are included in that score; the floor still applies.")
+        res = blend(*sig)
         low = c["active_rate_pct"] < COMMUNITY_MIN_ACTIVE_RATE
         if low:
             res = "red"  # a very small active share is red whatever the trend: percent change cannot see a level problem
@@ -470,7 +476,7 @@ def stoplight_section(d, overrides, tp=None):
                     f'<td class="notes">{esc(note)}</td></tr>')
     rules = ("Status rules, applied to the change against the previous period. Output signal (what the team produced): green at or above last period, "
              "amber down to -20%, red below that (fewer events held is capped at amber, because event volume is a planning choice). Result signal (what it achieved): green at +5% or better, amber from -20% to +5%, red at -20% or worse. "
-             "Community Engagement Rate is scored on active members and joins and is red whenever fewer than 1% of members are active in a month. Developers Reached judges the result per event, together with new subscriber growth; when those disagree it is amber. A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
+             "Community Engagement Rate is scored on active members, joins, Liftoff signups and Liftoff badges earned (amber when they disagree) and is red whenever fewer than 1% of members are active in a month. Developers Reached judges the result per event, together with new subscriber growth; when those disagree it is amber. A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
              "The scoring covers what DevRel controls (events, content it creates and organic results); paid media is shown for context and is not scored. Accounts influenced uses growth in total corporate accounts reached through Luma (a proxy); the change in new accounts is in the note. Rows can be overridden by hand in stoplight.json.")
     return (f'<section class="stoplight"><h2>Quarter at a glance</h2><table class="sl"><tr><th>KPI / Activity</th><th>Status</th><th>Notes</th></tr>'
             f'{"".join(body)}</table><p class="foot">{esc(rules)}</p></section>')
