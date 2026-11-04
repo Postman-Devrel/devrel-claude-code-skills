@@ -352,6 +352,9 @@ def status_cell(signals, override=None):
     return f"linear-gradient(90deg,{STATUS_COLOR[sig[0]]},{STATUS_COLOR[sig[-1]]})", f"{sig[0]} to {sig[-1]}"
 
 
+COMMUNITY_MIN_ACTIVE_RATE = float(os.environ.get("COMMUNITY_MIN_ACTIVE_RATE", "1.0"))  # percent of members active in a month; below this the row is red
+
+
 def stoplight_rows(d, tp=None):
     rs = reach_stats(d, tp)
     wp, yt, lu, sh, cr = d["wp"], d["youtube"], d["luma"], d["sheet"], d["commonroom"]
@@ -400,8 +403,13 @@ def stoplight_rows(d, tp=None):
                 f"(average {n(c['active_members_avg'])} active members, {pc_text(ch['active_members_avg'])} vs {n(p['active_members_avg'])}). "
                 f"{n(c['joins'])} joins ({pc_text(ch['joins'])}), net {n(c['net_members'])} members. "
                 f"{n(c['help_topics'])} help topics, {n(c['answer_rate_pct'], 0)}% answered, with {n(c['staff_bot_replies'])} staff and bot replies. "
-                f"Active members and joins are the result; the answer rate on help topics is the output the team controls.")
-        rows.append(("Community Engagement Rate", [band(ch["answer_rate_pct"], "output"), blend(band(ch["active_members_avg"], "result"), band(ch["joins"], "result"))], note))
+                f"Scored on active members and joins. "
+                + (f"Red because the active rate is below {COMMUNITY_MIN_ACTIVE_RATE:g}% of members, whatever the trend. " if c["active_rate_pct"] < COMMUNITY_MIN_ACTIVE_RATE else ""))
+        res = blend(band(ch["active_members_avg"], "result"), band(ch["joins"], "result"))
+        low = c["active_rate_pct"] < COMMUNITY_MIN_ACTIVE_RATE
+        if low:
+            res = "red"  # a very small active share is red whatever the trend: percent change cannot see a level problem
+        rows.append(("Community Engagement Rate", [res], note))
     else:
         rows.append(("Community Engagement Rate", [], "Not connected: the community dashboard MCP was not pulled."))
     # Blogs
@@ -462,7 +470,7 @@ def stoplight_section(d, overrides, tp=None):
                     f'<td class="notes">{esc(note)}</td></tr>')
     rules = ("Status rules, applied to the change against the previous period. Output signal (what the team produced): green at or above last period, "
              "amber down to -20%, red below that (fewer events held is capped at amber, because event volume is a planning choice). Result signal (what it achieved): green at +5% or better, amber from -20% to +5%, red at -20% or worse. "
-             "Developers Reached judges the result per event, together with new subscriber growth; when those disagree it is amber. A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
+             "Community Engagement Rate is scored on active members and joins and is red whenever fewer than 1% of members are active in a month. Developers Reached judges the result per event, together with new subscriber growth; when those disagree it is amber. A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
              "The scoring covers what DevRel controls (events, content it creates and organic results); paid media is shown for context and is not scored. Accounts influenced uses growth in total corporate accounts reached through Luma (a proxy); the change in new accounts is in the note. Rows can be overridden by hand in stoplight.json.")
     return (f'<section class="stoplight"><h2>Quarter at a glance</h2><table class="sl"><tr><th>KPI / Activity</th><th>Status</th><th>Notes</th></tr>'
             f'{"".join(body)}</table><p class="foot">{esc(rules)}</p></section>')
@@ -968,10 +976,26 @@ def community_section(cm):
     charts = (line_chart("Joins per month", ser("joins", "Joins", ORANGE), labels=lab, markers=False)
               + line_chart("Active members per month", ser("active", "Active members", GREEN), labels=lab, markers=False))
     lift = ""
+    cat = cm.get("liftoff_catalog")
     if c["liftoff_cohort"]:
-        lift = (f'<h3>Liftoff onboarding</h3><p class="foot" style="margin-top:0">{n(c["liftoff_cohort"])} members joined the World Explorer module '
-                f'({pc_text(ch["liftoff_cohort"])} vs {n(p["liftoff_cohort"])}); {n(c["liftoff_started"])} started ({n(c["liftoff_start_rate_pct"], 1)}%) and '
-                f'{n(c["liftoff_completed"])} completed it.</p>')
+        lt = lambda label, k, **kw: tile(label, c[k], p[k], ch[k], **kw)  # noqa: E731
+        ltiles = "".join([
+            lt("Joined Liftoff", "liftoff_cohort", note="World Explorer cohort: members who joined in the period"),
+            lt("Started", "liftoff_started"),
+            tile("Start rate", c["liftoff_start_rate_pct"], p["liftoff_start_rate_pct"], ch["liftoff_start_rate_pct"], digits=1, suffix="%", note="Started divided by joined"),
+            lt("Badges earned", "badges_earned", note="One World Explorer badge per member who finished"),
+            tile("Badge rate", c["badge_rate_pct"], p["badge_rate_pct"], ch["badge_rate_pct"], digits=1, suffix="%", note="Badges divided by joined"),
+            tile("Finish rate of starters", c["badge_rate_of_starters_pct"], p["badge_rate_of_starters_pct"], q.pct_change(c["badge_rate_of_starters_pct"], p["badge_rate_of_starters_pct"]), digits=1, suffix="%", note="Badges divided by started"),
+        ])
+        src = "".join(f'<tr><td>{esc(name)}</td><td class="r">{n(v["cohort"])}</td><td class="r">{n(v["started"])}</td><td class="r">{n(v["badges"])}</td>'
+                      f'<td class="r">{n(v["badges"] / v["cohort"] * 100, 1) if v["cohort"] else "n/a"}%</td></tr>'
+                      for name, v in (("Via the onboarding link", c["liftoff_by_source"]["onboarding_link"]), ("Direct / independent", c["liftoff_by_source"]["direct"])))
+        lift = (f'<h3>Liftoff onboarding and badges</h3><div class="tiles">{ltiles}</div>'
+                f'<table><tr><th>Where they joined from</th><th class="r">Joined</th><th class="r">Started</th><th class="r">Badges</th><th class="r">Badge rate</th></tr>{src}</table>'
+                f'<p class="foot">The dashboard reports one badge, World Explorer, so badges earned equals members who finished it. It has no count of badges across other modules, '
+                f'no badge-by-badge breakdown and no count of total badges held. Counts are for members who joined in the period; people who joined earlier are not followed up. '
+                f'Onboarding link clicks this period: {n(c["liftoff_link_clicks"])}.'
+                + (f' Liftoff has {cat["modules"]} modules across {cat["paths"]} learning paths (from the Liftoff MCP), so the dashboard follows one of {cat["modules"]}.' if cat else "") + '</p>')
     return (f'<section><h2>Owned community</h2><p class="foot" style="margin-top:0">Discord, from the community dashboard. Whole calendar months: '
             f'{", ".join(c["months"])} against {", ".join(p["months"])}. Active members is a very small share of the community, so read it as a trend, not a level.</p>'
             f'<div class="tiles">{tiles}</div>{charts}{lift}</section>')

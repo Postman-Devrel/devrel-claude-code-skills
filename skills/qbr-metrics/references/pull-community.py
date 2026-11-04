@@ -8,7 +8,7 @@ speaks MCP over HTTP (JSON-RPC); this script calls its get_monthly_report tool o
 
 The dashboard reports whole calendar months, so a period is covered by the months that sit fully inside it. A fiscal
 quarter or a calendar month works; a week or a custom range with no whole month is reported as not available.
-Flows (joins, leaves, help topics, replies, event roles) are summed over the months. Stocks (total members) are taken at
+Flows (joins, leaves, help topics, replies, event roles, Liftoff cohorts and badges) are summed over the months. Stocks (total members) are taken at
 the end of the last month. Active members is the average of the monthly counts.
 """
 import json
@@ -80,12 +80,35 @@ def window(token, start, end):
         "event_roles_granted": s(lambda r: r["eventAttendees"]["rolesGrantedInMonth"]),
         "event_role_holders": last["eventAttendees"]["totalWithRole"],
         "retention_pct": round(sum(r["retention"]["retentionRate"] for _, r in rows) / len(rows) * 100, 2),
-        "liftoff_cohort": cohort, "liftoff_started": started, "liftoff_completed": done,
+        "liftoff_cohort": cohort, "liftoff_started": started, "liftoff_completed": done, "badges_earned": done,
         "liftoff_start_rate_pct": round(started / cohort * 100, 1) if cohort else None,
+        "badge_rate_pct": round(done / cohort * 100, 1) if cohort else None,
+        "badge_rate_of_starters_pct": round(done / started * 100, 1) if started else None,
+        "liftoff_avg_progress_pct": round(sum(x.get("avgProgress", 0) * x.get("cohortSize", 0) for x in lift) / cohort * 100, 1) if cohort else None,
+        "liftoff_link_clicks": sum((x.get("onboardingLinkThisMonth") or {}).get("clicks", 0) for x in lift),
+        "liftoff_link_completed": sum((x.get("onboardingLinkThisMonth") or {}).get("completed", 0) for x in lift),
+        "liftoff_by_source": {k: {"cohort": sum((x.get(src) or {}).get("cohortSize", 0) for x in lift),
+                                  "started": sum((x.get(src) or {}).get("usersStarted", 0) for x in lift),
+                                  "badges": sum((x.get(src) or {}).get("usersCompleted", 0) for x in lift)}
+                              for k, src in (("onboarding_link", "viaOnboardingLink"), ("direct", "direct"))},
         "monthly": [{"month": m, "joins": r["signups"]["joins"], "leaves": r["retention"]["leaves"], "active": r["engagement"]["activeMembers"],
                      "topics": r["helpForum"]["newTopics"], "members": r["signups"]["totalMembers"], "event_roles": r["eventAttendees"]["rolesGrantedInMonth"]}
                     for m, r in rows],
     }
+
+
+def liftoff_catalog():
+    """Module count from the public Liftoff MCP (no auth). Content catalog only: it has no learner, badge or completion data."""
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "liftoff.paths", "arguments": {}}}).encode()
+    req = urllib.request.Request(os.environ.get("LIFTOFF_MCP_URL", "https://www.postman.com/liftoff/api/mcp/"), body,
+                                 {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            paths = json.load(r)["result"]["structuredContent"]["paths"]
+    except Exception:  # catalog is context only; the report works without it
+        return None
+    mods = {m["id"]: m["title"] for p in paths for m in p["modules"]}
+    return {"paths": len(paths), "modules": len(mods), "module_titles": sorted(mods.values())}
 
 
 def main():
@@ -100,8 +123,8 @@ def main():
     if not p:
         sys.exit("The previous period has no whole calendar month, so there is nothing to compare with.")
     keys = ("joins", "leaves", "net_members", "members_end", "active_members_avg", "active_rate_pct", "help_topics", "answer_rate_pct",
-            "replies_on_topics", "staff_bot_replies", "event_roles_granted", "retention_pct", "liftoff_cohort", "liftoff_started")
-    json.dump({"current": c, "previous": p,
+            "replies_on_topics", "staff_bot_replies", "event_roles_granted", "retention_pct", "liftoff_cohort", "liftoff_started", "badges_earned", "badge_rate_pct", "liftoff_start_rate_pct", "liftoff_link_clicks")
+    json.dump({"current": c, "previous": p, "liftoff_catalog": liftoff_catalog(),
                "change": {k: q.pct_change(c[k], p[k]) for k in keys},
                "note": "Discord community, whole calendar months from the community dashboard MCP. Sums for flows, month-end for total members, average for active members."},
               sys.stdout)
