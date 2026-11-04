@@ -378,3 +378,12 @@ The scripts fetch and compute. Claude writes a short, factual summary: biggest m
 - **Stoplight:** Community Engagement Rate is scored on active members and joins together (amber when they disagree), and is red whenever fewer than 1% of members are active in a month, because a percent change cannot see a level problem. Change the floor with `COMMUNITY_MIN_ACTIVE_RATE`. The help-topic answer rate is not scored: it only reflects 30 or so topics a quarter.
 - **Liftoff and badges:** the section shows members who joined Liftoff in the period, how many started, badges earned, badge rate, finish rate of starters and the onboarding-link split. The dashboard has one badge (World Explorer), so badges earned equals completions; it has no total badges held and no breakdown by badge.
 - **Limits:** the active rate is small (about 0.5% of members), so read it as a trend. "Members holding the Event Attendee role" is a current figure, not a historical one. The MCP has no sentiment measure.
+
+## Liftoff totals (admin stats API)
+
+`pull-liftoff.py` posts to `https://www.postman.com/liftoff/api/admin/stats/` (the trailing slash is required; without it the server answers 308 and a POST is not retried) with `LIFTOFF_ADMIN_API_TOKEN` as a bearer token. It sends the period plus a `compare` period, and the API's `to` date is exclusive, so the script sends the end date plus one day.
+
+- **Metrics:** new signups, active users, badges earned (the API's `modulesCompleted`, one badge per module), steps completed, points earned, anonymous conversions and anonymous visitor conversions (names as the API returns them; the definitions are not documented here), weekly series, top modules by completions, and drop-offs per module with the worst step.
+- **Campaigns:** the API has no campaign or UTM breakdown. The charts carry the release and event markers, and the insights compare signup and badge weeks with events and releases. That shows timing only, never cause. Adding a campaign or UTM capture at signup is the fix.
+- **Relation to the Discord numbers:** the community dashboard follows only the World Explorer module for members who joined Discord. When the Liftoff pull works, the Liftoff section replaces that block in the community section.
+- **Public Liftoff MCP:** `https://www.postman.com/liftoff/api/mcp/` needs no token and returns the module catalog only (17 modules, 5 paths), plus any active limited-time badge campaigns; it has no learner or badge counts.

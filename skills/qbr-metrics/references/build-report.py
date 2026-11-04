@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import qbrlib as q  # noqa: E402
 
 ORANGE, GREEN, TEXT, DIM, GRID, PREV = "#FF6C37", "#2E9E6B", "#1A1D21", "#5F6670", "#E5E7EB", "#9AA1AB"
-SOURCES = {"wp": "Blog", "youtube": "YouTube", "luma": "Luma", "sheet": "Meetup sheet", "linkedin": "LinkedIn", "mailchimp": "Mailchimp", "commonroom": "Common Room", "community": "Owned community"}
+SOURCES = {"wp": "Blog", "youtube": "YouTube", "luma": "Luma", "sheet": "Meetup sheet", "linkedin": "LinkedIn", "mailchimp": "Mailchimp", "commonroom": "Common Room", "community": "Owned community", "liftoff": "Liftoff"}
 KIND_COLOR = {"release": "#FF6C37", "industry": "#3B5BDB", "campaign": "#7C3AED"}
 KIND_LABEL = {"release": "Postman release", "industry": "Industry news", "campaign": "Paid campaign"}
 STATUS_COLOR = {"green": "#6BFA4A", "amber": "#F2A23A", "red": "#E5392B", "gray": "#D5D8DD"}
@@ -194,7 +194,7 @@ def md_to_html(text):
 
 INSIGHT_KEYS = [("are we amplifying", "reach"), ("paid vs organic", "youtube"), ("topics, style", "topics"), ("news, releases", "context"),
                 ("meetups", "sheet"), ("new channels", "channels"), ("newsletters", "newsletters"), ("accounts influenced", "commonroom"),
-                ("not covered", "limits")]
+                ("liftoff", "liftoff"), ("not covered", "limits")]
 
 
 def split_insights(md):
@@ -959,7 +959,7 @@ def context_section(events):
             f'<table><tr><th></th><th>Date</th><th>Type</th><th>Event</th><th>Source</th></tr>{"".join(rows)}</table></section>')
 
 
-def community_section(cm):
+def community_section(cm, with_liftoff=False):
     c, p, ch = cm["current"], cm["previous"], cm["change"]
     t = lambda label, k, **kw: tile(label, c[k], p[k], ch[k], **kw)  # noqa: E731
     tiles = "".join([
@@ -977,7 +977,7 @@ def community_section(cm):
               + line_chart("Active members per month", ser("active", "Active members", GREEN), labels=lab, markers=False))
     lift = ""
     cat = cm.get("liftoff_catalog")
-    if c["liftoff_cohort"]:
+    if c["liftoff_cohort"] and not with_liftoff:  # the Liftoff admin API replaces this Discord-side view
         lt = lambda label, k, **kw: tile(label, c[k], p[k], ch[k], **kw)  # noqa: E731
         ltiles = "".join([
             lt("Joined Liftoff", "liftoff_cohort", note="World Explorer cohort: members who joined in the period"),
@@ -999,6 +999,37 @@ def community_section(cm):
     return (f'<section><h2>Owned community</h2><p class="foot" style="margin-top:0">Discord, from the community dashboard. Whole calendar months: '
             f'{", ".join(c["months"])} against {", ".join(p["months"])}. Active members is a very small share of the community, so read it as a trend, not a level.</p>'
             f'<div class="tiles">{tiles}</div>{charts}{lift}</section>')
+
+
+def liftoff_section(lo):
+    c, p, ch = lo["current"], lo["previous"], lo["change"]
+    t = lambda label, k, **kw: tile(label, c[k], p[k], ch[k], **kw)  # noqa: E731
+    tiles = "".join([
+        t("New signups", "newUsers"), t("Active users", "totalUsers", note="Anyone with activity in the period"),
+        t("Badges earned", "modulesCompleted", note="One badge per module completed"),
+        t("Steps completed", "stepsCompleted"), t("Points earned", "pointsEarned"),
+        t("Anonymous conversions", "anonConversions", note="As named by the Liftoff admin API"),
+        t("Anonymous visitor conversions", "anonVisitorConversions", note="As named by the Liftoff admin API"),
+        tile("Badges per active user", c["modulesCompleted"] / c["totalUsers"] if c["totalUsers"] else None,
+             p["modulesCompleted"] / p["totalUsers"] if p["totalUsers"] else None,
+             q.pct_change(c["modulesCompleted"] / c["totalUsers"] if c["totalUsers"] else None, p["modulesCompleted"] / p["totalUsers"] if p["totalUsers"] else None), digits=1),
+    ])
+
+    def vals(rows, key):
+        v = [r[key] for r in rows]
+        return v[:FULL_WEEKS] if BUCKET == 7 and len(v) > FULL_WEEKS else v
+    charts = "".join(line_chart(title, [("This period", vals(c["series"], key), ORANGE, False), ("Previous period", vals(p["series"], key), PREV, True)], c["start"])
+                     for title, key in (("Liftoff new signups per week", "newUsers"), ("Liftoff badges earned per week", "modulesCompleted")))
+    prev_top = {m["moduleId"]: m["completions"] for m in p["top_modules"]}
+    top = "".join(f'<tr><td>{esc(m["title"])}</td><td class="r">{n(m["completions"])}</td><td class="r">{n(prev_top.get(m["moduleId"], 0))}</td></tr>' for m in c["top_modules"][:8])
+    drops = sorted((m for m in c["drop_offs"] if m["started"] >= 10), key=lambda m: -m["dropped"])[:5]
+    drop_rows = "".join(f'<tr><td>{esc(m["title"])}</td><td class="r">{n(m["started"])}</td><td class="r">{n(m["dropOffRate"], 1)}%</td>'
+                        f'<td>{esc(m["worstStep"]["title"])} ({n(m["worstStep"]["stoppedHere"])} stopped)</td></tr>' for m in drops)
+    return (f'<section><h2>Liftoff</h2><p class="foot" style="margin-top:0">Totals from the Liftoff admin API for all Liftoff learners, not only people in Discord. '
+            f'Liftoff has no campaign or UTM breakdown, so the charts show the release and event markers instead.</p>'
+            f'<div class="tiles">{tiles}</div>{charts}'
+            f'<div class="two"><div><h3>Top modules by completions</h3><table><tr><th>Module</th><th class="r">This period</th><th class="r">Previous</th></tr>{top}</table></div>'
+            f'<div><h3>Where learners stop (modules with 10 or more starts)</h3><table><tr><th>Module</th><th class="r">Started</th><th class="r">Drop-off</th><th>Worst step</th></tr>{drop_rows}</table></div></div></section>')
 
 
 def cost_line(cost):
@@ -1115,6 +1146,14 @@ def build_md(d, start, end, insights, tp, ctx, rows_sl, cost, recs=None, ci=None
     else:
         L += ["## Owned community", "Not connected.", ""]
     L += R("community")
+    lo = d.get("liftoff")
+    if lo:
+        c, p, ch = lo["current"], lo["previous"], lo["change"]
+        L += ["## Liftoff", "| Metric | This period | Previous | Change |", "|---|---:|---:|---:|"]
+        for label, k in (("New signups", "newUsers"), ("Active users", "totalUsers"), ("Badges earned (modules completed)", "modulesCompleted"), ("Steps completed", "stepsCompleted"),
+                         ("Points earned", "pointsEarned"), ("Anonymous conversions", "anonConversions"), ("Anonymous visitor conversions", "anonVisitorConversions")):
+            L.append(f"| {label} | {n(c[k])} | {n(p[k])} | {pc_text(ch[k])} |")
+        L += ["", "Top modules: " + "; ".join(f"{m['title']} ({m['completions']})" for m in c["top_modules"][:5]), ""] + R("liftoff")
     if insights:
         L += ["## Trend analysis and insights", insights, ""] + R("insights")
     L += ["---", cost_line(cost)]
@@ -1225,7 +1264,8 @@ def main():
            "blog": R(blog_section(d["wp"]), "blog") if d["wp"] else not_connected("wp", errors),
            "luma": R(luma_section(d["luma"], d["sheet"]), "luma") if d["luma"] else not_connected("luma", errors),
            "commonroom": R(commonroom_section(d["commonroom"]), "commonroom") if d["commonroom"] else not_connected("commonroom", errors),
-           "community": R(community_section(d["community"]), "community") if d["community"] else not_connected("community", errors), "direction": direction_section(direction_md)}
+           "community": R(community_section(d["community"], bool(d.get("liftoff"))), "community") if d["community"] else not_connected("community", errors),
+           "liftoff": R(liftoff_section(d["liftoff"]), "liftoff") if d.get("liftoff") else not_connected("liftoff", errors), "direction": direction_section(direction_md)}
     if d.get("linkedin"):
         sec["linkedin"] = R(linkedin_section(d["linkedin"]), "linkedin")
     if d.get("mailchimp"):
@@ -1253,7 +1293,7 @@ def main():
     sec["limits"] = R(limits_html, "insights")
     chapters = [("Summary", ["stoplight", "reach"]), ("Content", ["blog", "youtube", "shorts_vs_long", "paid_topics", "topics"]),
                 ("Events and meetups", ["luma", "sheet"]), ("Channels", ["channels", "linkedin", "newsletters"]),
-                ("Accounts and community", ["commonroom", "community"]), ("Context", ["context"]),
+                ("Accounts and community", ["commonroom", "community", "liftoff"]), ("Context", ["context"]),
                 ("Where we are going", ["direction"]), ("Limits and next tests", ["limits"])]
     body, toc = [], []
     for ci_, (cname, keys) in enumerate(chapters):

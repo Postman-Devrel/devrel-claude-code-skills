@@ -62,6 +62,8 @@ Env vars come from `~/.claude/settings.json` or `.claude/settings.json`. Check n
 | Luma | `LUMA_API_KEY` |
 | Meetup sheet (ratings, cost) | `MEETUP_SHEET_ID`, `GOOGLE_APPLICATION_CREDENTIALS` (same service account as `meetup-calendar`) |
 | Mailchimp | `MAILCHIMP_API_KEY` (optional scope: `MAILCHIMP_AUDIENCE_ID`, `MAILCHIMP_TITLE_CONTAINS`) |
+| Owned community (Discord) | `COMMUNITY_MCP_API_TOKEN` |
+| Liftoff totals | `LIFTOFF_ADMIN_API_TOKEN` |
 | LinkedIn | `LINKEDIN_ACCESS_TOKEN`, or a token file via `LINKEDIN_TOKEN_FILE` (defaults to the agent-team-socialmedia app's state file); `LINKEDIN_AUTHOR_URN` |
 | Common Room | `COMMONROOM_API_TOKEN`, and the `cr` CLI on the path |
 
@@ -75,7 +77,7 @@ From the repo root:
 python3 skills/qbr-metrics/references/run-qbr.py FY27-Q3
 ```
 
-This pulls all seven sources in parallel, tags topics, builds the report and a chapter-by-chapter `report.pdf` (needs Chrome), copies the PDF to the shared Google Drive folder QBR (through Google Drive for Desktop) as `devrel-qbr-{start}_to_{end}.pdf`, and writes `qbr-output/START_to_END/` with `raw-*.json`, `topics.json`, `metrics.json`, `report.html` and `report.md`. Expect several minutes: Luma pages through every calendar contact, and Common Room pages through every segment member. A source that fails is recorded in `errors.json` and shown as "not connected"; the rest still builds. Progress prints to stderr.
+This pulls all nine sources in parallel, tags topics, builds the report and a chapter-by-chapter `report.pdf` (needs Chrome), copies the PDF to the shared Google Drive folder QBR (through Google Drive for Desktop) as `devrel-qbr-{start}_to_{end}.pdf`, and writes `qbr-output/START_to_END/` with `raw-*.json`, `topics.json`, `metrics.json`, `report.html` and `report.md`. Expect several minutes: Luma pages through every calendar contact, and Common Room pages through every segment member. A source that fails is recorded in `errors.json` and shown as "not connected"; the rest still builds. Progress prints to stderr.
 
 The footer of every report states the tokens and estimated API-list-price cost of the Claude session that produced it (`references/session-cost.py`, written to `cost.json` on each build). By default it counts the whole session. To count only this run, set the start time first: `export QBR_RUN_SINCE=$(date -u +%Y-%m-%dT%H:%M:%SZ)` before Step 1's pulls, in the same shell. The figure is an estimate (main session only, no sub-agents, not an invoice) and is refreshed again on `--rebuild`, so it includes the insights step.
 
@@ -91,7 +93,7 @@ python3 skills/qbr-metrics/references/run-qbr.py START END --rebuild
 
 Before writing, research the period and save `context.json` in the output folder (format: `{"events": [{"date", "kind": "release|industry|campaign", "label", "source"}]}`; see the existing file). Postman releases come from the `#product-updates` Slack channel (read the period with `slack_read_channel`; include only externally available items, no customer names). Industry launches come from `WebSearch` (AI model launches, MCP and API standards; prefer primary sources and say when only roundups were found). Paid campaign dates come from the YouTube data. Then rerun with `--rebuild` so the charts get markers. Optionally write `stoplight.json` to override a status or note (see the README).
 
-Also write `recommendations.json` in the output folder: one short paragraph (3 to 5 sentences) per section, keyed `stoplight`, `reach`, `channels`, `linkedin`, `newsletters`, `blog`, `youtube`, `shorts_vs_long`, `paid_topics`, `luma`, `sheet`, `commonroom`, `community`, `topics`, `context`, `insights`. Each recommendation must follow from a number in that section, name it, and say what to do or test next. Hedge small samples, do not recommend from a group under 3 pieces, and keep paid media out of DevRel scoring. Plain language, no marketing words.
+Also write `recommendations.json` in the output folder: one short paragraph (3 to 5 sentences) per section, keyed `stoplight`, `reach`, `channels`, `linkedin`, `newsletters`, `blog`, `youtube`, `shorts_vs_long`, `paid_topics`, `luma`, `sheet`, `commonroom`, `community`, `liftoff`, `topics`, `context`, `insights`. Each recommendation must follow from a number in that section, name it, and say what to do or test next. Hedge small samples, do not recommend from a group under 3 pieces, and keep paid media out of DevRel scoring. Plain language, no marketing words.
 
 Lead the insights with reach: the report asks whether content is being amplified enough. Use the Reach per piece table (median reach, concentration in the top 3, share of views on new vs catalog content) and be explicit that the stoplight scores growth in totals, not amplification. Also say which topics receive paid views (the "Where paid and organic views go" table) and note that only YouTube ads are visible.
 
@@ -99,7 +101,7 @@ For the Channels section, LinkedIn statistics come from `pull-linkedin.py` and a
 
 Also write `tldr.md` in the output folder: 3 to 5 short bullets (`- **Lead sentence.** one or two supporting sentences with numbers`) that distill the whole report for a reader who stops after page 1. Say what happened and what it means in plain words, cover content and amplification, events, accounts and new channels, and name the one number to watch. Analysis only: it never carries direction the team has not written. It renders at the top of page 1.
 
-Write `insights.md` under these exact `###` headings so each block lands in its own section of the PDF: "Are we amplifying the content?", "Paid vs organic", "Topics, style and length", "News, releases and campaigns", "Meetups: ratings and cost", "New channels beyond Luma", "Newsletters", "Accounts influenced and industry", "Not covered in this run".
+Write `insights.md` under these exact `###` headings so each block lands in its own section of the PDF: "Are we amplifying the content?", "Paid vs organic", "Topics, style and length", "News, releases and campaigns", "Meetups: ratings and cost", "New channels beyond Luma", "Newsletters", "Accounts influenced and industry", "Liftoff: totals and what is driving adoption", "Not covered in this run".
 
 **Where we are going is written by the user, never by you.** Do not draft `direction.md`, fill its sections or ask the user to dictate it. If the file is missing the runner creates an empty template (it never overwrites). Tell the user it exists and that the chapter appears once they write something. Do not carry content from earlier notes into it.
 
@@ -138,6 +140,7 @@ Then check `direction.md` in the output folder. If the user already gave it in S
 - **Stoplight statuses** are mechanical rules (see the README). Call out any row whose status depends on a proxy, such as Accounts influenced.
 - **Common Room segments hold current members**, so counts are as of the run date. Change figures come from the previous saved snapshot in `references/snapshots.json`; the first run has none.
 - **Common Room sentiment** is a UI report with no API. Report "not available".
+- **Liftoff** totals (signups, badges earned, anonymous conversions, top modules, drop-offs) come from the Liftoff admin stats API (`LIFTOFF_ADMIN_API_TOKEN`). It has no campaign or UTM breakdown, so say "coincided with" for any link to events or releases.
 - **Owned community** comes from the community dashboard MCP (Discord). It reports whole calendar months, so a week or a range with no whole month is skipped. Active members are a small share of members, so treat the active rate as a trend.
 - Per-video paid splits take one Analytics query per video; the script caps these at 120 videos.
 

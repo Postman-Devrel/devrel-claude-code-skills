@@ -18,7 +18,7 @@ import sys
 import threading
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCRIPTS = {"wp": "pull-wp.py", "youtube": "pull-youtube.py", "luma": "pull-luma.py", "sheet": "pull-sheet.py", "linkedin": "pull-linkedin.py", "mailchimp": "pull-mailchimp.py", "commonroom": "pull-commonroom.py", "community": "pull-community.py"}
+SCRIPTS = {"wp": "pull-wp.py", "youtube": "pull-youtube.py", "luma": "pull-luma.py", "sheet": "pull-sheet.py", "linkedin": "pull-linkedin.py", "mailchimp": "pull-mailchimp.py", "commonroom": "pull-commonroom.py", "community": "pull-community.py", "liftoff": "pull-liftoff.py"}
 
 
 def pull(key, start, end, out_dir, errors):
