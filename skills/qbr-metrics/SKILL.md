@@ -97,6 +97,8 @@ Lead the insights with reach: the report asks whether content is being amplified
 
 For the Channels section, LinkedIn statistics come from `pull-linkedin.py` and are scoped to reshared blog posts, newsletter editions and webinars only (never report page-wide totals or ads). Registrants, viewers, newsletter subscribers and article views are not in LinkedIn's API: read the newsletter's public page for edition dates and comment counts, ask the user for the rest from LinkedIn analytics, and record them in `channels-input.json`. Newsletters go only through Mailchimp now (moved from Luma in October 2026), so Mailchimp has no comparable previous period before Oct 1. Never present a missing LinkedIn number as zero, and remember LinkedIn lists organic posts only from Aug 24, 2026, so earlier periods are unavailable.
 
+Also write `tldr.md` in the output folder: 3 to 5 short bullets (`- **Lead sentence.** one or two supporting sentences with numbers`) that distill the whole report for a reader who stops after page 1. Say what happened and what it means in plain words, cover content and amplification, events, accounts and new channels, and name the one number to watch. Analysis only: it never carries direction the team has not written. It renders at the top of page 1.
+
 Write `insights.md` under these exact `###` headings so each block lands in its own section of the PDF: "Are we amplifying the content?", "Paid vs organic", "Topics, style and length", "News, releases and campaigns", "Meetups: ratings and cost", "New channels beyond Luma", "Newsletters", "Accounts influenced and industry", "Not covered in this run".
 
 **Where we are going is written by the user, never by you.** Do not draft `direction.md`, fill its sections or ask the user to dictate it. If the file is missing the runner creates an empty template (it never overwrites). Tell the user it exists and that the chapter appears once they write something. Do not carry content from earlier notes into it.
@@ -136,7 +138,7 @@ Then check `direction.md` in the output folder. If the user already gave it in S
 - **Stoplight statuses** are mechanical rules (see the README). Call out any row whose status depends on a proxy, such as Accounts influenced.
 - **Common Room segments hold current members**, so counts are as of the run date. Change figures come from the previous saved snapshot in `references/snapshots.json`; the first run has none.
 - **Common Room sentiment** is a UI report with no API. Report "not available".
-- **Owned community metrics** are a placeholder until an MCP is connected.
+- **Owned community** comes from the community dashboard MCP (Discord). It reports whole calendar months, so a week or a range with no whole month is skipped. Active members are a small share of members, so treat the active rate as a trend.
 - Per-video paid splits take one Analytics query per video; the script caps these at 120 videos.
 
 ## Error handling

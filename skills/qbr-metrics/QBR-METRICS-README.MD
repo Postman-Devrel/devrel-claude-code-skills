@@ -362,3 +362,18 @@ The scripts fetch and compute. Claude writes a short, factual summary: biggest m
 - Never paste the OAuth secret or refresh token into chat, issues or commits.
 - The helper requests read-only YouTube scopes only.
 - Common Room and Luma tokens grant broader access than this skill needs. Keep them in settings files, not scripts.
+
+
+## TL;DR and stoplight rules (added Nov 2026)
+
+- `tldr.md` in the output folder holds a short bulleted executive summary written by Claude each run. It shows at the top of page 1, above the contents. It is skipped if the file is missing.
+- Developers Reached is scored differently from content rows because the number of events is a planning choice. Fewer events is capped at amber (never red) on the output side, and the result side is judged on registrations per event together with new subscriber growth; if those two disagree, it is amber. A quarter with fewer events, steady per-event demand and slower subscriber growth therefore reads amber.
+
+## Owned community (Discord dashboard MCP)
+
+`pull-community.py` calls the `get_monthly_report` tool of the community dashboard MCP (`https://www.postman-community-dashboard.dev/api/mcp`, MCP over HTTP with a JSON-RPC `tools/call`; the Accept header must list both `application/json` and `text/event-stream`). Set `COMMUNITY_MCP_API_TOKEN` in the `env` block of your settings.json; the token is sent as a bearer header and never written to a file.
+
+- **Periods:** the dashboard reports whole calendar months, so the pull uses the months fully inside the period. A fiscal quarter or a month works; a week or a range with no whole month is reported as not available, and the report says so.
+- **Metrics:** joins, leaves, net new members, total members, active members (average of the monthly counts) and active rate, help topics and how many were answered, staff and bot replies, retention, event attendee roles granted, and Liftoff World Explorer cohort, starts and completions. Flows are summed over the months, total members is the month end.
+- **Stoplight:** Community Engagement Rate scores the answer rate on help topics as the output (what the team controls) and, as the result, active members and joins together (amber when they disagree). The note shows the active rate.
+- **Limits:** the active rate is small (about 0.5% of members), so read it as a trend. "Members holding the Event Attendee role" is a current figure, not a historical one. The MCP has no sentiment measure.

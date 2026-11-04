@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import qbrlib as q  # noqa: E402
 
 ORANGE, GREEN, TEXT, DIM, GRID, PREV = "#FF6C37", "#2E9E6B", "#1A1D21", "#5F6670", "#E5E7EB", "#9AA1AB"
-SOURCES = {"wp": "Blog", "youtube": "YouTube", "luma": "Luma", "sheet": "Meetup sheet", "linkedin": "LinkedIn", "mailchimp": "Mailchimp", "commonroom": "Common Room"}
+SOURCES = {"wp": "Blog", "youtube": "YouTube", "luma": "Luma", "sheet": "Meetup sheet", "linkedin": "LinkedIn", "mailchimp": "Mailchimp", "commonroom": "Common Room", "community": "Owned community"}
 KIND_COLOR = {"release": "#FF6C37", "industry": "#3B5BDB", "campaign": "#7C3AED"}
 KIND_LABEL = {"release": "Postman release", "industry": "Industry news", "campaign": "Paid campaign"}
 STATUS_COLOR = {"green": "#6BFA4A", "amber": "#F2A23A", "red": "#E5392B", "gray": "#D5D8DD"}
@@ -239,6 +239,14 @@ def load(out_dir, name):
         return None
 
 
+def load_text(out_dir, name):
+    try:
+        with open(os.path.join(out_dir, name)) as f:
+            return f.read().strip()
+    except OSError:
+        return ""
+
+
 # ---------------------------------------------------------------- reach per piece
 
 def _reach(values):
@@ -322,6 +330,16 @@ def band(pct, kind):
     return "red" if pct <= -20 else "amber"
 
 
+def blend(*bands):
+    """One band from several that measure the same thing: all agree -> that band, any disagreement -> amber."""
+    sig = {b for b in bands if b}
+    return sig.pop() if len(sig) == 1 else ("amber" if sig else None)
+
+
+def per_event(c, key):
+    return c[key] / c["events"] if c["events"] else None
+
+
 def status_cell(signals, override=None):
     """Return (css background, label). One status: solid. Two different: left-to-right gradient output to result."""
     if override:
@@ -346,7 +364,16 @@ def stoplight_rows(d, tp=None):
                 f"New Luma subscribers {n(lu['contacts']['current']['new'])} ({pc_text(lu['contacts_change_new'])}).")
         if sh and sh["current"]["avg_rating"]:
             note += f" Average event rating {sh['current']['avg_rating']}/5."
-        rows.append(("Developers Reached", [band(ch["events"], "output"), band(ch["registered"], "result")], note))
+        # How many events to hold is a planning choice, so fewer events alone never scores red: volume is capped at amber and the
+        # result is judged per event (demand for each event) together with subscriber growth. A fall driven by volume reads amber.
+        out = band(ch["events"], "output")
+        out = "amber" if out == "red" else out
+        reg_pe = q.pct_change(per_event(c, "registered"), per_event(p, "registered"))
+        res = blend(band(reg_pe, "result"), band(lu["contacts_change_new"], "result"))
+        if reg_pe is not None:
+            note += (f" Registrations per event {n(per_event(c, 'registered'))} ({pc_text(reg_pe)} vs {n(per_event(p, 'registered'))}), "
+                     f"so the fall in totals comes mostly from fewer events, while the slowdown in new subscribers is the signal to watch.")
+        rows.append(("Developers Reached", [out, res], note))
     else:
         rows.append(("Developers Reached", [], "Luma is not connected."))
     # Accounts influenced
@@ -366,7 +393,17 @@ def stoplight_rows(d, tp=None):
     else:
         rows.append(("Accounts influenced", [], "Common Room is not connected."))
     # Community engagement
-    rows.append(("Community Engagement Rate", [], "Not connected. Owned community metrics are waiting on an MCP, so there is no engagement rate yet."))
+    cm = d.get("community")
+    if cm:
+        c, p, ch = cm["current"], cm["previous"], cm["change"]
+        note = (f"Discord community: {n(c['active_rate_pct'], 2)}% of {n(c['members_end'])} members active in a month "
+                f"(average {n(c['active_members_avg'])} active members, {pc_text(ch['active_members_avg'])} vs {n(p['active_members_avg'])}). "
+                f"{n(c['joins'])} joins ({pc_text(ch['joins'])}), net {n(c['net_members'])} members. "
+                f"{n(c['help_topics'])} help topics, {n(c['answer_rate_pct'], 0)}% answered, with {n(c['staff_bot_replies'])} staff and bot replies. "
+                f"Active members and joins are the result; the answer rate on help topics is the output the team controls.")
+        rows.append(("Community Engagement Rate", [band(ch["answer_rate_pct"], "output"), blend(band(ch["active_members_avg"], "result"), band(ch["joins"], "result"))], note))
+    else:
+        rows.append(("Community Engagement Rate", [], "Not connected: the community dashboard MCP was not pulled."))
     # Blogs
     if wp:
         c, p, ch = wp["current"], wp["previous"], wp["change"]
@@ -424,8 +461,8 @@ def stoplight_section(d, overrides, tp=None):
         body.append(f'<tr><td class="kpi">{esc(name)}</td><td class="status" style="background:{bg}" title="{esc(label)}"><span>{esc(label)}</span></td>'
                     f'<td class="notes">{esc(note)}</td></tr>')
     rules = ("Status rules, applied to the change against the previous period. Output signal (what the team produced): green at or above last period, "
-             "amber down to -20%, red below that. Result signal (what it achieved): green at +5% or better, amber from -20% to +5%, red at -20% or worse. "
-             "A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
+             "amber down to -20%, red below that (fewer events held is capped at amber, because event volume is a planning choice). Result signal (what it achieved): green at +5% or better, amber from -20% to +5%, red at -20% or worse. "
+             "Developers Reached judges the result per event, together with new subscriber growth; when those disagree it is amber. A solid cell means output and result agree; a gradient runs from output (left) to result (right). Grey means there is no data. "
              "The scoring covers what DevRel controls (events, content it creates and organic results); paid media is shown for context and is not scored. Accounts influenced uses growth in total corporate accounts reached through Luma (a proxy); the change in new accounts is in the note. Rows can be overridden by hand in stoplight.json.")
     return (f'<section class="stoplight"><h2>Quarter at a glance</h2><table class="sl"><tr><th>KPI / Activity</th><th>Status</th><th>Notes</th></tr>'
             f'{"".join(body)}</table><p class="foot">{esc(rules)}</p></section>')
@@ -914,8 +951,30 @@ def context_section(events):
             f'<table><tr><th></th><th>Date</th><th>Type</th><th>Event</th><th>Source</th></tr>{"".join(rows)}</table></section>')
 
 
-def community_section():
-    return ('<section><h2>Owned community</h2><p class="warn">Placeholder: owned community metrics will come from an MCP that is not connected yet.</p></section>')
+def community_section(cm):
+    c, p, ch = cm["current"], cm["previous"], cm["change"]
+    t = lambda label, k, **kw: tile(label, c[k], p[k], ch[k], **kw)  # noqa: E731
+    tiles = "".join([
+        t("Joins", "joins"), t("Net new members", "net_members", note=f"{n(c['members_end'])} members at the end"),
+        tile("Active members per month", c["active_members_avg"], p["active_members_avg"], ch["active_members_avg"], digits=1, note="Average of the monthly counts"),
+        tile("Active rate", c["active_rate_pct"], p["active_rate_pct"], ch["active_rate_pct"], digits=2, suffix="%", note="Active members divided by total members"),
+        t("Help topics", "help_topics", note=f"{n(c['answer_rate_pct'], 0)}% answered"),
+        t("Staff and bot replies", "staff_bot_replies"),
+        tile("Retention", c["retention_pct"], p["retention_pct"], ch["retention_pct"], digits=2, suffix="%", note="Average monthly retention"),
+        t("Event attendee roles granted", "event_roles_granted", note=f"{n(c['event_role_holders'])} members hold the role now"),
+    ])
+    lab = [f"Month {i}" for i in range(1, len(c["monthly"]) + 1)]
+    ser = lambda key, name, colour: [(name, [m[key] for m in c["monthly"]], colour, False), (name + " (previous)", [m[key] for m in p["monthly"]], PREV, True)]  # noqa: E731
+    charts = (line_chart("Joins per month", ser("joins", "Joins", ORANGE), labels=lab, markers=False)
+              + line_chart("Active members per month", ser("active", "Active members", GREEN), labels=lab, markers=False))
+    lift = ""
+    if c["liftoff_cohort"]:
+        lift = (f'<h3>Liftoff onboarding</h3><p class="foot" style="margin-top:0">{n(c["liftoff_cohort"])} members joined the World Explorer module '
+                f'({pc_text(ch["liftoff_cohort"])} vs {n(p["liftoff_cohort"])}); {n(c["liftoff_started"])} started ({n(c["liftoff_start_rate_pct"], 1)}%) and '
+                f'{n(c["liftoff_completed"])} completed it.</p>')
+    return (f'<section><h2>Owned community</h2><p class="foot" style="margin-top:0">Discord, from the community dashboard. Whole calendar months: '
+            f'{", ".join(c["months"])} against {", ".join(p["months"])}. Active members is a very small share of the community, so read it as a trend, not a level.</p>'
+            f'<div class="tiles">{tiles}</div>{charts}{lift}</section>')
 
 
 def cost_line(cost):
@@ -934,11 +993,11 @@ def not_connected(key, errors):
     return f'<section><h2>{SOURCES[key]}</h2><p class="warn">Not connected: {esc(errors.get(key, "no data was pulled"))}</p></section>'
 
 
-def build_md(d, start, end, insights, tp, ctx, rows_sl, cost, recs=None, ci=None):
+def build_md(d, start, end, insights, tp, ctx, rows_sl, cost, recs=None, ci=None, tldr=""):
     recs = recs or {}
     R = lambda k: ([f"**Recommendation:** {recs[k]}", ""] if recs.get(k) else [])  # noqa: E731
     wp, yt, lu, sh, cr = (d.get(k) for k in ("wp", "youtube", "luma", "sheet", "commonroom"))
-    L = [f"# QBR metrics: {start} to {end}", "", "## Quarter at a glance", "| KPI / Activity | Status | Notes |", "|---|---|---|"]
+    L = [f"# QBR metrics: {start} to {end}", ""] + (["## TL;DR", "", tldr.strip(), ""] if tldr else []) + ["## Quarter at a glance", "| KPI / Activity | Status | Notes |", "|---|---|---|"]
     for name, signals, note in rows_sl:
         _, label = status_cell(signals)
         L.append(f"| {name} | {label} | {note} |")
@@ -1020,7 +1079,18 @@ def build_md(d, start, end, insights, tp, ctx, rows_sl, cost, recs=None, ci=None
         L += R("topics")
     if ctx:
         L += ["## Releases, industry news and campaigns"] + [f"{i}. {e['date']} ({KIND_LABEL.get(e['kind'], e['kind'])}): {e['label']}" for i, e in ctx] + [""] + R("context")
-    L += ["## Owned community", "Placeholder: waiting on an MCP.", ""] + R("community")
+    cm = d.get("community")
+    if cm:
+        c, p, ch = cm["current"], cm["previous"], cm["change"]
+        L += ["## Owned community", "| Metric | This period | Previous | Change |", "|---|---:|---:|---:|"]
+        for label, k in (("Joins", "joins"), ("Net new members", "net_members"), ("Active members per month (avg)", "active_members_avg"), ("Active rate %", "active_rate_pct"),
+                         ("Help topics", "help_topics"), ("Answer rate %", "answer_rate_pct"), ("Staff and bot replies", "staff_bot_replies"),
+                         ("Retention %", "retention_pct"), ("Event attendee roles granted", "event_roles_granted")):
+            L.append(f"| {label} | {n(c[k], 2 if k.endswith('pct') else 0)} | {n(p[k], 2 if k.endswith('pct') else 0)} | {pc_text(ch[k])} |")
+        L.append("")
+    else:
+        L += ["## Owned community", "Not connected.", ""]
+    L += R("community")
     if insights:
         L += ["## Trend analysis and insights", insights, ""] + R("insights")
     L += ["---", cost_line(cost)]
@@ -1071,6 +1141,7 @@ h3.grp{{margin:22px 0 8px}}.chan-grid{{display:grid;grid-template-columns:repeat
 .chan-note{{margin-top:10px;font-size:12px;color:var(--dim);border-top:1px solid #EEF0F3;padding-top:8px}}
 details.alltable{{margin-top:18px}}details.alltable summary{{cursor:pointer;color:var(--dim);font-size:13px;font-weight:600}}details.alltable table{{margin-top:8px}}
 
+.tldr{{border:2px solid var(--border);border-left:6px solid var(--orange,#FF6C37);background:#fff;padding:16px 22px;margin:0 0 20px}}.tldr h2{{font-size:18px;margin:0 0 8px}}.tldr ol,.tldr ul{{margin:0;padding-left:22px}}.tldr li{{margin:8px 0;font-size:15px;line-height:1.45}}
 .toc{{border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:0 0 20px;background:#fff}}.toc h2{{font-size:18px;margin:0 0 8px}}
 .toc ol{{margin:0;padding-left:22px}}.toc li{{margin:6px 0;font-size:14px}}.toc li span{{display:block;color:var(--dim);font-size:13px}}
 .ins{{margin-top:18px;padding:14px 18px;border:1px solid var(--border);border-radius:10px;background:#FAFAFB}}.ins h3{{margin:0 0 6px;color:var(--text);font-size:15px}}
@@ -1124,12 +1195,13 @@ def main():
             direction_md = f.read()
     except OSError:
         direction_md = ""
+    tldr = load_text(out_dir, "tldr.md")
     sec = {"stoplight": R(stoplight_section(d, overrides, tp), "stoplight"), "reach": R(reach_section(reach_stats(d, tp)), "reach"),
            "channels": R(channels_section(d, ci), "channels"),
            "blog": R(blog_section(d["wp"]), "blog") if d["wp"] else not_connected("wp", errors),
            "luma": R(luma_section(d["luma"], d["sheet"]), "luma") if d["luma"] else not_connected("luma", errors),
            "commonroom": R(commonroom_section(d["commonroom"]), "commonroom") if d["commonroom"] else not_connected("commonroom", errors),
-           "community": R(community_section(), "community"), "direction": direction_section(direction_md)}
+           "community": R(community_section(d["community"]), "community") if d["community"] else not_connected("community", errors), "direction": direction_section(direction_md)}
     if d.get("linkedin"):
         sec["linkedin"] = R(linkedin_section(d["linkedin"]), "linkedin")
     if d.get("mailchimp"):
@@ -1174,6 +1246,8 @@ def main():
     toc_html = ('<nav class="toc"><h2>Contents</h2><ol>' + "".join(
         f'<li><strong>{esc(c)}</strong><span>{esc(" · ".join(t))}</span></li>' for c, t in toc) + "</ol></nav>")
 
+    tldr_html = (f'<section class="tldr"><h2>TL;DR</h2>{md_to_html(tldr)}</section>' if tldr else "")
+
     def make_page(print_mode):
         inner = "".join(body)
         if print_mode:
@@ -1182,7 +1256,7 @@ def main():
                 f'<title>QBR Metrics {start} to {end}</title><link rel="preconnect" href="https://fonts.googleapis.com">'
                 f'<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">'
                 f'<style>{CSS}</style></head><body><main><header><div class="kicker">Postman DevRel</div><h1>QBR metrics</h1>'
-                f'<p>{esc(label)} · {cur[0]} to {cur[1]} · compared with {prev[0]} to {prev[1]}</p></header>{toc_html}{inner}'
+                f'<p>{esc(label)} · {cur[0]} to {cur[1]} · compared with {prev[0]} to {prev[1]}</p></header>{tldr_html}{toc_html}{inner}'
                 f'<p class="foot">Charts show complete {"days" if BUCKET == 1 else "7-day weeks"} starting {cur[0]}; any trailing partial bucket is left out of the charts but included in every total.</p>'
                 f'<p class="foot">{esc(cost_line(cost))}</p></main></body></html>')
     with open(os.path.join(out_dir, "report.html"), "w") as f:
@@ -1190,7 +1264,7 @@ def main():
     with open(os.path.join(out_dir, "report-print.html"), "w") as f:  # the same page with the detail tables open, used for the PDF
         f.write(make_page(True))
     with open(os.path.join(out_dir, "report.md"), "w") as f:
-        f.write(build_md(d, start, end, insights, tp, MARKERS, rows_sl, cost, recs, ci))
+        f.write(build_md(d, start, end, insights, tp, MARKERS, rows_sl, cost, recs, ci, tldr))
     with open(os.path.join(out_dir, "metrics.json"), "w") as f:
         json.dump({"range": {"start": start, "end": end, "previous_start": str(prev[0]), "previous_end": str(prev[1])},
                    "sources": {k: ("ok" if d[k] else errors.get(k, "not pulled")) for k in SOURCES},
