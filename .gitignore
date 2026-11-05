@@ -24,3 +24,6 @@ webinar-output/
 qbr-output/
 skills/qbr-metrics/references/snapshots.json
 skills/qbr-metrics/references/__pycache__/
+
+# hackathon-brief output (internal budgets and owners)
+hackathon-output/
