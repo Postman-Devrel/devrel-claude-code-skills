@@ -11,12 +11,16 @@ Start the message that hands it over with one line naming the audience, for exam
 
 Both go in the event folder, next to `brief.md`.
 
-## Structure (4 pages for a closed event; trim or extend for other types)
+## Structure: 2 pages maximum, and it should read like an ad
 
-1. **Cover and pitch.** Title, one line a developer would repeat, the key facts (date, time, place, who), and three reasons to come, each tied to something the attendee gets.
-2. **What you'll build.** What teams build, what the event provides, what attendees bring, and what to do before the day. Required technology in plain language.
-3. **The day.** The agenda drawn to scale, how teams are judged (the published criteria and weights), and prizes.
-4. **For the sales team.** Who to invite, what to say, the dates AEs need, answers to the questions prospects ask, what not to promise, and what happens after the event. This page is marked for internal use; for a public event, move it into a separate `sales-kit` file instead of the prospect PDF.
+The planning brief carries the detail. This one is short, loud, and built to be forwarded. Every line is either a reason to want to be there or a fact needed to say yes.
+
+1. **Page 1, the ad (safe to forward to prospects).** A big headline a developer would repeat, date, time, and place set large, a row of big-number proof points drawn from real facts (build hours, mentors, prize pool, licences needed), what you walk away with, and what to expect on the day in one compact line or bar. Nothing on this page needs a footnote except the draft line.
+2. **Page 2, for reps (marked internal).** Why a rep should send customers (what it gives them), who to invite, two lines to say, the four questions prospects ask with short answers, what not to promise, and the dates reps need.
+
+If a fact does not fit on two pages, it belongs in `brief.md`. Judging weights, full agendas, and setup detail go in the planning brief and the Luma page, not here. For a public event, leave page 2 out and give reps a separate sales-kit file.
+
+Page 1 is written for the prospect and page 2 for the rep, so say in the hand-over line who each page is for.
 
 ## What goes in, what stays out
 
@@ -27,7 +31,7 @@ Both go in the event folder, next to `brief.md`.
 
 ## Voice
 
-Plain, specific, developer to developer. Lead with what the person gets and builds, not with Postman. No "supercharge", "unlock", "revolutionize", or "leverage"; no em dashes; no exclamation marks; no emoji. Short sentences. Say the hard parts honestly (laptop admin rights, setup deadline); developers trust that.
+Exciting but specific, developer to developer. Lead with what the person gets and builds, not with Postman. Punchy: short sentences, concrete numbers, verbs that show a result. No "supercharge", "unlock", "revolutionize", or "leverage"; no em dashes; no exclamation marks; no emoji. Hype words add nothing; a real number and a real deliverable do. Say the hard parts in one short line (laptop admin rights, setup deadline); developers trust that. Promise the goal ("the goal is an agent running by 6 PM"), not the outcome.
 
 ## Design
 
@@ -40,9 +44,11 @@ Use the repo's existing Postman system (precedence: the user's words, then the p
 - Define every color as a token in `:root`; print is a single light theme, so no dark blocks
 
 Design choices that make it specific to the event instead of a template:
-- Draw the agenda as a bar to scale, using the real clock times, with the build window as the dominant segment
-- Draw judging weights as bars to scale
+- A dark hero block on page 1 with the headline set very large, the accent on the second half of the headline, and date, time, and place in the mono face
+- Big-number proof points (large numerals, small caption) built only from real, confirmed facts
+- If the agenda is shown, draw it as one bar to scale using the real clock times, with the build window dominant
 - Use the event's real facts as the typography, such as large times and the date
-- Left-aligned, no card on every block, no emoji, no gradient hero; keep the orange in one or two places per page
+- Left-aligned, no card on every block, no emoji, no gradient; keep the orange in one or two places per page
+- Marketing energy comes from the copy and the scale of the type, not from decoration
 
-Check the PDF by converting pages to images (`pdftoppm -r 60 -png`) and looking at each page once: no text clipped, nothing running off a page, no page more than two-thirds empty, and page breaks where intended. Fix once and re-render.
+Check the PDF by converting pages to images (`pdftoppm -r 60 -png`) and looking at each page once: no text clipped, nothing running off a page, no page more than one-third empty, and page breaks where intended. Fix once and re-render.

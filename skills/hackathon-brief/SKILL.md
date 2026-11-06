@@ -31,7 +31,7 @@ Hackathons usually fail before the event: a theme that could belong to any compa
 3. **Self-check** (below) before writing anything.
 4. **Confirm.** Show a one-screen summary of every answer plus the computed budget math. Wait for a yes or edits.
 5. **Write the planning brief** using `references/brief-template.md`. This is for the team running the event.
-6. **Write the shareable brief and PDF** using `references/share-guide.md`. This is for the sales team and invited prospects, and its job is to make them want to attend. It uses only confirmed facts, leaves out budget and risks, and carries unconfirmed facts under a clear draft footer. Build `share.html`, print it with `references/render-pdf.py`, and look at each page once.
+6. **Write the shareable brief and PDF** using `references/share-guide.md`. This is a 1 to 2 page, ad-style brief for sales reps: page 1 sells the event to prospects (why come, what you get, what to expect), page 2 tells reps why to send customers and how. Its job is to make both want to attend. It uses only confirmed facts, leaves out budget and risks, and carries unconfirmed facts under a clear draft footer. Build `share.html`, print it with `references/render-pdf.py`, and look at each page once.
 7. **Reply** with: a one-line audience note for the shareable brief, both paths, the three biggest risks, the count of `TBC` items, and which facts in the PDF are provisional.
 
 ## Self-check before writing
