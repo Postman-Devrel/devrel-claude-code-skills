@@ -7,7 +7,8 @@ Usage:
 Example:
     python3 add_utm.py "https://blog.postman.com/introducing-postman-ai/" "2026-10" "product-updates"
 
-Section slugs: product-updates | events | liftoff | youtube | hero | webinar
+Section slugs: webinar | webinar-footer | blog | youtube (current format; see SKILL.md)
+Legacy slugs still accepted: product-updates | events | liftoff | hero
 
 "hero" is for the hero block's own link only, and "webinar" is for the
 sub-hero webinar callout's own link only (see the Hero highlight and Output
@@ -19,7 +20,7 @@ callout, its usual section slug on the section listing.
 import sys
 from urllib.parse import urlencode, urlparse, parse_qsl, urlunparse
 
-VALID_SECTIONS = {"product-updates", "events", "liftoff", "youtube", "hero", "webinar"}
+VALID_SECTIONS = {"product-updates", "events", "liftoff", "youtube", "hero", "webinar", "webinar-footer", "blog"}
 
 
 def add_utm(url: str, campaign_month: str, section_slug: str) -> str:

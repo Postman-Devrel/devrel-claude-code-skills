@@ -1,0 +1,86 @@
+<meta charset="utf-8">
+<h1>The agentic SDLC fits in one terminal</h1>
+<p><strong>POSTMAN, BUILT INTO THE CODING AGENT YOU ALREADY USE</strong></p>
+<p>Hi there. Your agent already writes code in the terminal. The slow parts, finding what your service depends on, faking what is down, and proving it all works, usually happen somewhere else. On November 17, Talia Kohan and Anthony Viard show how to run all of it in the same session.</p>
+
+<p><strong>IN THIS DIGEST</strong></p>
+<ul>
+<li>&#128421;&#65039; One terminal, the whole API workflow: live webinar, Nov 17</li>
+<li>&#128269; Find the dependencies your repo can't show your agent</li>
+<li>&#129520; Two commands put the Postman workflow in Claude Code</li>
+<li>&#128257; From API change to CI in plain-English prompts</li>
+<li>&#127916; Three videos: agent testing, workspace verification, Orbit</li>
+</ul>
+<hr>
+
+<h2>&#128421;&#65039; Your agent codes in the terminal. Now it can verify there too.</h2>
+<p>[IMAGE: webinar-promo.png]</p>
+<p><strong>The Rundown:</strong> Postman's Talia Kohan and Anthony Viard walk through a real change using the Postman plugin skills for Claude Code, from choosing which APIs to use to checking that the finished integration works.</p>
+<p><strong>Tuesday, November 17</strong> &middot; 10:00 AM PT &middot; Live on YouTube and LinkedIn</p>
+<p><strong>What you'll walk away with:</strong></p>
+<ul>
+<li><strong>Find dependencies first:</strong> spot the services outside your repository before your agent starts making changes.</li>
+<li><strong>Keep moving when services are down:</strong> develop against a simulation when the real thing isn't available.</li>
+<li><strong>Make verification repeatable:</strong> carry your agent's checks into CI and monitoring so they keep running after the session ends.</li>
+<li><strong>Leave with something to run:</strong> prompts and a workflow you can try in your own project.</li>
+</ul>
+<p><strong>Why it matters:</strong> Agents are quick at writing code. The risk sits in what they can't see, like other teams' services, and in what nobody re-checks after the merge. This session covers both. Can't make it live? Registrants get the recording.</p>
+<p><strong><a href="https://luma.com/november-26-webinar?utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=webinar">Register Now</a></strong></p>
+<hr>
+
+<h2>&#128214; Related reading</h2>
+
+<h3>&#128269; Find what your agent can't see from your repo</h3>
+<p><strong>The Rundown:</strong> Adding a service is never just about the new service. The breakage hides in collections and tests owned by other teams, in repositories nothing in your editor knows about.</p>
+<p><strong>The details:</strong></p>
+<ul>
+<li><strong>Context Graph:</strong> a live index of services, endpoints, schemas, consumers, owners, and runtime call relationships.</li>
+<li><strong>Real answers:</strong> ask "what depends on the billing service" and get an answer instead of a guess.</li>
+<li><strong>One flow:</strong> Claude Code and the Postman plugin take the work from finding endpoints through tests and CI.</li>
+<li><strong>Not a bigger prompt:</strong> Postman's research shows accuracy on details buried mid-prompt can drop 30% or more.</li>
+</ul>
+<p><strong>Why it matters:</strong> This is the first thing the webinar tackles. The dependency your agent doesn't know about is the one that breaks someone else's tests.</p>
+<p><strong><a href="https://blog.postman.com/adding-a-new-service-with-the-context-graph-and-claude-code/?utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=blog">Read the post</a></strong></p>
+
+<hr>
+
+<h3>&#129520; Two commands put the Postman workflow in Claude Code</h3>
+<p>[IMAGE: blog-2.png]</p>
+<p><strong>The Rundown:</strong> Most APIs were written for a human who reads the docs. An agent guesses. This hands-on guide installs the Postman plugin for Claude Code and builds a small orders API end to end with prompts you can copy.</p>
+<p><strong>The details:</strong></p>
+<ul>
+<li><strong>Two-command install:</strong> register the marketplace, install the plugin. The bootstrap skill sets up the Postman CLI for you.</li>
+<li><strong>A skill per step:</strong> discover, design, mock, test, document, and gate.</li>
+<li><strong>Files an agent can read:</strong> an OpenAPI spec and v3 collections as small YAML files mean small diffs and cheaper context.</li>
+<li><strong>Free to try:</strong> the free plan works, and linting, mocking, and running a collection locally don't need a sign-in.</li>
+</ul>
+<p><strong>Why it matters:</strong> This is the setup behind the webinar. Install once and your agent has a skill for each step of the workflow.</p>
+<p><strong><a href="https://blog.postman.com/postman-plugin-for-claude-code-a-hands-on-guide/?utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=blog">Read the post</a></strong></p>
+
+<hr>
+
+<h3>&#128257; From API change to CI in plain-English prompts</h3>
+<p><strong>The Rundown:</strong> Updating the code is the easy part of changing an API. This post hands the rest to Claude, from the changed endpoint to a CI run on every push, all from the terminal.</p>
+<p><strong>The details:</strong></p>
+<ul>
+<li><strong>The chain:</strong> API change, Context Graph finds what needs updating, collection syncs, lint checks the schema.</li>
+<li><strong>Stand-in:</strong> a mock covers what isn't live yet and confirms the tests work.</li>
+<li><strong>Locked in:</strong> CI runs the tests on every push.</li>
+<li><strong>No ticket trail:</strong> it all runs as one connected task, not a separate ticket per step.</li>
+</ul>
+<p><strong>Why it matters:</strong> Without it you get a collection that looks right but isn't, and the next person trusts it anyway.</p>
+<p><strong><a href="https://blog.postman.com/agentic-sdlc-with-the-claude-code-plugin/?utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=blog">Read the post</a></strong></p>
+<hr>
+
+<h2>&#127916; Watch</h2>
+<p>[IMAGE: youtube-thumb.png]</p>
+<ul>
+<li><strong>Did Your AI Agent Actually Test the API It Built?</strong> &mdash; your agent can build APIs, but can it test them? See it create collections, add tests, and check downstream dependencies. <a href="https://www.youtube.com/watch?v=xZn4hgcNVmc&utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=youtube">Watch</a></li>
+<li><strong>Workspace Verification with the Context Graph</strong> &mdash; change a response schema, see which consumers it affects, mock the new response, and set up a monitor. <a href="https://www.youtube.com/watch?v=5grnvD2wIYg&utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=youtube">Watch</a></li>
+<li><strong>Find and integrate an API with Orbit</strong> &mdash; Claude Code, the Postman plugin, and the Context Graph on a full API integration, from dependencies to tests. <a href="https://www.youtube.com/watch?v=O82HcOPVSfg&utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=youtube">Watch</a></li>
+</ul>
+<hr>
+
+<p>That's the digest. If you only do one thing this month, bring your agent's verification work into the terminal with it. Which part of your agent's workflow still happens outside the terminal? Tell us in the comments.</p>
+<p><strong><a href="https://luma.com/november-26-webinar?utm_source=linkedin&utm_medium=social&utm_campaign=dev-digest-2026-11&utm_content=webinar-footer">Register Now</a></strong></p>
+<p><em>postman developer digest</em></p>

@@ -1,207 +1,226 @@
 ---
 name: newsletter-linkedininsights
-description: "Monthly Postman Developer Digest for LinkedIn's Newsletter feature — aggregates events, product updates, Liftoff, and YouTube into a ready-to-paste HTML draft plus a rendered cover graphic. Triggers: \"run the dev digest\", \"draft newsletter\", \"finalize digest\", scheduled 15th/20th runs."
-argument-hint: "[hero highlight] (optional — the item to feature above the fold this cycle, e.g. 'lead with the Context Graph API post'; if omitted, the skill asks)"
+description: "Monthly Postman Developer Digest for LinkedIn's Newsletter feature, themed around the month's webinar. Leads with the webinar, adds a small YouTube section and up to 3 related blog items, formatted in a Techpresso / The Rundown style (digest preview, bulleted stories, 'Why it matters'). Outputs a paste-ready HTML draft, cover graphic, and staging checklist. Triggers: \"run the dev digest\", \"draft newsletter\", \"finalize digest\", scheduled 15th/20th runs."
+argument-hint: "[webinar Luma URL] (optional — if omitted, the skill finds the in-window webinar itself)"
 allowed-tools: ["WebFetch", "Read", "Write", "Bash"]
 ---
 
 # Postman Developer Digest — monthly LinkedIn newsletter
 
-This skill encodes the recurring parts of the workflow so they're never re-decided by hand: sources, sections, UTM format, and output destinations. The only things a human supplies each cycle are the hero highlight, the Liftoff challenge/new-module callouts, and final review.
+**Goal: engagement and click-through.** Every edition is built around one theme, the month's webinar, and everything else is chosen because it relates to that theme. Style is modeled on [Techpresso](https://techpresso.co/archives/techpresso-20261107-7) (scannable digest preview, hook-first headlines, short punchy bullets) and [The Rundown](https://www.therundown.ai/articles/apple-big-week-begins-with-ipad-mini) (each story = one-line "Rundown", bulleted "details", "Why it matters").
 
-## Sources (always these four, in this order)
+## Edition shape (fixed order, every run)
 
-**Events leads.** The webinar registration CTA is the priority action each month, and LinkedIn truncates captions after roughly 1–2 lines behind "…see more" — so whatever's first is the only thing guaranteed to be visible before someone has to tap to expand. Events goes first for that reason, not for source-pulling convenience. Liftoff, YouTube, and Product Updates follow in that order.
+1. **Webinar (lead and theme)** — the one thing readers should act on
+2. **YouTube** — small section, up to 3 videos related to the theme
+3. **Blog items** — **at most 3** posts related to the theme. Fewer is fine; never pad. Never add other sections.
 
-Three of these look **backward** at what already happened; Events looks **forward** at what's coming. This is intentional, not an inconsistency to "fix" — don't make the windows uniform.
+No Events, Liftoff, or Product Updates sections. Conferences, meetups, and Liftoff are out unless one is itself the best related item (a Liftoff module may appear only as one of the 3 items, and only if it directly relates to the webinar). `liftoff-state.json` is no longer read or written.
 
-Every run pulls everything each source's time window allows (YouTube's 5-video cap, below, is the one standing exception) — there's no filtering mode otherwise. The hero highlight (below) is a presentation choice layered on top of the full aggregation, never a reason to narrow what gets fetched.
+## Sources
 
-**Fixed section order, every run, never reshuffled for a given cycle's content:** Hero → Webinar (sub-hero) → Events → Liftoff → YouTube → Product Updates. This is a display order, independent of the source-pull order right above it (Events still leads the pull; Product Updates still looks back 30 days) — the two lists just no longer match 1:1 the way they used to.
+### 1. Webinar (the theme)
 
-1. **Events** — `https://luma.com/postman-dev-events` — **forward-looking**
-   Pull events scheduled to happen within the next **45 days** — this is a hard cutoff, not a rough guideline: an event 46+ days out is held for next cycle, even if it's already listed on the calendar (Luma will still show it then, once it's actually in-window — no separate state tracking needed, unlike Liftoff). Ignore anything already past. Split into two groups: **Webinars/Meetups** (lead with any webinar and its registration link first, above conferences) and **Conferences** (apidays and similar third-party events Postman is participating in). If there's a webinar this cycle, its registration link is the first CTA in the whole draft — don't let a conference or meetup bump it down.
-   **Get the real date before saying one is missing.** Luma's calendar listing page (`/postman-dev-events`) is readable with a plain fetch, but individual event pages render their date/time widget client-side — a plain fetch of an event page's own URL can come back without any date text at all, even though the event has a perfectly real, confirmed date. Don't report a date as "unconfirmed" from a plain fetch; open the event page in an actual browser (JS-rendering) and read the rendered date block (e.g. "Thursday, October 15" plus a time and timezone) before concluding anything about when it happens or whether it's in-window.
-   **A webinar's registration link is always a LinkedIn Event URL — never the Luma link, even though Luma is where the webinar itself was found. Its image is the same story.** Luma supplies the webinar's title, date, and time exactly as described above; it supplies neither where a reader registers nor a usable promotional image (an earlier revision generated an abstract colored-swirl card here, assuming no real asset existed — wrong assumption, corrected once a human supplied the webinar's actual promo graphic). There's no source API for either one — once you've confirmed a webinar is in-window this cycle, ask the human for **both** its LinkedIn Event URL and its promotional image (the same way an off-source hero needs human-supplied details) before drafting the sub-hero callout or the Events section listing. One combined ask for both, not two separate ones. This rule is webinar-specific — meetups and conferences keep registering through their own Luma links and don't get an image at all, unchanged.
-2. **Product Updates** — `https://blog.postman.com/` and `https://blog.astropods.com/` — **backward-looking**
-   Pull posts published in the past month (roughly the 30 days since the last digest went out — the window looks back, never forward) from both blogs, combined into one list. Astropods' listing page shows real publish dates directly (e.g. `Sep 25, 2026`), same as Postman's blog — no special date-handling needed for this one. Do not include posts from further back even if they're still on the front page, and never include anything not yet published. If a cycle has posts from only one of the two blogs, that's fine — don't pad with older posts from the quiet one.
-3. **Liftoff** — **backward-looking**
-   Use these two API endpoints directly for structured data with real `id` and `updatedAt` fields — don't rely on discovering them by browsing the human-facing page, that's what caused this to fail before:
-   - Learning paths: `https://www.postman.com/liftoff/api/content/learning-paths/`
-   - Modules: `https://www.postman.com/liftoff/api/content/modules/`
+Source: the Luma API (same auth as `qbr-metrics`: `LUMA_API_KEY` env var, header `x-luma-api-key`, base `https://public-api.luma.com`; see `skills/qbr-metrics/references/pull-luma.py`). **Forward-looking, hard 45-day cutoff** (an event at day 46+ waits for next cycle). List events with `GET /v1/calendars/events/list?after=…&before=…&pagination_limit=50` and pick the in-window **webinar** (not meetups or conferences). If several, take the soonest and mention the others to the human. Check the key by name only, never print it; if it is missing, fall back to the public page `https://luma.com/postman-dev-events`.
 
-   The Liftoff API exposes `updatedAt` (confirmed live, format `2026-09-24T15:49:11+01:00`) on learning paths and modules. Track state across runs in `liftoff-state.json` at the root of `newsletter-output/linkedin-insights/` (not inside a month subfolder — this file persists across every cycle, unlike the monthly output). Each run:
-   - Read `liftoff-state.json`. If it doesn't exist yet, this is the first-ever run — treat every path/module as new (expected one-time bootstrap, not a bug) and create the file.
-   - For each path/module returned by the API: if its `id` isn't in the stored state, it's **new**; if the `id` is known but `updatedAt` differs from the stored value, it's **updated**; if `updatedAt` matches, skip it — nothing to report.
-   - Include both new and updated items in the draft, labeled distinctly with a plain text tag appended inline after each item — e.g. "(new)" vs. "(updated)" — never an emoji marker, and never a separate explanatory preamble paragraph above the list (e.g. don't write "No items are new or updated against tracked state, so here's what's featured instead" — just tag each item and let the list speak for itself).
-   - After compiling the draft, overwrite `liftoff-state.json` with the full current set of `{id: updatedAt}` pairs for both paths and modules, so next month's comparison is against this run's real values, not accumulated drift. Never skip this write, even on a run with nothing new to report.
-   - **If this cycle's hero highlight (see below) is a Liftoff path or module that isn't otherwise new or updated**, still include it here, tagged "(featured)" instead of "(new)"/"(updated)" — same inline plain-text style, no preamble paragraph. This is the one exception to the new/updated-only rule, and it only ever applies to the single hero-highlighted item, never to a broader set.
-4. **YouTube** — `https://www.youtube.com/@postman/videos` — **backward-looking**
-   Pull videos published in the past month, same window as Product Updates, to determine the full in-window set — but the draft only ever features the **5 most recent** of those, newest first. If fewer than 5 are in-window, show what's there; never pad toward 5 with older material. Relative ages ("1 day ago", "14 hours ago") are for checking the item falls inside the window — a drafting detail, not reader-facing copy. Never print them in `newsletter-body.html`; the body just names and links the video. Get real publish dates from the channel's RSS feed (`https://www.youtube.com/feeds/videos.xml?channel_id=UCocudCGVb3MmhWQ1aoIgUQw`) if it's reachable in this environment. **A plain text/HTTP fetch of either the RSS feed or the `/videos` page is not a reliable test of reachability** — both can come back empty or metadata-only to a non-JS fetch even though the content is genuinely there, because the `/videos` page is client-side rendered. Before concluding either is blocked, try loading `/videos` in an actual browser (one that executes JavaScript) and reading the rendered video grid — titles, relative timestamps ("3 weeks ago"), and thumbnails all show up that way even when the RSS feed doesn't. Only if the browser render itself is unavailable or the page still won't load should you say so plainly in the draft rather than guessing at what's recent or silently dropping the section.
+- **The API is the source of truth for date and time.** `start_at`/`end_at` are UTC; convert with the event's `timezone` (e.g. `2026-11-17T18:00:00.000Z` + `America/Los_Angeles` = 10:00 AM PT). Event URL slugs can be stale after a reschedule (`/november-26-webinar` was really Nov 17), and a plain fetch of the event page or an LLM summary of it can show the wrong date, so never take the date from a slug or a summary.
+- **Registration link is the webinar's Luma event page** (the `url` field from the API), tagged with UTM. No LinkedIn Event URL is needed. If the event has `waitlist_enabled` and is full, the CTA is "Join Waitlist" instead.
+- **Promo image comes from the API too:** the event's `cover_url`. Download it, view it, and confirm it is a real promo graphic (title, speakers, date). If it is square or otherwise not 16:9, cover-crop to 1200x675 *positioned so the title, speakers, and date stay visible* (check the output by eye; a plain center crop can cut off the date line). If the cover is a bare photo with no promo text, or missing, ask the human for the promo image. Never generate a substitute.
+- **No webinar in-window:** stop and ask the human for this cycle's theme (a topic or launch plus its URL or description). Use it exactly as the webinar copy would be used below, and skip the webinar block rather than faking one.
 
-## Hero highlight
+**The webinar's own copy is the source for the title, the theme, and the content search. Always.** Get the full copy (title, description, learning objectives, speakers, format) from the event page or the API's event-get endpoint (`GET /v1/event/get?id={event_id}`), and reuse its exact phrases wherever they hold up: the title options, the "What you'll walk away with" bullets (one per learning objective, in the webinar's own words, tightened), and the keywords. Do not invent a theme from outside the webinar copy.
 
-Every run has exactly one hero highlight — the single piece of content the human wants front and center this cycle. This replaces the old theme concept entirely: there's no more filtering mode, themed or standard. Every run always pulls everything each source's window allows (the full list above); the hero highlight is a presentation choice layered on top of that full aggregation, not a narrower content pull.
+Frame the theme as **where Postman fits in the reader's agentic coding tools** (the plugin and skills inside the agent they already use), then ground it in this webinar's specifics. From the copy, write a short **theme statement** and **5-8 keywords** (product names, protocols, concepts, and the nouns from the learning objectives, e.g. "agentic SDLC", "Claude Code", "dependencies", "mocks", "CI", "monitoring"). Everything downstream (the three title options, the blog search, the video search, the "Why it matters" lines) is derived from this theme and keyword list, and the draft notification states which keywords were used.
 
-- **Ask for it in the same opening pause as the Liftoff challenge question** — one combined ask, before pulling any source (e.g. "What's this edition's hero highlight, and is there a Liftoff challenge or new module to call out?"). A scheduled run should always ask; never assume there isn't one and skip straight to drafting.
-- **If the invoking request already names it** (e.g. "run the dev digest, lead with the Context Graph API post"), use it directly — don't ask.
-- The hero highlight can be anything: a specific blog post, an event, a Liftoff path/module, a YouTube video — or something that isn't on any of the four sources at all (a launch, a partnership, a milestone). For that last case, get its supporting details (a URL to fetch, or a description straight from the human) since there's no source API to pull them from. The hero block is text-only (see Output Format below) — never fetch or ask for an image here.
-- **If the hero highlight is one of the four aggregated items**, it still appears in its normal section below, tagged "(featured)" the same inline plain-text way as "(new)"/"(updated)" — readers skimming by section should still find it there. Its section-listing link keeps that section's normal `utm_content` slug; only the hero block's own link (below) uses `utm_content=hero`.
-- **Tagline options — a review gate, right after the hero highlight is set, before touching any of the four sources or drafting anything else.** Pull just enough about the hero item to write real copy (a quick fetch if it names a specific URL, or the human's own description for an off-source hero) and draft **three distinct tagline options** for it — real copywriting, a hook not a description, each one structured differently rather than three minor rewordings of the same line. Tone across all three: confident, dev-focused, a little wry, never cheesy or exclamation-mark-heavy. Present all three and let the human pick one, ask for a revision, or supply their own — do not proceed to full source aggregation or drafting until one is approved. **This is a different thing from the four fixed section taglines** described in Output Format below (the Events/Liftoff/YouTube/Product Updates one-liners, which never change cycle to cycle) — this review gate is only ever about the hero's own headline copy, and it's the one piece of copy in this whole skill that gets drafted as options rather than written once and shipped.
-- The approved tagline becomes the single title used in three places: the `<h1>` in the body's hero block, `{{HEADLINE}}` on the cover graphic, and the suggested LinkedIn Newsletter edition title (called out explicitly in the draft notification, since this skill never publishes — the human still has to paste the title in themselves).
-- **An above-the-fold hero block, immediately followed by a sub-hero callout for this cycle's webinar** — see Output Format below for both structures.
+### 2. Related blog items (max 3)
+
+Search for posts related to the webinar theme and keywords (from the webinar copy, above), in both blogs:
+- Postman: `https://blog.postman.com/wp-json/wp/v2/posts?search={keyword}&per_page=10&_fields=id,date,link,title,excerpt` (one query per top keyword; dedupe)
+- Astropods: `https://blog.astropods.com/` (read the listing and match by title/excerpt)
+
+Rank by **relevance first, recency second**. Prefer the last 90 days; allow older evergreen posts only when they are clearly the best fit. Prefer a mix (e.g. one concept post, one hands-on, one product update) over three near-duplicates. Never include unpublished posts. For each pick, fetch the post to write real copy and to find an in-body image (screenshot or diagram, never the header/`og:image` banner; skip if none).
+
+### 3. YouTube (small section)
+
+Source: `https://www.youtube.com/@postman/videos`, RSS at `https://www.youtube.com/feeds/videos.xml?channel_id=UCocudCGVb3MmhWQ1aoIgUQw`.
+
+Pick **up to 3** videos related to the webinar theme and keywords (match on video titles and descriptions), most relevant first (recent preferred, older allowed if clearly on-theme). If nothing relates, show the single most recent video or omit the section; never pad. The `/videos` page and RSS are JS-rendered and can come back empty to a plain fetch, so try a real browser render before declaring a source unreachable. Relative ages are a drafting check only; never print them.
+
+## Copy: engagement rules
+
+- **Hook first.** Every headline states the payoff or the tension, not the topic. Not "Webinar on MCP testing" but "Your agents pass the demo. Here is why they fail in prod."
+- **Short.** Bullets are 1–2 lines. Rundown lines are 1–2 sentences. Lead each bullet with a bolded key phrase.
+- **Specific.** Numbers, product names, and concrete outcomes beat adjectives. Never invent a stat; use only what the source says.
+- **Second person, conversational**, third person for shipped features ("we've shipped"). No marketing words: "supercharge", "unlock", "revolutionize", "leverage", "game-changer".
+- **One CTA per block**, clear verb, bold link text. Webinar CTA appears **twice** (top and sign-off). Blog and video CTAs name the thing ("Read the post", "Watch the demo"), never "click here".
+- **Emoji:** one emoji at the start of each `<h2>`/`<h3>` headline, and in the digest preview, as in the reference newsletters. Pick meaningful ones, no strings of emoji, none inside body sentences. (This reverses the old no-emoji rule on purpose.)
+- **Reader prompt in the sign-off.** End with one question tied to the theme that invites a comment (LinkedIn ranks comments), e.g. "What is the hardest part of testing agents today? Tell us in the comments."
+
+## Edition title (review gate)
+
+After the theme is set from the webinar copy and **before pulling blog or video content or drafting anything else**, write **three distinct title options**, each built from the webinar copy's own language (its title, description, or learning objectives) rather than invented phrasing, (a hook, not a description; each structured differently; confident, dev-focused, a little wry, no exclamation marks). Present all three; the human picks, requests a revision, or supplies their own. Do not continue until one is approved.
+
+The approved title is used verbatim in three places: the body `<h1>`, `{{HEADLINE}}` on the cover graphic, and the suggested LinkedIn Newsletter edition title (call this out in the draft notification, since the human pastes it in).
+
+Also write one `{{HERO_BADGE}}` phrase, used verbatim as the bold line under the h1 and on the cover. **It is the subtitle: a hook about the newsletter's theme that continues the title.** It is not a label, a webinar promo or date, a list of what the edition contains, or a restatement of the webinar's workflow steps. The standing theme is where Postman sits in the reader's agentic coding toolchain (the plugin and skills inside the coding agent they already use), so state the cycle's version of that, grounded in the webinar copy and the picked content (e.g. title "The agentic SDLC fits in one terminal" + badge "POSTMAN, BUILT INTO THE CODING AGENT YOU ALREADY USE"). Uppercase, under about 60 characters so it fits the pill on one line. Only claim what the webinar copy and sources support. The webinar date and counts live in the body, not the badge.
 
 ## UTM tagging — non-negotiable
 
-Every single outbound link in the final draft must be run through `references/add_utm.py` before the draft is considered done. Never hand-write a UTM string. Convention:
+Every outbound link goes through `references/add_utm.py` before the draft is done. Never hand-write a UTM string.
 
-- `utm_source=linkedin`
-- `utm_medium=social`
-- `utm_campaign=dev-digest-{YYYY}-{MM}` (the month the digest covers, not the day it was generated)
-- `utm_content={section-slug}` — one of `product-updates`, `events`, `liftoff`, `youtube`, `hero` for the hero block's own link specifically, or `webinar` for the sub-hero webinar callout's own link specifically (see Hero highlight, above, and the sub-hero spec in Output Format below). Both the hero item and the monthly webinar get two tagged links when they also appear in their normal section listing: `hero`/`webinar` on the above-the-fold callout, the section's usual slug (`events`, etc.) on the section listing below
-
-Run it from this skill's own directory, e.g.:
+- `utm_source=linkedin`, `utm_medium=social`
+- `utm_campaign=dev-digest-{YYYY}-{MM}` (the month the digest covers)
+- `utm_content`: `webinar` (top webinar CTA), `webinar-footer` (sign-off CTA), `blog` (blog items), `youtube` (videos). Both webinar CTAs point to the Luma event URL.
 
 ```bash
-python3 references/add_utm.py "https://blog.postman.com/introducing-postman-ai/" "2026-10" "product-updates"
+python3 references/add_utm.py "https://blog.postman.com/example/" "2026-11" "blog"
 ```
 
-## Output format
+Some destinations (youtube.com, postman.com/liftoff) strip the UTM from the visible address bar after load via client-side routing. That is not a tagging bug; reproduce the click before re-tagging anything.
 
-This publishes through LinkedIn's actual **Newsletter** feature — but that editor behaves like a constrained, Google-Docs-style rich text box, confirmed by an actual paste test: it keeps a safe subset (real `<h1>`/`<h2>`/`<h3>` headings, `<strong>`/`<em>`, `<ul>`/`<ol>`/`<li>`, `<a href>` links, `<hr>`) and **strips everything else on paste** — custom `color`, `background`, `border`, `padding`, `font-family`, and any flex/inline-block layout. An earlier revision of this skill spent many cycles trying to port the cover graphic's full dark visual system (custom palette, glowing cards, colored method pills, a dot-grid background) into this file; none of it survives, no matter how it's built, because the editor's paste sanitizer removes it before it ever renders. **Design `newsletter-body.html` using only the safe subset — the design *is* what's left after paste, not a richer look you're hoping survives.** The cover graphic (see below) is the one place the full brand palette still appears, because it's a real PNG file, not pasted HTML. Produce five things every run:
+## Output
 
-1. **newsletter-body.html** — the actual article body, as plain semantic HTML with no inline styling and no `<style>` block, in the fixed order: **Hero → Webinar (sub-hero) → Events → Liftoff → YouTube → Product Updates.**
+Save to `newsletter-output/linkedin-insights/{YYYY-MM}/` (create as needed; never loose in the parent). Local only, never Google Drive or other cloud storage. Five artifacts:
 
-   **Hero block.** No container div, no background, no border, no "FEATURED THIS MONTH" eyebrow line — just content, top of the file, starting directly with the heading:
-   - The approved tagline (see the review gate in Hero highlight, above) as a real heading: `<h1>{title}</h1>`. This is the exact same tagline text, word for word, used as `{{HEADLINE}}` on the cover graphic (see Cover graphic, below) — one hook, written once, shared by both artifacts. Plain text, no color span — a highlighted word only makes sense where color can actually render (the cover graphic), not here.
-   - **A plain-text image placeholder** for a real in-article image from the hero item's own blog post (never its header/`og:image` — see the image pipeline, below; skip this line entirely if the post has no usable in-body image, which happens some cycles): `<p>[IMAGE: {filename}]</p>`.
-   - The same `{{HERO_BADGE}}` phrase used on the cover graphic this cycle, as a bold standalone line: `<p><strong>{HERO_BADGE text}</strong></p>` — the other piece of copy deliberately shared verbatim between the two artifacts.
-   - A 2–4 sentence marquee write-up with a real hook — the same copywriting bar as the title, not a mechanical "This month we're featuring X" sentence. End it with a genuine anchor-text link to the item, tagged `utm_content=hero`: `<a href="{UTM'd URL}">{link text}</a>`.
+### 1. newsletter-body.html
 
-   **Sub-hero webinar callout, directly under the hero, if one exists this cycle — plain paragraphs and a heading, no `<blockquote>`.** `<blockquote>` was tried here through three rounds and retired every time: it silently dropped every child after the first on paste, then (once collapsed to one paragraph) silently stripped every `<br>` inside that paragraph too, and even once that was worked around with punctuation instead of line breaks, it was still visibly a `<blockquote>` in the pasted result — which isn't the look wanted here. Don't bring `<blockquote>` back for this callout. Use the same plain structure as the rest of the hero block instead:
-   ```html
-   <p><strong>THIS MONTH'S WEBINAR</strong></p>
-   <p>[IMAGE: webinar-swirl.png]</p>
-   <h3>{webinar title}</h3>
-   <p><strong>{Day, Month Date}</strong> &middot; {time and timezone}</p>
-   <p>{1–2 sentence description}</p>
-   <p><strong><a href="{UTM'd LinkedIn Event URL}">Register Now</a></strong></p>
-   ```
-   This loses the visual indent/offset a blockquote would have given it — accepted tradeoff, not an oversight. The double-exposure pattern (full version here, condensed one-liner in the Events list below) still does the work of making the webinar feel distinct, even without a blockquote's visual framing. **The webinar always gets an image placeholder, every cycle, with no conditional skip** — but unlike every other image in this draft, it is never generated and never fetched from a URL. It's the human-supplied promo graphic asked for in the same breath as the LinkedIn Event URL (see Events, above), cover-cropped to the standard frame and corner-masked like any other real photo (see the image pipeline, below). If the human genuinely has no promo image to give this cycle, ask explicitly rather than silently falling back to a generated placeholder.
-   Real date/time values only, from the browser-rendered Luma event page (see Events, above) — never a placeholder. Labeled **"Register Now,"** never the platform's name. Tagged `utm_content=webinar`, a different slug from the `events` slug this same webinar's link carries in the full Events section listing below (mirroring the hero/section dual-tagging pattern). The URL is always the human-supplied **LinkedIn Event URL** (see Events, above) — never the Luma link, in either of its two tagged appearances.
-   - **If there's no webinar in-window this cycle**, skip this block entirely — don't substitute a meetup/conference, don't leave a placeholder.
+LinkedIn's Newsletter editor keeps only a safe subset on paste and strips everything else. Use **only**: `<h1>` `<h2>` `<h3>`, `<strong>`, `<em>`, `<ul>`/`<ol>`/`<li>`, `<a href>`, `<hr>`, `<p>`. No `style` attribute, no `<style>` block, no `<blockquote>` (retired after repeated paste failures: it drops children and strips `<br>`), no inline `<img>` (images are native uploads marked by placeholders), no tables. **Never type a literal em/en dash**; write `&mdash;` / `&ndash;`. Emoji are literal characters, so include `<meta charset="utf-8">` at the top of the file.
 
-   `<hr>` after the sub-hero (a real horizontal rule — safe, native, no styling needed), then straight into Events.
+Structure, in this order:
 
-   **The four standard sections, unfiltered (YouTube's 5-video cap aside), every run, in this order: Events (webinar CTA first), Liftoff, YouTube, Product Updates.** Each section is: a plain `<h2>SECTION NAME</h2>` in literal capitals (`EVENTS`, not `Events`), directly followed by its fixed tagline in italics (`<p><em>{tagline}</em></p>`), then — for Liftoff, YouTube, and Product Updates — **one single `[IMAGE: filename]` placeholder for the whole section**, then its content as a `<ul><li>` list, then `<hr>` before the next section. The image is a section-level placeholder, not attached to any one list item — never put it inside a `<li>`, and never give a section more than one. Events never gets one (no comparable image source for meetups/conferences/webinars). No method pill, no path row, no colored border, no card — those relied entirely on CSS that doesn't survive. Within list items, use `<strong>` for the title/name, plain `<a href="{UTM'd URL}">{readable link text}</a>` for links (never a bare pasted URL), and the plain-text parenthetical tags for item state: "(new)", "(updated)", "(featured)". Registration-type CTAs are **"Register Now"** (bold link), never the platform's name; a full/waitlisted event is **"Join Waitlist"** instead.
+```html
+<meta charset="utf-8">
+<h1>{approved title}</h1>
+<p><strong>{HERO_BADGE}</strong></p>
+<p>{Opener: 1–2 sentences, conversational, names the theme and why it matters this month. Starts with a greeting or a hook, never "This month we're featuring".}</p>
 
-   **The webinar's own entry inside the Events list is a single condensed line, not the full write-up again** — the sub-hero callout above already carries the full version: `<li><strong>{webinar title}</strong> &mdash; {date_line} &mdash; <a href="{UTM'd LinkedIn Event URL}">Register Now</a></li>`, one line, no separate description sentence. Both its "Register Now" appearances (the sub-hero callout and this condensed line) point to the human-supplied LinkedIn Event URL, not Luma.
+<p><strong>IN THIS DIGEST</strong></p>
+<ul>
+  <li>{emoji} {webinar hook, 6–10 words}</li>
+  <li>{emoji} {blog item 1 hook}</li>
+  <li>{emoji} {blog item 2 hook}</li>
+  <li>{emoji} {blog item 3 hook}</li>
+  <li>{emoji} {video hook}</li>
+</ul>
+<hr>
 
-   **Section taglines — one fixed line per section, every run, verbatim, never content-specific:**
-   - Events: `Where to catch us next — meetups, conferences, and webinars.`
-   - Liftoff: `Hands-on paths and modules, new and updated.`
-   - YouTube: `Fresh video drops from the Postman channel.`
-   - Product Updates: `What shipped on the blog this month.`
+<h2>{emoji} {webinar hook headline}</h2>
+<p>[IMAGE: webinar-promo.png]</p>
+<p><strong>The Rundown:</strong> {1–2 sentences: what it is and the payoff.}</p>
+<p><strong>{Day, Month Date}</strong> &middot; {time and timezone}</p>
+<p><strong>What you'll walk away with:</strong></p>
+<ul>
+  <li><strong>{key phrase}:</strong> {1 line}</li>
+  <li>... (3–5 bullets)</li>
+</ul>
+<p><strong>Why it matters:</strong> {2 sentences max, tie to a real developer pain.}</p>
+<p><strong><a href="{UTM'd Luma event URL, webinar}">Save your spot &rarr; Register Now</a></strong></p>
+<hr>
 
-   **Close with one plain line**, no styled footer, no brand mark div: `<p><em>postman developer digest</em></p>`.
+<h2>{emoji} Related reading</h2>   <!-- skip the whole section if no related posts -->
 
-   **Never type a literal em dash or en dash character.** Always write `&mdash;` / `&ndash;` instead, everywhere in this file. A raw UTF-8 em dash is three bytes, and any viewer that opens this fragment without an explicit UTF-8 declaration (likely, since it's a body fragment with no `<head>`) will misread those bytes as Windows-1252 and render the mangled `â€"` sequence instead of a dash. The HTML entity has no encoding to get wrong — this is purely a character-encoding concern, unrelated to the styling that got stripped above, and it still applies.
+<h3>{emoji} {hook headline for post 1}</h3>
+<p>[IMAGE: blog-1.png]</p>   <!-- only if a real in-body image exists -->
+<p><strong>The Rundown:</strong> {1–2 sentences.}</p>
+<p><strong>The details:</strong></p>
+<ul>
+  <li><strong>{key phrase}:</strong> {1 line}</li>
+  <li>... (3–4 bullets)</li>
+</ul>
+<p><strong>Why it matters:</strong> {1–2 sentences, ties back to the webinar theme.}</p>
+<p><strong><a href="{UTM'd URL, blog}">Read the post</a></strong></p>
 
-   **How this gets used**: open the file in a browser, select all, copy, and paste directly into the Newsletter editor's body. What survives that paste (headings, bold, italics, lists, links, `<hr>`) is the entire design — there is nothing else to check for visually, which is also why there's no more "paste-test and see what dropped out" step for this file. The one thing still worth doing once: confirm the heading levels rendered as actual LinkedIn headings (not plain bold text) and that every link is still a clickable link with its UTM intact, not a flattened plain-text URL.
+<hr>   <!-- always a divider between each blog item -->
+... posts 2 and 3 in the same shape, each preceded by an <hr> (max 3 total) ...
+<hr>
 
-   **A destination site may strip the UTM from its visible address bar after the click — that's the destination's own client-side routing, not a tagging bug.** Confirmed by actually clicking tagged links: `blog.postman.com` and `luma.com` keep the full query string visible after load; `youtube.com` and `www.postman.com/liftoff/...` canonicalize the URL client-side and the UTM disappears from the address bar once the page finishes loading, even though the tagged URL was the one actually requested. If a human reports "I don't see the UTM after clicking," check which destination they clicked — don't assume `add_utm.py` failed or re-tag anything without first reproducing the click yourself.
-2. **cover-graphic.png** — unchanged: `references/cover-template.html` filled with this month's content, rendered to an image, used as the Newsletter's cover image. This is the one artifact unaffected by the paste-stripping above, since it's uploaded as an image file, never pasted as HTML — the full dark/orange brand system belongs here now, not in the body.
-3. **Images — native-upload files only, marked in the body with plain-text placeholders, never an inline `<img>` tag.** An earlier revision of this skill tried a bare inline `<img src="data:...">` as a "free if it survives" bonus layer on top of the native files. Drop that entirely — every image in this draft (hero, Liftoff badges, YouTube thumbnails, and Product Updates header images, below) is uploaded natively through LinkedIn's own image button, full stop, and the body marks exactly where with a plain-text line that cannot be stripped because it isn't HTML at all: `<p>[IMAGE: {filename}]</p>`. This is also why `staging-checklist.md` (below) exists — it's the lookup table from each placeholder to the exact file and exact position.
+<h2>{emoji} Watch</h2>
+<p>[IMAGE: youtube-thumb.png]</p>   <!-- one image for the whole section -->
+<ul>
+  <li><strong>{video title}</strong> &mdash; {one-line hook}. <a href="{UTM'd URL, youtube}">Watch</a></li>
+  ... (up to 3)
+</ul>
+<hr>
 
-   **Sources — one image total per section (never per item), and for the hero and Product Updates, never the header/`og:image` banner.** Confirmed against real posts: WordPress and Astropods both default every post's `og:image` to a generic, often off-topic banner (a stock-style illustration, or just the word "Changelog" on a template graphic) — nothing like that belongs in the draft. The image has to be a real in-article image: a screenshot, diagram, or UI capture embedded in the post's own body content.
-   - **Hero** — fetch the hero item's blog post page and look at its actual body content for a real in-article image (a product screenshot, an architecture diagram) — never its header/`og:image`. **If the post genuinely has no in-body image** (some are text-only, no diagrams or screenshots at all), skip the hero image placeholder entirely for that cycle — don't fall back to the header banner, and don't substitute an unrelated image. This is a real, expected outcome some months, not a bug to work around.
-   - **Liftoff — one badge for the whole section, not one per item called out.** Pick whichever item (new, updated, featured, or the human-given challenge) is most representative of that cycle's Liftoff news — usually the actual new/updated module or path itself rather than a secondary challenge callout — and use its `badgeUrl` from the Liftoff API. (Badges are the one exception to the "no header images" rule — there's no separate in-body image to prefer, the badge *is* the asset.)
-   - **YouTube — one thumbnail for the whole section, not one per video.** Across the up-to-5 videos in-window, pick whichever single video's title or content is most relevant to this cycle's hero highlight/theme (e.g. a video that names the same product the hero announces), from `https://img.youtube.com/vi/{VIDEO_ID}/hqdefault.jpg`. Every video still gets its normal text list item (title, link, description) — the image is a single section-level visual, not attached to that video's own list item.
-   - **Product Updates — one image for the whole section, not one per post.** Fetch each post's page and find a real in-body image the same way as the hero (a screenshot, a diagram — not the header banner, not a "related articles" thumbnail from the bottom of the page, which belongs to a *different* post), then pick whichever single post's image is most representative of the section this cycle — don't place an image next to any individual post's list item. **If no post has a usable in-body image this cycle, skip the Product Updates placeholder entirely** — don't force the header banner as a substitute.
+<p>{Sign-off: 1–2 sentences, then the reader question.}</p>
+<p><strong><a href="{UTM'd Luma event URL, webinar-footer}">Register Now</a></strong></p>
+<p><em>postman developer digest</em></p>
+```
 
-   **The frame is 1200×675 — not 400×225.** An earlier revision used 400×225, and the images came out visibly blurry once pasted: LinkedIn's article column renders wider than 400px, so the browser was upscaling (and softening) every inline image. 1200px matches the cover graphic's own resolution and holds up at whatever width the column actually renders. Scale every other constant by the same 3× this implies: corner radius 16px → 48px, the badge-card margin 28px → 84px, the swirl's blur radius stays frame-height ÷ 5 (so it scales automatically). Always pull the highest-resolution source available rather than upscaling a small one to fit — YouTube's `maxresdefault.jpg` (1280×720) instead of `hqdefault.jpg` (480×360) when it exists (check with a HEAD request first; a real `maxresdefault` is tens of KB, a missing one comes back as a tiny placeholder — treat anything under a few KB as missing and fall back to `hqdefault.jpg`), and a blog image's full native-resolution file (no `-{width}x{height}` suffix, or the largest `srcset` candidate) instead of whatever smaller WordPress thumbnail size a plain scrape happens to surface first.
+Rules for the body:
+- The **digest preview bullets** must match, in order and in spirit, the headlines below them; no emoji reuse across bullets.
+- Registration-type CTA labels are **"Register Now"**, never a platform name (never "Register on Luma"/"LinkedIn"); a full event uses **"Join Waitlist"**.
+- Links always use readable anchor text, never bare URLs.
+- "Why it matters" and "The details" use bold lead-ins exactly as shown, so they scan like the references. Do not add new section labels per cycle.
+- No relative ages, no "(new)/(updated)/(featured)" tags, no explanations of how items were chosen.
+- If an in-body image is missing for a post, omit that placeholder; never fall back to the header banner.
 
-   **Every image gets the same shape, baked into the pixels, not left as CSS: rounded corners on top, square (90°) corners on the bottom.** This is a deliberate choice, not a shortcut — a `border-radius` in the HTML would be stripped by the paste sanitizer exactly like every other inline style, and a natively-uploaded image renders through LinkedIn's own display component, which exposes no styling hook to us either. The only way this shape survives either path is if it's part of the image file's own pixels. Use Pillow (or equivalent): build an alpha mask with `rounded_rectangle(..., corners=(True, True, False, False))` (top-left and top-right rounded, bottom two square), apply it to the final composited image, save as PNG (not JPEG — the rounded corners need real transparency, which JPEG can't hold).
+### 2. cover-graphic.png
 
-   **The Liftoff badge specifically gets a colorful blurred "swirl" card** — it's the one source image that's a small icon on a transparent background, not a photo, so there's nothing else to fill a rectangle with. Build the 1200×675 landscape frame: fill it with a soft, blurred swirl of the brand palette (`#FF6C37`, `#3FB6C9`, `#E0A63B`, `#E0637D`, `#4FA37A` — a few overlapping circles in random brand colors, then a heavy `GaussianBlur`, roughly frame-height ÷ 5), then composite the badge centered on top, scaled to fit inside a margin so the swirl shows as a visible border all the way around — the badge's own `badgeUrl` PNG already has real alpha transparency around the circular icon, so compositing it directly onto the swirl lets the blur show through everywhere the badge itself isn't, no extra masking needed. *Then* apply the rounded-top/square-bottom mask to the whole card, same as every other image.
+Fill `references/cover-template.html` (only tokens change, never layout, type, or color) and render to a **1200×627** PNG of the `.canvas` element (headless Chrome or similar). If no renderer is available, save the filled HTML and flag that the PNG export is manual this month.
 
-   **The webinar promo image, the YouTube thumbnail, and the Product Updates image do not get the swirl treatment** — all three are already real, complete images (a designed promo graphic, a photo, a screenshot), just not necessarily landscape-shaped already. Cover-crop each to the 1200×675 frame instead (scale so the shorter dimension fills the frame, then center-crop the overflow — or for Product Updates, which only needs a width match since its own aspect ratio is already close enough, a straight resize to 1200px wide), so the frame is filled edge-to-edge with real content. Apply the rounded-top/square-bottom mask directly — no background composite, no margin, no swirl, no generated content of any kind. The swirl card is specifically for the one case with nothing real to fill a rectangle with — the badge; every other image, the webinar's included, is real content supplied either by an API (badges, thumbnails) or by the human (the webinar promo), never manufactured.
-4. **staging-checklist.md — the exact manual sequence, in order, confirmed against reality rather than assumed.** Since native image upload is now the normal path (not an edge case), the human's remaining manual work is real and worth a precise runbook instead of "figure it out." Write a numbered checklist:
-   - Open `newsletter-body.html` in a browser, select all, copy.
-   - Start a new LinkedIn Newsletter edition; set its title to the approved tagline (the suggested edition title — see Hero highlight, above); upload `cover-graphic.png` as the cover image.
-   - Paste the copied content into the body; confirm headings rendered as real headings (not flattened bold paragraphs), the webinar callout's title/date/description/Register Now are all present (not just the "THIS MONTH'S WEBINAR" line), and links are still clickable with their UTM intact.
-   - For every `[IMAGE: filename]` placeholder in the pasted body (hero, each Liftoff badge, each YouTube thumbnail, each Product Updates header image), a table row mapping that exact placeholder text to the exact file to upload there, so this is a lookup, not a puzzle — the placeholder text itself is the key, so there's never any ambiguity about which image goes where.
-   - For each of the 5 YouTube videos, a separate line: click the media/embed icon in the Newsletter editor, paste this URL, click Add — naming the exact URL and video title per line.
-   - A final line: review once, then publish when ready (this skill never publishes itself).
-5. **The draft notification** (not a separate file) calls out the suggested edition title, and points to `staging-checklist.md` rather than re-explaining the same steps inline — one place for the runbook, not two.
+- `{{MONTH_LABEL}}` e.g. `November 2026`
+- `{{SEASON}}` lowercase, deterministic Northern hemisphere lookup (Dec/Jan/Feb winter, Mar/Apr/May spring, Jun/Jul/Aug summer, Sep/Oct/Nov autumn); never ask the human
+- `{{HEADLINE}}` the approved title verbatim, wrapped in the template's `<h1>`, with exactly **one** word or short phrase in `<span style="color:#FF6C37;">` (the word carrying the news, never a connecting word). No forced `<br>`.
+- `{{HERO_BADGE}}` the same phrase as the body, as `<div class="hero-badge">…</div>`. Never leave the literal token visible.
 
-Save everything to `newsletter-output/linkedin-insights/` in this repo, under a subfolder named for the month (e.g. `2026-10/`). Create the directories if they don't exist yet (`newsletter-output/` may already exist from other skills; `linkedin-insights/` and the month subfolder are this skill's own). Never save the month's output loose directly in `newsletter-output/` or `linkedin-insights/` as a fallback — it always goes inside the month subfolder. **This is a local filesystem save only — nothing in this skill writes to Google Drive or any other cloud storage.**
+The body `<h1>` is plain text (color cannot survive paste); only the cover gets the highlight.
 
-## Cover graphic — references/cover-template.html
+### 3. Images (native upload files, plain-text placeholders in the body)
 
-The template ships with this skill and never changes layout, type, or color — only its tokens change per run. Copy `references/cover-template.html`, replace every occurrence of these tokens with this month's content, and don't touch anything else in the file.
+Every image is uploaded through LinkedIn's image button and marked in the body by `<p>[IMAGE: {filename}]</p>`. Placeholders and files must be in **exact 1:1 correspondence**: never a placeholder without a saved file, never a file without a placeholder.
 
-**The canvas is 1200×627** — LinkedIn's actual link-preview/article-cover size (the `.canvas` element's own `width`/`height`, not a number to second-guess). That's a short, wide banner, not the tall card this template used to be, and the content reflects that: this cover's only job now is the headline landing fast — no room, and no need, for a rundown of all four sections. There is no teaser-line content on the cover anymore (no `{{EVENTS_TEASER}}`, `{{PRODUCT_TEASER}}`, `{{LIFTOFF_TEASER}}`, `{{YOUTUBE_TEASER}}` — those tokens no longer exist in the template; don't try to fill them).
+Images this edition: `webinar-promo.png` (from the Luma API `cover_url`), `blog-N.png` (one per related post, only when a real in-body image exists), `youtube-thumb.png` (one for the whole YouTube section, from the video most relevant to the theme).
 
-- `{{MONTH_LABEL}}` — e.g. `October 2026`
-- `{{SEASON}}` — one of `winter`, `spring`, `summer`, `autumn`, lowercase. Compute deterministically from the current calendar month, Northern hemisphere: Dec/Jan/Feb → winter, Mar/Apr/May → spring, Jun/Jul/Aug → summer, Sep/Oct/Nov → autumn. Never ask the human about this — it's a fixed calendar lookup, not an editorial choice. Drives the corner glow color only now (a subtle, color-only accent in the bottom-right — the dot-grid tint itself no longer varies by season), and is displayed in the edition line ("// autumn.October 2026 edition") so a viewer can tell why the glow shifted — the template capitalizes it automatically for display, so keep it lowercase here.
-- `{{HEADLINE}}` — **the exact same approved tagline used for the body's `<h1>`** (see Hero highlight's review gate, and the hero block spec in Output Format, above), including its one orange-highlighted word/phrase, wrapped in the template's existing `<h1>` tag. This is a deliberate unification: the cover and the body open with identical copy now, not two separately-crafted headlines — the old three-line, `<br>`-broken cover-only headline shape is retired along with the tall layout it was built for. Wrap the one highlighted word exactly the way the body hero does: `<span style="color:#FF6C37;">`. If the tagline is short enough to read as one line at 48px within the canvas width, let it; if it wraps to two lines naturally, that's fine too — never force a line break with `<br>` to hit a specific line count, and never write a second, different headline for the cover.
-- `{{HERO_BADGE}}` — **the exact same approved hero-badge pill text used in the body's hero block** (see Output Format, above) — the other piece of copy deliberately shared verbatim between the two artifacts, not independently written here. Wrap it exactly like this:
-  ```html
-  <div class="hero-badge">THE CONTEXT GRAPH IS LIVE</div>
-  ```
-  Never leave the literal text `{{HERO_BADGE}}` visible in the rendered output — that's a broken substitution, not an empty one, and this token is never optional.
+Processing for all of them (Pillow):
+- **Frame 1200×675.** Smaller frames came out blurry in LinkedIn's wide column. Use the highest-resolution source: YouTube `maxresdefault.jpg` when real (HEAD check; under a few KB means missing, fall back to `hqdefault.jpg`), a blog image's full native file rather than a `-{w}x{h}` thumbnail.
+- **Cover-crop** to fill the frame (scale the shorter side to fit, center-crop the overflow). No padding, no generated backgrounds, no swirl cards.
+- **Rounded top corners, square bottom corners, baked into the pixels** (`rounded_rectangle(..., corners=(True, True, False, False))` alpha mask, radius 48px). CSS cannot do this since it gets stripped. Save as **PNG** for real transparency.
+- Never use a header/`og:image` banner or a "related articles" thumbnail from the page bottom.
 
-Then render the filled HTML to a 1200×627 PNG, matching the template's own `.canvas` dimensions (open it in a browser and capture the `.canvas` element, or use whatever headless-render tool is available in this environment) and save as `cover-graphic.png`. If no render/screenshot capability is available in a given run, save the filled HTML itself and flag in the notification that the PNG export step needs to be run manually that month.
+### 4. staging-checklist.md
+
+The exact manual runbook, every line naming a specific file or URL:
+1. Open `newsletter-body.html` in a browser, select all, copy.
+2. Start a new LinkedIn Newsletter edition; set its title to the approved title; upload `cover-graphic.png` as the cover.
+3. Paste the body. Confirm headings rendered as real headings (not flattened bold), emoji rendered, bullets are real lists, and every link is clickable with its UTM intact (not flattened to plain text).
+4. A lookup table, one row per `[IMAGE: …]` placeholder, mapping exact placeholder text to exact file and position.
+5. For each YouTube video, one line: click the media/embed icon, paste this exact URL, click Add (the thumbnail is a static image, not a player; the embed is a separate manual step).
+6. Review once, then publish when ready. This skill never publishes.
+
+### 5. The draft notification (chat message, not a file)
+
+Names the suggested edition title, the webinar, and the keywords used to find content, lists which blog posts and videos were picked and why they relate (one line each), flags anything skipped (no in-body image, no webinar, renderer missing), and points to `staging-checklist.md` instead of re-explaining the steps.
+
+## Run order
+
+1. Find the in-window webinar via the Luma API. Pull the date, time, URL, cover image, and full copy from the Luma API. Ask the human only if something is missing (no webinar in-window, or no usable promo image).
+2. Extract the theme and keywords from the webinar copy. Write three title options from that copy. **Wait for approval.**
+3. Pull related blog posts and videos; select max 3 posts and up to 3 videos.
+4. Draft the body, run every link through `add_utm.py`, build images, fill and render the cover, write the checklist.
+5. Report in the draft notification.
 
 ## What this skill must never do
 
-- Never skip reading or writing `liftoff-state.json` — without it, every module looks new every month, which is exactly the false-positive problem state tracking exists to fix.
-- Never skip asking about the Liftoff challenge — that's an editorial call, not something the API or state file can answer.
-- Never skip asking for the hero highlight at the start of a run, scheduled or not — assuming there isn't one and drafting straight through defeats the point of asking.
-- Never treat the hero highlight as a content filter — it changes what gets featured above the fold and tagged "(featured)," never what gets pulled from the four sources. Every run aggregates everything in-window, same as before.
-- Never bury the hero highlight only in its normal section listing without the above-the-fold hero block — the hero block is mandatory every run, not optional polish.
-- Never skip the tagline review gate — draft three real, distinct options and get one approved before touching any of the four sources or drafting anything else, not just before writing the hero block itself.
-- Never fabricate a sub-hero webinar callout when there's no webinar in-window this cycle — skip the block entirely rather than substituting a meetup or conference into it, or leaving an empty/placeholder container.
-- Never give the sub-hero webinar callout's link the same `utm_content` as that same webinar's link in the full Events section listing — the callout always gets `utm_content=webinar`, the section listing keeps `utm_content=events`.
-- Never write out the webinar's full title/date/description a second time in the Events list — the Events-list entry is always the condensed one-liner. Repeating the full write-up twice back-to-back is the exact bug this split was meant to fix.
-- Never use `<blockquote>` anywhere in `newsletter-body.html`, for the webinar callout or anything else — it went through three rounds of live failures (drops every child after the first, then strips every `<br>` inside the one child it keeps, and even fixed up it's still visibly a blockquote, which isn't wanted here) before being retired for good. Use plain `<p>`/`<h3>` instead, every time.
-- Never leave `{{HERO_BADGE}}` empty, or the literal text `{{HERO_BADGE}}` visible in the rendered graphic — every edition has a hero highlight, so this token is always populated with real copy.
-- Never fall back to old fixed, non-hero headline text for `{{HEADLINE}}` — it's always written fresh from this cycle's hero highlight now, every run.
-- Never write a separate headline for the cover graphic — `{{HEADLINE}}` is the approved tagline, verbatim, the same text as the body hero's `<h1>`. Two different hooks for the same hero highlight is the bug this unification was meant to end.
-- Never try to fit the cover's old four-row rundown (or the `{{EVENTS_TEASER}}`/`{{PRODUCT_TEASER}}`/`{{LIFTOFF_TEASER}}`/`{{YOUTUBE_TEASER}}` tokens that drove it) back into the template — the canvas is 1200×627 now, a short landscape banner built to land one headline fast, not a tall card with room for a section-by-section summary.
-- Never open the hero block with a mechanical disclaimer like "This month's featured item is X" — write a real hook with the same copywriting care as the title itself.
-- Never explain the mechanics of why an item is tagged "(new)", "(updated)", or "(featured)" in prose above a list — tag each item inline and move on. Same for item freshness: never print a relative age ("1 day old") in the body copy; that's a drafting check, not reader content.
-- Never use emoji as a visual marker anywhere in `newsletter-body.html` — not on `<h2>` section headers, not as a "new"/"updated"/"featured" flag on a list item. It reads as clip art in a B2B newsletter. Use literal capitalized heading text and plain text tags in parentheses for item-level flags instead.
-- Never conclude a source is "unreachable" from a plain text/HTTP fetch alone when that source is known to be JS-rendered (YouTube's `/videos` page is the current example) — fall back to an actual browser render before reporting the section empty.
-- Never report an event's date as "unconfirmed" based on a plain fetch of its Luma event page — the date/time widget is JS-rendered and a plain fetch can come back with no date text even when the event has a real, confirmed date. Open it in a browser before concluding anything about timing.
-- Never treat the 45-day forward window for Events as "roughly" — it's a hard cutoff. An event past day 45 waits for the cycle it's actually in-window for.
-- Never publish, post, or schedule the LinkedIn post itself. This skill's job ends at producing a reviewed-ready package in `newsletter-output/linkedin-insights/`. Posting to LinkedIn is a manual, human action every time.
-- Never write any part of this skill's output to Google Drive or any other cloud storage — everything saves locally to `newsletter-output/linkedin-insights/{YYYY-MM}/` (and `liftoff-state.json` at the `linkedin-insights/` root).
-- Never skip the UTM script, even for a link that "looks fine" already — and never give the hero block's link the same `utm_content` as that item's normal section when it has one; the hero block always gets `utm_content=hero`.
-- Never carry over last month's content if a source has nothing new — say so plainly in the draft (e.g. "No new events posted this month") rather than padding with old material.
-- Never add a `style` attribute, a `<style>` block, or any custom `color`/`background`/`border`/`padding`/`font-family` to `newsletter-body.html` — confirmed by an actual paste test, LinkedIn's Newsletter editor strips all of it. Design with only the safe subset (`<h1>`/`<h2>`/`<h3>`, `<strong>`, `<em>`, `<ul>`/`<ol>`/`<li>`, `<a href>`, `<hr>` — not `<blockquote>`, which was tried and retired; see Hero highlight's sub-hero spec) — this is not a lesser version of a "real" design, it's the only version that actually ships.
-- Never resurrect the dark cover-matched system (method pills, glowing cards, colored borders, the dot-grid background, the brand-orange link color, the styled footer) inside `newsletter-body.html` — that whole direction was tried, tested against the real editor, and confirmed not to survive. It stays retired. The cover graphic (a real PNG, not pasted HTML) is the one place that system still belongs.
-- Never invent or stock-photo a hero image when the hero item genuinely has none (an off-source hero like a launch or milestone, with no blog post behind it) — skip the image placeholder line entirely rather than reaching for a generic picture. When the hero item does have a real image (most months, since it's usually a blog post), always include its placeholder — this reverses the hero block's own earlier "text-only, no exceptions" rule, now that there's a working image pipeline; don't revert to text-only by habit.
-- Never show more than 5 YouTube videos in the body — if more than 5 are in-window, feature only the 5 most recent; if fewer than 5 are in-window, show what's there and never pad toward 5 with older material.
-- Never reshuffle the fixed section order — Hero → Webinar (sub-hero) → Events → Liftoff → YouTube → Product Updates, every run, regardless of that cycle's content.
-- Never name the specific registration platform in a CTA's visible label (e.g. "Register on Luma") — registration actions always say "Register Now," full/waitlisted events always say "Join Waitlist." The href still points wherever it needs to; only the visible text is platform-neutral.
-- Never use a Luma link as a webinar's registration href, in either of its two tagged appearances (sub-hero callout, Events section listing) — a webinar's registration destination is always the human-supplied LinkedIn Event URL. Luma only ever supplies that webinar's title, date, and time for discovery; meetups and conferences keep registering through their own Luma links, unchanged.
-- Never imply a YouTube video is already a playable embed just because its thumbnail got uploaded — the thumbnail is a static image, not a player; turning it into an actual inline player is still a separate manual action in the Newsletter editor's own "insert media" step, and `staging-checklist.md` must spell that out per video.
-- Never add an inline `<img>` tag of any kind to `newsletter-body.html` — not a `data:` URI, not a remote `src`. Every image is a native-upload file plus a `[IMAGE: filename]` plain-text placeholder marking its spot; an earlier revision tried the `data:` URI as a "bonus if it survives" layer on top of that, and it's retired along with the rest of the CSS-dependent design.
-- Never leave a `[IMAGE: filename]` placeholder in the body without a matching file actually generated and saved, and never generate a file without a matching placeholder in the body — `staging-checklist.md` only works if the two are in exact 1:1 correspondence, every run.
-- Never skip baking the rounded-top/square-bottom corner shape into an image file before saving it — every image this skill produces (hero, badges, thumbnails, Product Updates headers) gets it, not just some of them, and it has to be in the pixels since no CSS survives either the paste or LinkedIn's own native image renderer.
-- Never use the Liftoff badge as-is, uncomposited — it's a small icon on a transparent background and reads as an odd shape dropped into a run of rectangular cards. Always build the blurred brand-color swirl card first and composite the badge onto it before applying the corner mask.
-- Never apply the swirl-card treatment to the webinar promo image, the YouTube thumbnail, the hero image, or a Product Updates image — all are real, complete images and get cover-cropped to fill the frame directly, never padded with a generated background. The swirl card is specifically for the badge, the one case with no real photo to work with.
-- Never generate a swirl card (or anything else) for the webinar image instead of asking the human — an earlier revision assumed no real asset could ever exist for a webinar and manufactured an abstract placeholder; that assumption was wrong, confirmed when a human supplied a real promo graphic on the first ask. The webinar's image is always human-supplied, asked for in the same breath as its LinkedIn Event URL, and skipped (not faked) on the rare cycle where the human genuinely has none to give.
-- Never generate an image at a small size (the 400×225 frame from an earlier revision) and let the browser upscale it to fit LinkedIn's actual column width — that's what caused the blurriness a human caught. The frame is 1200×675; pull the highest-resolution source available (YouTube's `maxresdefault.jpg` over `hqdefault.jpg` when it's real and not a placeholder; a blog image's full native file over a smaller WordPress thumbnail size) rather than upscaling a small source to fit a bigger frame.
-- Never reuse the hero's own image as the Product Updates section image, even if that post's image is genuinely the best candidate — pick the next-best post's image instead, so the same picture never appears twice in one draft.
-- Never use a blog post's header/`og:image` banner for the hero or the Product Updates section image — always a real in-article image (screenshot, diagram) from inside a post's own body content. If no candidate post has a usable in-body image this cycle, skip that placeholder entirely rather than falling back to a header banner or borrowing an unrelated "related articles" thumbnail from the bottom of a page.
-- Never give Liftoff, YouTube, or Product Updates more than one image placeholder in a single cycle, and never attach it to a specific list item — it's one placeholder per section, sitting under the tagline and above the list, representing the section as a whole.
-- Never skip generating `staging-checklist.md`, and never let it go generic ("upload the images where they belong") — every line names a specific file or URL and a specific position in the body, every run. This is what makes native upload a fast mechanical sequence instead of a scavenger hunt.
-- Never re-explain the staging steps inline in the draft notification once `staging-checklist.md` exists — point to the file instead of maintaining the same runbook in two places that can drift out of sync.
-- Never skip the per-section tagline — the four lines are fixed verbatim, never rewritten per cycle, and never dropped even though the surrounding card/border/pill styling that used to frame them is gone.
-- Never let the hero block's bold badge-line copy diverge from that cycle's `{{HERO_BADGE}}` text on the cover graphic, or the `<h1>` tagline diverge from `{{HEADLINE}}` — both are the same copy, deliberately shared verbatim between the two artifacts, even though the body can no longer render them in color.
-- Never highlight more than one word or short phrase in orange within the cover graphic's `{{HEADLINE}}`, and never highlight a generic connecting word — it's reserved for the one word carrying that cycle's actual news. (This only applies to the cover now — the body hero's `<h1>` is plain text, since color can't render there.)
-- Never type a literal em dash (—) or en dash (–) character into `newsletter-body.html` — always `&mdash;` / `&ndash;`. A raw one renders as `â€"` the moment anything opens this fragment without assuming UTF-8, which is the default case for a bare body fragment. This is a character-encoding rule, unrelated to the styling that got stripped — it still applies.
-- Never skip the one remaining post-paste check — confirm headings rendered as actual LinkedIn headings (not flattened to plain bold paragraphs) and that every link is still a live, clickable link with its UTM intact, not a flattened plain-text URL. There is nothing else left to visually verify, since there's no more styling that could have silently dropped out.
+- Never place two blog items back to back without an `<hr>` divider between them. Every related-reading post is separated from the next by a horizontal rule, every run.
+- Never exceed **3 blog items**, add a fourth section (Events, Liftoff, Product Updates), or pad with unrelated posts to reach a count.
+- Never pick content that does not relate to the webinar theme just because it is recent.
+- Never skip the title review gate: three real, distinct options and one approved before any source pulling or drafting.
+- Never use `<blockquote>`, `<img>`, tables, a `style` attribute, or a `<style>` block in `newsletter-body.html`.
+- Never type a literal em dash or en dash into the body; always `&mdash;` / `&ndash;`.
+- Never open with a mechanical disclaimer ("This month we're featuring…") or write topic-label headlines instead of hooks.
+- Never invent statistics, quotes, or product claims; use only what the source says. No customer names in product-update copy.
+- Never name the platform in a CTA label. The registration href is the webinar's Luma event URL.
+- Never take a webinar's date from a URL slug, a page summary, or memory; use the Luma API `start_at` and `timezone`.
+- Never invent a theme, title, or keyword list that is not grounded in the webinar copy, and never search for related content before the title is approved.
+- Never generate or fake the webinar's promo image; use the Luma `cover_url`, ask the human if it is unusable, and skip it if they have none. Never ship a crop that cuts off the date.
+- Never report a date as unconfirmed, or a JS-rendered source as empty, from a plain fetch alone.
+- Never skip the UTM script, or reuse a `utm_content` slug across different roles (webinar top vs. footer, blog, youtube).
+- Never leave `{{HERO_BADGE}}` or any `{{TOKEN}}` visible in the rendered cover, and never write a second, different headline for the cover.
+- Never highlight more than one word or phrase in the cover headline.
+- Never use a header/`og:image` banner as an in-body image.
+- Never skip baking rounded-top/square-bottom corners into every image, or generate at a size smaller than 1200×675.
+- Never skip `staging-checklist.md`, never let it go generic, and never duplicate its steps in the notification.
+- Never publish, post, or schedule the LinkedIn newsletter. This skill ends at a reviewed-ready package.
+- Never write output to Google Drive or any cloud storage.
+- Never carry over last month's content; if a source has nothing relevant, say so plainly instead of padding.
