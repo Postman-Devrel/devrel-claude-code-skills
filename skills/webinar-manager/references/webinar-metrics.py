@@ -3,13 +3,16 @@
 
 Usage:
   webinar-metrics.py youtube <video_id_or_url>
+  webinar-metrics.py youtube-analytics <video_id_or_url> <start YYYY-MM-DD> [end]   # owner Analytics via the QBR OAuth token
   webinar-metrics.py slack-post <message.txt> [--channel #developer-relations] [--thread-ts TS] [--apply]
   webinar-metrics.py history-add <history.csv> <row.json>   # upsert one webinar by slug
   webinar-metrics.py history-show <history.csv>             # trend table with change vs previous
+  webinar-metrics.py chart <history.csv> [out.html]         # self-contained HTML chart, one panel per metric
 
-Env: SLACK_BOT_TOKEN (chat:write). YOUTUBE_API_KEY (Data API v3) is optional: without it,
+Env: YT_OAUTH_CLIENT_ID, YT_OAUTH_CLIENT_SECRET, YT_OAUTH_REFRESH_TOKEN (same as qbr-metrics) for youtube-analytics. SLACK_BOT_TOKEN (chat:write). YOUTUBE_API_KEY (Data API v3) is optional: without it,
 `youtube` reads the public watch page, which gives views and likes but no comment count.
 slack-post prints the message and writes nothing unless --apply is passed.
+history-add also rewrites metrics-chart.html next to the CSV, so every metrics run refreshes the chart.
 """
 
 import csv
@@ -29,6 +32,7 @@ HISTORY_COLUMNS = [
     "luma_registered", "luma_waitlisted", "luma_checked_in", "linkedin_registrations",
     "yt_views", "yt_avg_view_seconds", "yt_watch_hours", "yt_engaged_views", "yt_likes", "yt_chat_messages",
     "li_viewers", "li_avg_watch_seconds", "li_engagement_pct", "li_comments",
+    "li_post_impressions", "li_post_reactions", "li_post_comments",
     "updated",
 ]
 TREND_COLUMNS = [
@@ -108,6 +112,42 @@ def cmd_youtube(value):
     }, indent=2))
 
 
+def cmd_youtube_analytics(value, start, end=None):
+    """Channel-owner numbers (engaged views, watch time, average view duration) from the YouTube Analytics API.
+    Live chat message counts are not exposed by any API after the stream ends, so they stay Studio-only."""
+    for k in ("YT_OAUTH_CLIENT_ID", "YT_OAUTH_CLIENT_SECRET", "YT_OAUTH_REFRESH_TOKEN"):
+        if not os.environ.get(k):
+            sys.exit(f"{k} is not set (same credentials as qbr-metrics; see skills/qbr-metrics/references/youtube-oauth-setup.py)")
+    vid = video_id(value)
+    tok = _post_form("https://oauth2.googleapis.com/token", {
+        "client_id": os.environ["YT_OAUTH_CLIENT_ID"], "client_secret": os.environ["YT_OAUTH_CLIENT_SECRET"],
+        "refresh_token": os.environ["YT_OAUTH_REFRESH_TOKEN"], "grant_type": "refresh_token"})
+    h = {"Authorization": "Bearer " + tok["access_token"]}
+    channel = os.environ.get("YT_CHANNEL_ID", "UCocudCGVb3MmhWQ1aoIgUQw")
+    metrics = ["views", "engagedViews", "estimatedMinutesWatched", "averageViewDuration", "likes", "comments", "shares", "subscribersGained"]
+    qs = urllib.parse.urlencode({"ids": f"channel=={channel}", "startDate": start,
+                                 "endDate": end or datetime.date.today().isoformat(),
+                                 "metrics": ",".join(metrics), "filters": f"video=={vid}"})
+    req = urllib.request.Request("https://youtubeanalytics.googleapis.com/v2/reports?" + qs, headers=h)
+    try:
+        rows = json.load(urllib.request.urlopen(req, timeout=30)).get("rows") or []
+    except urllib.error.HTTPError as e:
+        sys.exit(f"YouTube Analytics failed: HTTP {e.code} {e.read()[:200]!r}")
+    if not rows:
+        sys.exit("No Analytics rows for that video and date range.")
+    out = dict(zip(metrics, rows[0]))
+    out.update(video_id=vid, watch_hours=round(out["estimatedMinutesWatched"] / 60, 1))
+    print(json.dumps(out, indent=2))
+
+
+def _post_form(url, fields):
+    req = urllib.request.Request(url, data=urllib.parse.urlencode(fields).encode())
+    try:
+        return json.load(urllib.request.urlopen(req, timeout=30))
+    except urllib.error.HTTPError as e:
+        sys.exit(f"Token refresh failed: HTTP {e.code} {e.read()[:200]!r}")
+
+
 def cmd_slack_post(path, channel, thread_ts, apply):
     text = open(path).read().strip()
     if not text:
@@ -139,7 +179,7 @@ def read_history(path):
     if not os.path.exists(path):
         return []
     with open(path, newline="") as f:
-        return list(csv.DictReader(f))
+        return [{c: r.get(c) or "" for c in HISTORY_COLUMNS} for r in csv.DictReader(f)]
 
 
 def cmd_history_add(path, row_path):
@@ -166,6 +206,7 @@ def cmd_history_add(path, row_path):
         w.writeheader()
         w.writerows(rows)
     print(f"{'Added' if is_new else 'Updated'} {row['slug']} in {path} ({len(rows)} webinars)")
+    cmd_chart(path)
 
 
 def num(v):
@@ -215,12 +256,87 @@ def cmd_history_show(path):
         print(f"  {h}: {fmt(c, cur)}" + (f" ({', '.join(parts)})" if parts else " (no earlier value to compare)"))
 
 
+# Categorical series colors (light, dark), fixed order, one per webinar (latest 8 shown).
+SERIES = [("#2a78d6", "#3987e5"), ("#eb6834", "#d95926"), ("#1baf7a", "#199e70"), ("#eda100", "#c98500"),
+          ("#e87ba4", "#d55181"), ("#008300", "#008300"), ("#4a3aa7", "#9085e9"), ("#e34948", "#e66767")]
+CHART_COLUMNS = TREND_COLUMNS + [("yt_watch_hours", "YT watch hours"), ("yt_likes", "YT likes"),
+                                 ("li_post_impressions", "LI post impressions"), ("li_post_reactions", "LI post reactions"),
+                                 ("li_post_comments", "LI post comments")]
+
+CHART_CSS = """
+:root{--bg:#f7f7f5;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--grid:#e6e5e0;%(light)s}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121211;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--grid:#2d2d2b;%(dark)s;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#121211;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--grid:#2d2d2b;%(dark)s;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:28px 16px}
+.wrap{max-width:900px;margin:0 auto}h1{font-size:1.4rem;margin:0}.sub{color:var(--ink2);margin:4px 0 16px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--ink2);font-size:.85rem;margin-bottom:16px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--grid);border-radius:8px;padding:14px;min-width:0}
+h2{font-size:.95rem;margin:0 0 10px}.row{display:grid;grid-template-columns:54px 1fr auto;gap:8px;align-items:center;margin:6px 0}
+.row span{color:var(--ink2);font-size:.8rem}.track{height:14px}.bar{height:14px;border-radius:0 4px 4px 0}
+.val{font-variant-numeric:tabular-nums;font-weight:600;font-size:.85rem}.na{color:var(--ink2);font-weight:400}
+.note{color:var(--ink2);font-size:.85rem;margin-top:16px}
+"""
+
+
+def cmd_chart(path, out=None):
+    rows = read_history(path)
+    if not rows:
+        sys.exit("No history yet. Run metrics for a finished webinar first.")
+    rows = rows[-len(SERIES):]
+    out = out or os.path.join(os.path.dirname(os.path.abspath(path)), "metrics-chart.html")
+    esc = lambda t: (t or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    light = ";".join(f"--s{i}:{c[0]}" for i, c in enumerate(SERIES))
+    dark = ";".join(f"--s{i}:{c[1]}" for i, c in enumerate(SERIES))
+    legend = "".join(f'<span><i style="background:var(--s{i})"></i>{esc(r["date"])} {esc(r["title"])}</span>'
+                     for i, r in enumerate(rows))
+    cards, missing = [], []
+    for col, head in CHART_COLUMNS:
+        vals = [num(r[col]) for r in rows]
+        top = max((v for v in vals if v is not None), default=None)
+        if top is None:
+            missing.append(head)
+            continue
+        body = ""
+        for i, (r, v) in enumerate(zip(rows, vals)):
+            label = esc(r["date"][5:])
+            if v is None:
+                body += f'<div class="row"><span>{label}</span><div></div><b class="val na">not captured</b></div>'
+            else:
+                w = max(v / top * 100, 1) if top else 1
+                body += (f'<div class="row" title="{esc(r["title"])}: {fmt(col, v)}"><span>{label}</span>'
+                         f'<div class="track"><div class="bar" style="width:{w:.1f}%;background:var(--s{i})"></div></div>'
+                         f'<b class="val">{fmt(col, v)}</b></div>')
+        cards.append(f'<section class="card"><h2>{esc(head)}</h2>{body}</section>')
+    sums = []
+    for col, head in CHART_COLUMNS:
+        if col.endswith("_seconds") or col.endswith("_pct"):
+            continue
+        v = [num(r[col]) for r in rows if num(r[col]) is not None]
+        if v:
+            sums.append(f'<div class="card"><h2>{esc(head)}</h2><b class="val">{sum(v):,.4g}</b>'
+                        f'<span class="na"> across {len(v)} of {len(rows)} webinars</span></div>')
+    totals = f'<h2 style="margin:18px 0 10px">All webinars combined</h2><div class="grid">{"".join(sums)}</div>'
+    note = f'<p class="note">Not captured for any webinar yet: {", ".join(missing)}.</p>' if missing else ""
+    html = (f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<title>Webinar Metrics</title><style>{CHART_CSS % {"light": light, "dark": dark}}</style>'
+            f'<div class="wrap"><h1>Webinar metrics</h1><p class="sub">Updated {datetime.date.today().isoformat()}. '
+            f'Each panel has its own scale. A blank means the value was not captured.</p>'
+            f'<div class="legend">{legend}</div>{totals}<h2 style="margin:18px 0 10px">By metric</h2><div class="grid">{"".join(cards)}</div>{note}</div>')
+    with open(out, "w") as f:
+        f.write(html)
+    print(f"Chart written to {out}")
+
+
 def main(argv):
     if len(argv) < 3:
         sys.exit(__doc__)
     cmd = argv[1]
     if cmd == "youtube":
         cmd_youtube(argv[2])
+    elif cmd == "youtube-analytics" and len(argv) >= 4:
+        cmd_youtube_analytics(argv[2], argv[3], argv[4] if len(argv) > 4 else None)
     elif cmd == "slack-post":
         rest = argv[3:]
         channel, thread_ts = DEFAULT_CHANNEL, None
@@ -233,6 +349,8 @@ def main(argv):
         cmd_history_add(argv[2], argv[3])
     elif cmd == "history-show":
         cmd_history_show(argv[2])
+    elif cmd == "chart":
+        cmd_chart(argv[2], argv[3] if len(argv) > 3 else None)
     else:
         sys.exit(__doc__)
 

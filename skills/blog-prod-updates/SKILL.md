@@ -225,6 +225,12 @@ Run /devrel-skills:blog-write blog-output/prod-updates-YYMMDD.md to draft a blog
 
 ---
 
+## Featured Image for "What's new" Posts
+
+Every "What's new in Postman" post staged from this output uses the existing WordPress media item **Changelog-scaled.png** (media ID 19880, https://blog.postman.com/wp-content/uploads/2026/05/Changelog-scaled.png) as its featured image. Do not generate a header image for these posts and do not upload a new one. When staging, skip the header-image upload and set the featured image after staging with `POST /wp-json/wp/v2/posts/{id}` and `{"featured_media": 19880}`. Keep the post a draft: if the post has a future date, send `"status": "draft"` in the same request, because an update that omits it can flip the post to scheduled.
+
+---
+
 ## Product Stage Reference
 
 | Product Stage | External Use | Description |
