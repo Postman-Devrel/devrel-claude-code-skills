@@ -53,7 +53,7 @@ Pick **up to 3** videos related to the webinar theme and keywords (match on vide
 - **Specific.** Numbers, product names, and concrete outcomes beat adjectives. Never invent a stat; use only what the source says.
 - **Second person, conversational**, third person for shipped features ("we've shipped"). No marketing words: "supercharge", "unlock", "revolutionize", "leverage", "game-changer".
 - **One CTA per block**, clear verb, bold link text. Webinar CTA appears **twice** (top and sign-off). Blog and video CTAs name the thing ("Read the post", "Watch the demo"), never "click here".
-- **Emoji:** one emoji at the start of each `<h2>`/`<h3>` headline, and in the digest preview, as in the reference newsletters. Pick meaningful ones, no strings of emoji, none inside body sentences. (This reverses the old no-emoji rule on purpose.)
+- **No emoji.** None in headlines, the digest preview, body copy, or the cover graphic. Headlines carry the hook on their own. (This reverses the earlier use-emoji rule on purpose.)
 - **Reader prompt in the sign-off.** End with one question tied to the theme that invites a comment (LinkedIn ranks comments), e.g. "What is the hardest part of testing agents today? Tell us in the comments."
 
 ## Edition title (review gate)
@@ -84,7 +84,7 @@ Save to `newsletter-output/linkedin-insights/{YYYY-MM}/` (create as needed; neve
 
 ### 1. newsletter-body.html
 
-LinkedIn's Newsletter editor keeps only a safe subset on paste and strips everything else. Use **only**: `<h1>` `<h2>` `<h3>`, `<strong>`, `<em>`, `<ul>`/`<ol>`/`<li>`, `<a href>`, `<hr>`, `<p>`. No `style` attribute, no `<style>` block, no `<blockquote>` (retired after repeated paste failures: it drops children and strips `<br>`), no inline `<img>` (images are native uploads marked by placeholders), no tables. **Never type a literal em/en dash**; write `&mdash;` / `&ndash;`. Emoji are literal characters, so include `<meta charset="utf-8">` at the top of the file.
+LinkedIn's Newsletter editor keeps only a safe subset on paste and strips everything else. Use **only**: `<h1>` `<h2>` `<h3>`, `<strong>`, `<em>`, `<ul>`/`<ol>`/`<li>`, `<a href>`, `<hr>`, `<p>`. No `style` attribute, no `<style>` block, no `<blockquote>` (retired after repeated paste failures: it drops children and strips `<br>`), no inline `<img>` (images are native uploads marked by placeholders), no tables. **Never type a literal em/en dash**; write `&mdash;` / `&ndash;`. Include `<meta charset="utf-8">` at the top of the file so `&mdash;` and other characters render.
 
 Structure, in this order:
 
@@ -96,15 +96,15 @@ Structure, in this order:
 
 <p><strong>IN THIS DIGEST</strong></p>
 <ul>
-  <li>{emoji} {webinar hook, 6–10 words}</li>
-  <li>{emoji} {blog item 1 hook}</li>
-  <li>{emoji} {blog item 2 hook}</li>
-  <li>{emoji} {blog item 3 hook}</li>
-  <li>{emoji} {video hook}</li>
+  <li>{webinar hook, 6–10 words}</li>
+  <li>{blog item 1 hook}</li>
+  <li>{blog item 2 hook}</li>
+  <li>{blog item 3 hook}</li>
+  <li>{video hook}</li>
 </ul>
 <hr>
 
-<h2>{emoji} {webinar hook headline}</h2>
+<h2>{webinar hook headline}</h2>
 <p>[IMAGE: webinar-promo.png]</p>
 <p><strong>The Rundown:</strong> {1–2 sentences: what it is and the payoff.}</p>
 <p><strong>{Day, Month Date}</strong> &middot; {time and timezone}</p>
@@ -117,9 +117,9 @@ Structure, in this order:
 <p><strong><a href="{UTM'd Luma event URL, webinar}">Save your spot &rarr; Register Now</a></strong></p>
 <hr>
 
-<h2>{emoji} Related reading</h2>   <!-- skip the whole section if no related posts -->
+<h2>Related reading</h2>   <!-- skip the whole section if no related posts -->
 
-<h3>{emoji} {hook headline for post 1}</h3>
+<h3>{hook headline for post 1}</h3>
 <p>[IMAGE: blog-1.png]</p>   <!-- only if a real in-body image exists -->
 <p><strong>The Rundown:</strong> {1–2 sentences.}</p>
 <p><strong>The details:</strong></p>
@@ -134,7 +134,7 @@ Structure, in this order:
 ... posts 2 and 3 in the same shape, each preceded by an <hr> (max 3 total) ...
 <hr>
 
-<h2>{emoji} Watch</h2>
+<h2>Watch</h2>
 <p>[IMAGE: youtube-thumb.png]</p>   <!-- one image for the whole section -->
 <ul>
   <li><strong>{video title}</strong> &mdash; {one-line hook}. <a href="{UTM'd URL, youtube}">Watch</a></li>
@@ -148,7 +148,7 @@ Structure, in this order:
 ```
 
 Rules for the body:
-- The **digest preview bullets** must match, in order and in spirit, the headlines below them; no emoji reuse across bullets.
+- The **digest preview bullets** must match, in order and in spirit, the headlines below them.
 - Registration-type CTA labels are **"Register Now"**, never a platform name (never "Register on Luma"/"LinkedIn"); a full event uses **"Join Waitlist"**.
 - Links always use readable anchor text, never bare URLs.
 - "Why it matters" and "The details" use bold lead-ins exactly as shown, so they scan like the references. Do not add new section labels per cycle.
@@ -183,7 +183,7 @@ Processing for all of them (Pillow):
 The exact manual runbook, every line naming a specific file or URL:
 1. Open `newsletter-body.html` in a browser, select all, copy.
 2. Start a new LinkedIn Newsletter edition; set its title to the approved title; upload `cover-graphic.png` as the cover.
-3. Paste the body. Confirm headings rendered as real headings (not flattened bold), emoji rendered, bullets are real lists, and every link is clickable with its UTM intact (not flattened to plain text).
+3. Paste the body. Confirm headings rendered as real headings (not flattened bold), bullets are real lists, and every link is clickable with its UTM intact (not flattened to plain text).
 4. A lookup table, one row per `[IMAGE: …]` placeholder, mapping exact placeholder text to exact file and position.
 5. For each YouTube video, one line: click the media/embed icon, paste this exact URL, click Add (the thumbnail is a static image, not a player; the embed is a separate manual step).
 6. Review once, then publish when ready. This skill never publishes.
